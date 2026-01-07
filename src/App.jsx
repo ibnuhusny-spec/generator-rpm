@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   BookOpen, RefreshCcw, Sparkles, Wand2, Loader2, Moon, Sun, History, 
   Printer, FileDown, Edit, X, Trash2, Table, FileSignature, Key, 
-  AlertTriangle, Layers, Cpu, Activity, Terminal, List, CheckCircle
+  AlertTriangle, Layers, Cpu, Activity, Terminal, Menu, Check
 } from 'lucide-react';
 
 // --- UTILITIES AMAN ---
@@ -77,7 +77,7 @@ export default function RPMGenerator() {
   const [debugLog, setDebugLog] = useState(null);
   
   // State baru untuk Daftar Model
-  const [availableModels, setAvailableModels] = useState(null);
+  const [availableModels, setAvailableModels] = useState([]); // Default array kosong biar aman
   const [isCheckingModels, setIsCheckingModels] = useState(false);
   
   const [aiContent, setAiContent] = useState([]); 
@@ -170,12 +170,12 @@ export default function RPMGenerator() {
       return selectedModel === 'custom' ? customModelName : selectedModel;
   }
 
-  // Fungsi Baru: Cek Model apa saja yang tersedia untuk Key ini (DIPERBAIKI)
+  // Fungsi Baru: Cek Model apa saja yang tersedia untuk Key ini (VERSI ANTI CRASH)
   const checkAvailableModels = async () => {
       if (!userApiKey) return alert("Masukkan API Key dulu.");
       setIsCheckingModels(true);
       setErrorMsg(null);
-      setAvailableModels(null);
+      setAvailableModels([]); // Reset ke array kosong
       
       try {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${userApiKey}`);
@@ -183,19 +183,21 @@ export default function RPMGenerator() {
           
           if (!res.ok) throw new Error(data.error?.message || "Gagal mengambil daftar model");
           
-          if (data.models && Array.isArray(data.models)) {
+          if (data && data.models && Array.isArray(data.models)) {
               // Filter lebih ketat: pastikan 'name' ada agar tidak crash
               const validModels = data.models.filter(m => 
+                  m && // Pastikan m tidak null
                   m.name && // Cek nama ada
                   m.supportedGenerationMethods && 
                   m.supportedGenerationMethods.includes("generateContent")
               );
               setAvailableModels(validModels);
           } else {
-              throw new Error("Tidak ada model ditemukan atau format data salah.");
+              throw new Error("Format data dari Google tidak sesuai atau kosong.");
           }
       } catch (e) {
           setErrorMsg(`Gagal Cek Model: ${e.message}`);
+          setAvailableModels([]); // Pastikan tetap array jika error
       } finally {
           setIsCheckingModels(false);
       }
@@ -449,7 +451,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.6 (Fix)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.7 (Stable)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -497,19 +499,20 @@ export default function RPMGenerator() {
                 <button onClick={()=>saveKey(userApiKey)} className="bg-indigo-600 text-white px-4 py-2 rounded flex-1">Simpan Key</button>
                 <button id="btn-test" onClick={testConnection} className="bg-gray-600 text-white px-4 py-2 rounded flex items-center gap-1"><Activity size={14}/> Tes</button>
                 <button onClick={checkAvailableModels} disabled={isCheckingModels} className="bg-emerald-600 text-white px-4 py-2 rounded flex items-center gap-1">
-                    {isCheckingModels ? <Loader2 className="animate-spin" size={14}/> : <List size={14}/>} Cek Daftar Model
+                    {isCheckingModels ? <Loader2 className="animate-spin" size={14}/> : <Menu size={14}/>} Cek Daftar Model
                 </button>
             </div>
 
             {/* HASIL CEK DAFTAR MODEL */}
-            {availableModels && (
+            {/* Pengaman: Hanya tampilkan jika availableModels adalah Array dan ada isinya */}
+            {Array.isArray(availableModels) && availableModels.length > 0 && (
                 <div className="mt-2 bg-emerald-50 border border-emerald-200 p-3 rounded text-sm text-gray-800">
-                    <h4 className="font-bold flex items-center gap-2 mb-2 text-emerald-700"><CheckCircle size={14}/> Model yang Diizinkan untuk Key ini:</h4>
+                    <h4 className="font-bold flex items-center gap-2 mb-2 text-emerald-700"><Check size={14}/> Model yang Diizinkan untuk Key ini:</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                        {availableModels.map(m => {
+                        {availableModels.map((m, index) => {
                             const cleanName = m.name ? m.name.replace('models/', '') : 'Model Tanpa Nama';
                             return (
-                                <div key={m.name || Math.random()} className="flex justify-between items-center bg-white p-2 border rounded">
+                                <div key={m.name || index} className="flex justify-between items-center bg-white p-2 border rounded">
                                     <span className="font-mono text-xs">{cleanName}</span>
                                     <button onClick={() => selectFoundModel(m.name)} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-200">
                                         Pilih
