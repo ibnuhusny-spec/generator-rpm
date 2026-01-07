@@ -262,9 +262,18 @@ export default function RPMGenerator() {
   const cleanAIResponse = (text) => {
     if (!text) return "";
     // Hapus kalimat pembuka umum bahasa Indonesia AI
-    let cleaned = text.replace(/^(Tentu|Berikut|Baik|Ini|Silakan|Di bawah|Sebagai).*?(:|\n)/i, '');
+    let cleaned = text.replace(/^(Tentu|Berikut|Baik|Ini|Silakan|Di bawah|Sebagai|Halo).*?(:|\n)/i, '');
     // Hapus catatan akhir
     cleaned = cleaned.replace(/(Catatan|Note|Penting|Harap|Perlu diingat).*?$/is, '');
+    return cleaned.trim();
+  }
+
+  // --- HTML CLEANER (Hapus Simbol Markdown dari HTML) ---
+  const cleanHtmlContent = (text) => {
+    if (!text) return "";
+    let cleaned = text.replace(/```html/g, '').replace(/```/g, ''); // Hapus block code
+    // Hapus simbol markdown tebal/miring/heading yang mungkin tersisa
+    cleaned = cleaned.replace(/\*\*/g, '').replace(/##/g, '').replace(/__/g, '');
     return cleaned.trim();
   }
 
@@ -276,23 +285,32 @@ export default function RPMGenerator() {
 
     setLoadingStatus(label);
     
-    // MODIFIKASI: Menambahkan instruksi ketat agar AI tidak basa-basi
     let strictPrompt = prompt;
+    // Tambahkan instruksi tegas berdasarkan tipe
     if (type === 'cp' || type === 'tp') {
-        strictPrompt += ". INSTRUKSI PENTING: Langsung berikan isinya saja. JANGAN GUNAKAN kalimat pembuka seperti 'Tentu', 'Berikut adalah', atau 'Ini adalah'. JANGAN GUNAKAN 'Catatan Penting' atau penjelasan tambahan di akhir. Hanya teks intinya saja.";
+        strictPrompt += ". INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Jangan pakai kata pengantar. Jangan pakai penjelasan akhir.";
+    } else if (type === 'rubric') {
+        strictPrompt += ". INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.";
+    } else if (type === 'lkpd') {
+        strictPrompt += ". INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML yang rapi (gunakan tag <div>, <h3>, <ol>, <li>). JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.";
     }
 
     const res = await callAI(strictPrompt);
     setLoadingStatus('');
     
     if (res) {
-      // Bersihkan respon sebelum disimpan
       const cleanedRes = cleanAIResponse(res);
 
       if (type === 'cp') setFormData(p => ({ ...p, cp: cleanedRes }));
       else if (type === 'tp') setFormData(p => ({ ...p, tp: cleanedRes }));
-      else if (type === 'rubric') setRubricContent(res.replace(/```html/g,'').replace(/```/g,''));
-      else if (type === 'lkpd') setLkpdContent(res.replace(/```html/g,'').replace(/```/g,''));
+      else if (type === 'rubric') {
+          // Bersihkan sisa-sisa markdown untuk konten HTML
+          setRubricContent(cleanHtmlContent(cleanedRes));
+      }
+      else if (type === 'lkpd') {
+          // Bersihkan sisa-sisa markdown untuk konten HTML
+          setLkpdContent(cleanHtmlContent(cleanedRes));
+      }
     }
   };
 
@@ -392,6 +410,12 @@ export default function RPMGenerator() {
       .signature-section { margin-top: 50px; page-break-inside: avoid; }
       .signature-section td { text-align: center; border: none !important; }
       ul, ol { margin: 0; padding-left: 20px; }
+      
+      /* Tambahan CSS untuk Rubrik & LKPD agar tidak berantakan */
+      .custom-html-content table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      .custom-html-content th, .custom-html-content td { border: 1px solid black; padding: 5px; text-align: left; }
+      .custom-html-content h3 { font-weight: bold; font-size: 12pt; margin-top: 15px; }
+      .custom-html-content ul, .custom-html-content ol { padding-left: 20px; margin-bottom: 10px; }
     </style></head><body>${outputRef.current.innerHTML}<script>window.onload=function(){window.print();window.close()}</script></body></html>`);
     w.document.close();
   };
@@ -419,7 +443,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.2</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.4</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -567,7 +591,10 @@ export default function RPMGenerator() {
                       {/* HEADER / KOP SURAT */}
                       <div className="kop-surat" style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '3px double black', paddingBottom: '10px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-                              <img src="/logo.png" alt="Logo" style={{ height: '80px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                              {/* LOGO SEKOLAH (Placeholder) */}
+                              <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed gray', fontSize: '10px', color: 'gray', textAlign: 'center' }}>
+                                LOGO<br/>SEKOLAH
+                              </div>
                               <div>
                                   <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>PEMERINTAH KABUPATEN/KOTA</h4>
                                   <h3 style={{ margin: 0, fontSize: '14pt', fontWeight: 'bold', textTransform: 'uppercase' }}>DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
@@ -622,7 +649,7 @@ export default function RPMGenerator() {
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.tp)}</td>
                               </tr>
                               <tr>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Profil Pelajar Pancasila</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Dimensi Profil Lulusan</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formData.dimensi.join(', ')}</td>
                               </tr>
                               <tr>
@@ -701,8 +728,9 @@ export default function RPMGenerator() {
 
                     </div>
                   ))}
-                  {rubricContent && <div className="mt-8 page-break"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 1: RUBRIK PENILAIAN</h3><div dangerouslySetInnerHTML={{ __html: rubricContent }} /></div>}
-                  {lkpdContent && <div className="mt-8 page-break"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 2: LKPD</h3><div dangerouslySetInnerHTML={{ __html: lkpdContent }} /></div>}
+                  {/* CSS CLASS 'custom-html-content' ditambahkan untuk styling tabel rubrik/lkpd */}
+                  {rubricContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 1: RUBRIK PENILAIAN</h3><div dangerouslySetInnerHTML={{ __html: rubricContent }} /></div>}
+                  {lkpdContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 2: LKPD</h3><div dangerouslySetInnerHTML={{ __html: lkpdContent }} /></div>}
                 </div>
               </div>
             </div>
