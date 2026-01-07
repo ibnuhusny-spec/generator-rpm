@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   BookOpen, RefreshCcw, Sparkles, Wand2, Loader2, Moon, Sun, History, 
   Printer, FileDown, Edit, X, Trash2, Table, FileSignature, Key, 
-  AlertTriangle, Layers, Cpu, Activity, Terminal
+  AlertTriangle, Layers, Cpu, Activity, Terminal, List, CheckCircle
 } from 'lucide-react';
 
 // --- UTILITIES AMAN ---
@@ -47,13 +47,13 @@ const GRADIENT_THEMES = [
   { id: 'berry', class: 'from-pink-600 via-rose-600 to-purple-700' }
 ];
 
-// Opsi Model AI
+// Opsi Model AI Standar
 const AI_MODELS = [
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Standar)' },
-  { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Experimental)' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (High Intelligence)' },
+  { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Exp)' },
+  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Cerdas)' },
   { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro (Legacy)' },
-  { id: 'custom', name: 'Ketik Nama Model Sendiri...' }
+  { id: 'custom', name: 'Gunakan Model Custom...' }
 ];
 
 export default function RPMGenerator() {
@@ -74,7 +74,11 @@ export default function RPMGenerator() {
   
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [debugLog, setDebugLog] = useState(null); // Utk menampilkan detail error
+  const [debugLog, setDebugLog] = useState(null);
+  
+  // State baru untuk Daftar Model
+  const [availableModels, setAvailableModels] = useState(null);
+  const [isCheckingModels, setIsCheckingModels] = useState(false);
   
   const [aiContent, setAiContent] = useState([]); 
   const [rubricContent, setRubricContent] = useState(null);
@@ -147,6 +151,15 @@ export default function RPMGenerator() {
     safeStorage.setItem('user_gemini_custom_model', val);
   }
 
+  const selectFoundModel = (modelName) => {
+      // Bersihkan prefix 'models/' jika ada
+      const cleanName = modelName.replace('models/', '');
+      setSelectedModel('custom');
+      setCustomModelName(cleanName);
+      safeStorage.setItem('user_gemini_model', 'custom');
+      safeStorage.setItem('user_gemini_custom_model', cleanName);
+  }
+
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   const handleMethodChange = (i, v) => setFormData(prev => { const m = [...prev.metodePerPertemuan]; m[i] = v; return { ...prev, metodePerPertemuan: m }; });
   const handleCheckboxChange = (v) => setFormData(prev => { const c = prev.dimensi; return { ...prev, dimensi: c.includes(v) ? c.filter(i => i !== v) : [...c, v] }; });
@@ -155,6 +168,37 @@ export default function RPMGenerator() {
   // --- API ---
   const getActiveModelName = () => {
       return selectedModel === 'custom' ? customModelName : selectedModel;
+  }
+
+  // Fungsi Baru: Cek Model apa saja yang tersedia untuk Key ini
+  const checkAvailableModels = async () => {
+      if (!userApiKey) return alert("Masukkan API Key dulu.");
+      setIsCheckingModels(true);
+      setErrorMsg(null);
+      setAvailableModels(null);
+      
+      try {
+          // Hit endpoint list models
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${userApiKey}`);
+          const data = await res.json();
+          
+          if (!res.ok) throw new Error(data.error?.message || "Gagal mengambil daftar model");
+          
+          if (data.models) {
+              // Filter hanya model yang bisa generateContent (bukan embedding-only)
+              const validModels = data.models.filter(m => 
+                  m.supportedGenerationMethods && 
+                  m.supportedGenerationMethods.includes("generateContent")
+              );
+              setAvailableModels(validModels);
+          } else {
+              throw new Error("Tidak ada model ditemukan.");
+          }
+      } catch (e) {
+          setErrorMsg(`Gagal Cek Model: ${e.message}`);
+      } finally {
+          setIsCheckingModels(false);
+      }
   }
 
   const testConnection = async () => {
@@ -175,7 +219,7 @@ export default function RPMGenerator() {
         const data = await res.json();
         
         if (!res.ok) {
-            setDebugLog(JSON.stringify(data, null, 2)); // Tampilkan RAW error
+            setDebugLog(JSON.stringify(data, null, 2)); 
             throw new Error(`Gagal: ${data.error?.message || res.statusText}`);
         }
         
@@ -241,7 +285,6 @@ export default function RPMGenerator() {
     if (res) {
       try {
         let jsonStr = res.replace(/```json/g,'').replace(/```/g,'').trim();
-        // Bersihkan JSON jika ada teks di awal/akhir
         const firstBracket = jsonStr.indexOf('[');
         const lastBracket = jsonStr.lastIndexOf(']');
         if(firstBracket !== -1 && lastBracket !== -1) {
@@ -328,7 +371,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v5.0</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.0</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -344,7 +387,7 @@ export default function RPMGenerator() {
         <div className="bg-white p-4 rounded shadow-lg border-l-4 border-indigo-500 flex flex-col gap-4">
           <div className="flex-1 text-gray-800">
             <h3 className="font-bold flex items-center gap-2"><Key size={16}/> Pengaturan AI & Koneksi</h3>
-            <p className="text-xs text-gray-500">Masukkan API Key Gemini Anda.</p>
+            <p className="text-xs text-gray-500">Masukkan API Key Gemini Anda dan cek model yang tersedia.</p>
           </div>
           
           <div className="space-y-3 w-full">
@@ -364,18 +407,42 @@ export default function RPMGenerator() {
                 {selectedModel === 'custom' && (
                     <input 
                         type="text" 
-                        placeholder="Ketik nama model (mis: gemini-1.5-pro-002)" 
+                        placeholder="Nama model (gemini-1.5-flash)" 
                         value={customModelName}
                         onChange={handleCustomModelChange}
                         className="border p-2 rounded flex-1 text-sm bg-yellow-50"
                     />
                 )}
-
-                <button onClick={()=>saveKey(userApiKey)} className="bg-indigo-600 text-white px-4 py-2 rounded">Simpan</button>
-                <button id="btn-test" onClick={testConnection} className="bg-gray-600 text-white px-4 py-2 rounded flex items-center gap-1"><Activity size={14}/> Tes Koneksi</button>
             </div>
+
+            <div className="flex gap-2 flex-wrap">
+                <button onClick={()=>saveKey(userApiKey)} className="bg-indigo-600 text-white px-4 py-2 rounded flex-1">Simpan Key</button>
+                <button id="btn-test" onClick={testConnection} className="bg-gray-600 text-white px-4 py-2 rounded flex items-center gap-1"><Activity size={14}/> Tes</button>
+                <button onClick={checkAvailableModels} disabled={isCheckingModels} className="bg-emerald-600 text-white px-4 py-2 rounded flex items-center gap-1">
+                    {isCheckingModels ? <Loader2 className="animate-spin" size={14}/> : <List size={14}/>} Cek Daftar Model
+                </button>
+            </div>
+
+            {/* HASIL CEK DAFTAR MODEL */}
+            {availableModels && (
+                <div className="mt-2 bg-emerald-50 border border-emerald-200 p-3 rounded text-sm text-gray-800">
+                    <h4 className="font-bold flex items-center gap-2 mb-2 text-emerald-700"><CheckCircle size={14}/> Model yang Diizinkan untuk Key ini:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                        {availableModels.map(m => {
+                            const cleanName = m.name.replace('models/', '');
+                            return (
+                                <div key={m.name} className="flex justify-between items-center bg-white p-2 border rounded">
+                                    <span className="font-mono text-xs">{cleanName}</span>
+                                    <button onClick={() => selectFoundModel(m.name)} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-200">
+                                        Pilih
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
           </div>
-          <p className="text-[10px] text-gray-400">Tips: Gunakan "Tes Koneksi" untuk mengecek apakah Key Anda valid untuk model yang dipilih.</p>
         </div>
       </div>}
       
