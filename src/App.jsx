@@ -170,7 +170,7 @@ export default function RPMGenerator() {
       return selectedModel === 'custom' ? customModelName : selectedModel;
   }
 
-  // Fungsi Baru: Cek Model apa saja yang tersedia untuk Key ini
+  // Fungsi Baru: Cek Model apa saja yang tersedia untuk Key ini (DIPERBAIKI)
   const checkAvailableModels = async () => {
       if (!userApiKey) return alert("Masukkan API Key dulu.");
       setIsCheckingModels(true);
@@ -178,21 +178,21 @@ export default function RPMGenerator() {
       setAvailableModels(null);
       
       try {
-          // Hit endpoint list models
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${userApiKey}`);
           const data = await res.json();
           
           if (!res.ok) throw new Error(data.error?.message || "Gagal mengambil daftar model");
           
-          if (data.models) {
-              // Filter hanya model yang bisa generateContent (bukan embedding-only)
+          if (data.models && Array.isArray(data.models)) {
+              // Filter lebih ketat: pastikan 'name' ada agar tidak crash
               const validModels = data.models.filter(m => 
+                  m.name && // Cek nama ada
                   m.supportedGenerationMethods && 
                   m.supportedGenerationMethods.includes("generateContent")
               );
               setAvailableModels(validModels);
           } else {
-              throw new Error("Tidak ada model ditemukan.");
+              throw new Error("Tidak ada model ditemukan atau format data salah.");
           }
       } catch (e) {
           setErrorMsg(`Gagal Cek Model: ${e.message}`);
@@ -261,9 +261,7 @@ export default function RPMGenerator() {
   // --- CLEANER FUNCTION (Pembersih Respon AI) ---
   const cleanAIResponse = (text) => {
     if (!text) return "";
-    // Hapus kalimat pembuka umum bahasa Indonesia AI
     let cleaned = text.replace(/^(Tentu|Berikut|Baik|Ini|Silakan|Di bawah|Sebagai|Halo).*?(:|\n)/i, '');
-    // Hapus catatan akhir
     cleaned = cleaned.replace(/(Catatan|Note|Penting|Harap|Perlu diingat).*?$/is, '');
     return cleaned.trim();
   }
@@ -271,8 +269,7 @@ export default function RPMGenerator() {
   // --- HTML CLEANER (Hapus Simbol Markdown dari HTML) ---
   const cleanHtmlContent = (text) => {
     if (!text) return "";
-    let cleaned = text.replace(/```html/g, '').replace(/```/g, ''); // Hapus block code
-    // Hapus simbol markdown tebal/miring/heading yang mungkin tersisa
+    let cleaned = text.replace(/```html/g, '').replace(/```/g, ''); 
     cleaned = cleaned.replace(/\*\*/g, '').replace(/##/g, '').replace(/__/g, '');
     return cleaned.trim();
   }
@@ -286,13 +283,11 @@ export default function RPMGenerator() {
     setLoadingStatus(label);
     
     let strictPrompt = prompt;
-    // Tambahkan instruksi tegas berdasarkan tipe
     if (type === 'cp' || type === 'tp') {
         strictPrompt += ". INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Jangan pakai kata pengantar. Jangan pakai penjelasan akhir.";
     } else if (type === 'rubric') {
         strictPrompt += ". INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.";
     } else if (type === 'lkpd') {
-        // INSTRUKSI KHUSUS LKPD YANG LEBIH LENGKAP
         strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
         
         Data Tujuan Pembelajaran (TP): ${formData.tp}
@@ -384,17 +379,14 @@ export default function RPMGenerator() {
   // Fungsi PEMBERSIH & PERAPI TEKS (Hapus * dan buat Poin)
   const formatRender = (text) => {
     if (!text) return '-';
-    // 1. Bersihkan simbol markdown (*, #, `)
     let clean = text.replace(/[*#`_]/g, '');
     
-    // 2. Deteksi jika ada baris baru (\n) -> Jadikan List HTML
     if (clean.includes('\n')) {
         const lines = clean.split('\n').map(l => l.trim()).filter(l => l);
         if (lines.length > 0) {
             return (
                 <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'disc' }}>
                     {lines.map((l, i) => (
-                        // Hapus bullet point manual (-, •, 1.) di awal kalimat jika ada
                         <li key={i}>{l.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '')}</li>
                     ))}
                 </ul>
@@ -425,8 +417,6 @@ export default function RPMGenerator() {
       .signature-section { margin-top: 50px; page-break-inside: avoid; }
       .signature-section td { text-align: center; border: none !important; }
       ul, ol { margin: 0; padding-left: 20px; }
-      
-      /* Tambahan CSS untuk Rubrik & LKPD agar tidak berantakan */
       .custom-html-content table { width: 100%; border-collapse: collapse; margin-top: 10px; }
       .custom-html-content th, .custom-html-content td { border: 1px solid black; padding: 5px; text-align: left; }
       .custom-html-content h3 { font-weight: bold; font-size: 12pt; margin-top: 15px; border-bottom: 1px solid black; padding-bottom: 5px; }
@@ -459,7 +449,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.5</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.6 (Fix)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -517,9 +507,9 @@ export default function RPMGenerator() {
                     <h4 className="font-bold flex items-center gap-2 mb-2 text-emerald-700"><CheckCircle size={14}/> Model yang Diizinkan untuk Key ini:</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                         {availableModels.map(m => {
-                            const cleanName = m.name.replace('models/', '');
+                            const cleanName = m.name ? m.name.replace('models/', '') : 'Model Tanpa Nama';
                             return (
-                                <div key={m.name} className="flex justify-between items-center bg-white p-2 border rounded">
+                                <div key={m.name || Math.random()} className="flex justify-between items-center bg-white p-2 border rounded">
                                     <span className="font-mono text-xs">{cleanName}</span>
                                     <button onClick={() => selectFoundModel(m.name)} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-200">
                                         Pilih
