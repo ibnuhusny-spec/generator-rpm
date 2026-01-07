@@ -451,7 +451,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.7 (Stable)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.8 (Word Fix)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -718,22 +718,27 @@ export default function RPMGenerator() {
                           </tbody>
                       </table>
 
-                      <div className="signature-section" style={{ width: '100%', marginTop: '50px', display: 'flex', justifyContent: 'space-between' }}>
-                          <div style={{ textAlign: 'center', width: '40%' }}>
-                              <p>Mengetahui,</p>
-                              <p>Kepala Sekolah</p>
-                              <br/><br/><br/>
-                              <p style={{ fontWeight: 'bold', textDecoration: 'underline' }}>{formData.namaKepsek}</p>
-                              <p>NIP. {formData.nipKepsek || '-'}</p>
-                          </div>
-                          <div style={{ textAlign: 'center', width: '40%' }}>
-                              <p>{formData.namaSatuan}, {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                              <p>Guru Mata Pelajaran</p>
-                              <br/><br/><br/>
-                              <p style={{ fontWeight: 'bold', textDecoration: 'underline' }}>{formData.namaGuru}</p>
-                              <p>NIP. {formData.nipGuru || '-'}</p>
-                          </div>
-                      </div>
+                      {/* SIGNATURE SECTION - CHANGED TO TABLE FOR WORD COMPATIBILITY */}
+                      <table className="signature-section no-border" style={{ width: '100%', marginTop: '50px', border: 'none' }}>
+                          <tbody>
+                              <tr>
+                                  <td style={{ textAlign: 'center', width: '50%', verticalAlign: 'top', border: 'none' }}>
+                                      <p style={{ margin: 0 }}>Mengetahui,</p>
+                                      <p style={{ margin: 0 }}>Kepala Sekolah</p>
+                                      <br /><br /><br /><br />
+                                      <p style={{ fontWeight: 'bold', textDecoration: 'underline', margin: 0 }}>{formData.namaKepsek}</p>
+                                      <p style={{ margin: 0 }}>NIP. {formData.nipKepsek || '-'}</p>
+                                  </td>
+                                  <td style={{ textAlign: 'center', width: '50%', verticalAlign: 'top', border: 'none' }}>
+                                      <p style={{ margin: 0 }}>{formData.namaSatuan}, {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                      <p style={{ margin: 0 }}>Guru Mata Pelajaran</p>
+                                      <br /><br /><br /><br />
+                                      <p style={{ fontWeight: 'bold', textDecoration: 'underline', margin: 0 }}>{formData.namaGuru}</p>
+                                      <p style={{ margin: 0 }}>NIP. {formData.nipGuru || '-'}</p>
+                                  </td>
+                              </tr>
+                          </tbody>
+                      </table>
 
                     </div>
                   ))}
