@@ -322,9 +322,9 @@ export default function RPMGenerator() {
   };
 
   const EditCell = ({ val, idx, path, multi }) => {
-    if (!isEditing) return <div dangerouslySetInnerHTML={{ __html: val || '' }} />;
+    if (!isEditing) return <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: val || '' }} />;
     return multi 
-      ? <textarea className="w-full p-1 border bg-yellow-50 text-sm font-sans" rows={4} value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />
+      ? <textarea className="w-full p-1 border bg-yellow-50 text-sm font-sans" rows={6} value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />
       : <input className="w-full p-1 border bg-yellow-50 text-sm font-sans" value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />;
   };
 
@@ -334,17 +334,21 @@ export default function RPMGenerator() {
     const w = window.open('', '_blank');
     w.document.write(`<html><head><title>RPM ${formData.mapel}</title><style>
       @page { size: A4; margin: 2cm; }
-      body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.3; }
-      table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11pt; }
+      body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.4; font-size: 11pt; }
+      .kop-surat { text-align: center; margin-bottom: 20px; border-bottom: 3px double black; padding-bottom: 10px; }
+      .kop-surat h3 { margin: 0; font-size: 14pt; text-transform: uppercase; }
+      .kop-surat h4 { margin: 0; font-size: 12pt; text-transform: uppercase; font-weight: normal; }
+      .kop-surat p { margin: 0; font-size: 10pt; font-style: italic; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
       table, th, td { border: 1px solid #000; }
-      td, th { padding: 6px 8px; vertical-align: top; text-align: left; }
-      h2 { text-align: center; text-transform: uppercase; margin-bottom: 5px; font-size: 14pt; font-weight: bold; }
-      p { margin: 0 0 5px 0; }
+      td, th { padding: 8px 10px; vertical-align: top; text-align: left; }
+      .header-section { background-color: #f0f0f0; font-weight: bold; text-align: center; }
+      .sub-header { font-weight: bold; background-color: #fafafa; }
       .no-border, .no-border td { border: none !important; }
       .page-break { page-break-before: always; }
-      img { height: 80px; display: block; margin: 0 auto 10px; }
-      .signature-section { margin-top: 40px; page-break-inside: avoid; }
+      .signature-section { margin-top: 50px; page-break-inside: avoid; }
       .signature-section td { text-align: center; border: none !important; }
+      ul, ol { margin: 0; padding-left: 20px; }
     </style></head><body>${outputRef.current.innerHTML}<script>window.onload=function(){window.print();window.close()}</script></body></html>`);
     w.document.close();
   };
@@ -355,6 +359,7 @@ export default function RPMGenerator() {
       body { font-family: 'Times New Roman', serif; font-size: 11pt; }
       table { border-collapse: collapse; width: 100%; }
       td, th { border: 1px solid black; padding: 5px; vertical-align: top; }
+      .header-section { background-color: #f0f0f0; font-weight: bold; }
       .no-border td { border: none !important; }
     </style></head><body>${outputRef.current.innerHTML}</body></html>`;
     const url = URL.createObjectURL(new Blob(['\ufeff', html], { type: 'application/msword' }));
@@ -515,43 +520,142 @@ export default function RPMGenerator() {
                 <div ref={outputRef}>
                   {aiContent.map((rpm, i) => (
                     <div key={i} className={i > 0 ? "page-break" : ""} style={{ marginBottom: '40px', pageBreakBefore: i > 0 ? 'always' : 'auto' }}>
-                      <div className="text-center mb-4 pb-2 border-b-4 border-double border-black">
-                        <img src="/logo.png" alt="Logo" className="h-20 mx-auto mb-2 object-contain" onError={(e) => e.target.style.display = 'none'} />
-                        <h2 className="text-xl font-bold uppercase m-0">Rencana Pembelajaran Mendalam (RPM)</h2>
-                        <p className="text-lg m-0">{formData.namaSatuan}</p>
+                      
+                      {/* HEADER / KOP SURAT */}
+                      <div className="kop-surat" style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '3px double black', paddingBottom: '10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+                              <img src="/logo.png" alt="Logo" style={{ height: '80px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                              <div>
+                                  <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>PEMERINTAH KABUPATEN/KOTA</h4>
+                                  <h3 style={{ margin: 0, fontSize: '14pt', fontWeight: 'bold', textTransform: 'uppercase' }}>DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
+                                  <h3 style={{ margin: 0, fontSize: '16pt', fontWeight: 'bold', textTransform: 'uppercase' }}>{formData.namaSatuan}</h3>
+                                  <p style={{ margin: 0, fontSize: '10pt', fontStyle: 'italic' }}>Alamat: Jl. Pendidikan No. 1 (Contoh Alamat Sekolah)</p>
+                              </div>
+                          </div>
                       </div>
 
-                      <table className="no-border w-full mb-4"><tbody>
-                        <tr><td width="20%">Mata Pelajaran</td><td width="30%">: {formData.mapel}</td><td width="20%">Kelas/Semester</td><td>: {formData.kelas} / {formData.jenjang}</td></tr>
-                        <tr><td>Materi Pokok</td><td>: {formData.materi}</td><td>Alokasi Waktu</td><td>: {formData.durasi} (Pert. {i + 1})</td></tr>
-                      </tbody></table>
+                      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                          <h2 style={{ fontSize: '14pt', fontWeight: 'bold', textDecoration: 'underline', margin: '0 0 5px 0' }}>MODUL AJAR / RPP</h2>
+                          <p style={{ margin: 0 }}>Tahun Pelajaran {new Date().getFullYear()}/{new Date().getFullYear() + 1}</p>
+                      </div>
 
-                      <table className="w-full border-collapse mb-6" style={{ border: '1px solid black' }}><tbody>
-                        <tr className="bg-gray-100"><td colSpan="3" className="font-bold p-2 border border-black">A. INFORMASI UMUM</td></tr>
-                        <tr><td className="p-2 border border-black w-1/4">Profil Siswa</td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.siswa} idx={i} path="siswa" multi /></td></tr>
-                        <tr><td className="p-2 border border-black">Dimensi Profil</td><td colSpan="2" className="p-2 border border-black">{formData.dimensi.join(', ')}</td></tr>
-                        <tr><td className="p-2 border border-black">Capaian Pembelajaran</td><td colSpan="2" className="p-2 border border-black">{formData.cp}</td></tr>
-                        <tr><td className="p-2 border border-black">Tujuan Pembelajaran</td><td colSpan="2" className="p-2 border border-black">{formData.tp}</td></tr>
+                      {/* INFORMASI UMUM (Tabel Identitas) */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px', border: '1px solid black' }}>
+                          <tbody>
+                              <tr>
+                                  <td style={{ width: '25%', fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Nama Penyusun</td>
+                                  <td style={{ width: '25%' }}>{formData.namaGuru}</td>
+                                  <td style={{ width: '25%', fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Mata Pelajaran</td>
+                                  <td style={{ width: '25%' }}>{formData.mapel}</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Satuan Pendidikan</td>
+                                  <td>{formData.namaSatuan}</td>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Jenjang/Kelas</td>
+                                  <td>{formData.jenjang} / {formData.kelas}</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Alokasi Waktu</td>
+                                  <td>{formData.durasi} (Pert. {i + 1})</td>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Materi Pokok</td>
+                                  <td>{formData.materi}</td>
+                              </tr>
+                          </tbody>
+                      </table>
 
-                        <tr className="bg-gray-100"><td colSpan="3" className="font-bold p-2 border border-black">B. LANGKAH PEMBELAJARAN (Metode: {formData.metodePerPertemuan[i]})</td></tr>
-                        <tr><td className="p-2 border border-black font-bold">1. Memahami<br /><span className="font-normal text-xs">(Kegiatan Awal)</span></td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.pengalaman?.memahami} idx={i} path="pengalaman.memahami" multi /></td></tr>
-                        <tr><td className="p-2 border border-black font-bold">2. Mengaplikasi<br /><span className="font-normal text-xs">(Kegiatan Inti)</span></td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.pengalaman?.mengaplikasi} idx={i} path="pengalaman.mengaplikasi" multi /></td></tr>
-                        <tr><td className="p-2 border border-black font-bold">3. Refleksi<br /><span className="font-normal text-xs">(Kegiatan Penutup)</span></td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.pengalaman?.refleksi} idx={i} path="pengalaman.refleksi" multi /></td></tr>
+                      {/* KOMPONEN INTI */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black' }}>
+                          <tbody>
+                              {/* A. TUJUAN PEMBELAJARAN */}
+                              <tr style={{ backgroundColor: '#e5e7eb' }}>
+                                  <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>A. TUJUAN PEMBELAJARAN</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ width: '30%', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Capaian Pembelajaran</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formData.cp}</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Tujuan Pembelajaran</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formData.tp}</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Profil Pelajar Pancasila</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formData.dimensi.join(', ')}</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Target Peserta Didik</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.siswa} idx={i} path="siswa" multi /></td>
+                              </tr>
 
-                        <tr className="bg-gray-100"><td colSpan="3" className="font-bold p-2 border border-black">C. ASESMEN</td></tr>
-                        <tr><td className="p-2 border border-black">Awal (Diagnostik)</td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.asesmen?.awal} idx={i} path="asesmen.awal" multi /></td></tr>
-                        <tr><td className="p-2 border border-black">Proses (Formatif)</td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.asesmen?.proses} idx={i} path="asesmen.proses" multi /></td></tr>
-                        <tr><td className="p-2 border border-black">Akhir (Sumatif)</td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.asesmen?.akhir} idx={i} path="asesmen.akhir" multi /></td></tr>
+                              {/* B. KEGIATAN PEMBELAJARAN */}
+                              <tr style={{ backgroundColor: '#e5e7eb' }}>
+                                  <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>
+                                      B. KEGIATAN PEMBELAJARAN <br/>
+                                      <span style={{ fontWeight: 'normal', fontSize: '10pt' }}>Model: {formData.metodePerPertemuan[i]}</span>
+                                  </td>
+                              </tr>
+                              <tr>
+                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>1. Kegiatan Pendahuluan<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Memahami/Apersepsi)</span></td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.pengalaman?.memahami} idx={i} path="pengalaman.memahami" multi /></td>
+                              </tr>
+                              <tr>
+                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>2. Kegiatan Inti<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Mengaplikasi/Eksplorasi)</span></td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.pengalaman?.mengaplikasi} idx={i} path="pengalaman.mengaplikasi" multi /></td>
+                              </tr>
+                              <tr>
+                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>3. Kegiatan Penutup<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Refleksi)</span></td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.pengalaman?.refleksi} idx={i} path="pengalaman.refleksi" multi /></td>
+                              </tr>
 
-                        <tr className="bg-gray-100"><td colSpan="3" className="font-bold p-2 border border-black">D. LAMPIRAN</td></tr>
-                        <tr><td className="p-2 border border-black">Kemitraan</td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.kemitraan} idx={i} path="kemitraan" multi /></td></tr>
-                        <tr><td className="p-2 border border-black">Digital Tools</td><td colSpan="2" className="p-2 border border-black"><EditCell val={rpm.digital} idx={i} path="digital" multi /></td></tr>
-                      </tbody></table>
+                              {/* C. ASESMEN */}
+                              <tr style={{ backgroundColor: '#e5e7eb' }}>
+                                  <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>C. ASESMEN / PENILAIAN</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Diagnostik (Awal)</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.asesmen?.awal} idx={i} path="asesmen.awal" multi /></td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Formatif (Proses)</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.asesmen?.proses} idx={i} path="asesmen.proses" multi /></td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Sumatif (Akhir)</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.asesmen?.akhir} idx={i} path="asesmen.akhir" multi /></td>
+                              </tr>
 
-                      <table className="signature-section no-border" style={{ width: '100%', marginTop: '40px' }}><tbody><tr>
-                        <td align="center" width="50%">Mengetahui,<br />Kepala Sekolah<br /><br /><br /><br /><strong>{formData.namaKepsek}</strong><br />NIP. {formData.nipKepsek || '-'}</td>
-                        <td align="center" width="50%">{formData.namaSatuan}, {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}<br />Guru Mata Pelajaran<br /><br /><br /><br /><strong>{formData.namaGuru}</strong><br />NIP. {formData.nipGuru || '-'}</td>
-                      </tr></tbody></table>
+                              {/* D. MEDIA & SUMBER BELAJAR */}
+                              <tr style={{ backgroundColor: '#e5e7eb' }}>
+                                  <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>D. MEDIA & SUMBER BELAJAR</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Media & Alat</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.digital} idx={i} path="digital" multi /></td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Sumber Belajar/Mitra</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.kemitraan} idx={i} path="kemitraan" multi /></td>
+                              </tr>
+                          </tbody>
+                      </table>
+
+                      <div className="signature-section" style={{ width: '100%', marginTop: '50px', display: 'flex', justifyContent: 'space-between' }}>
+                          <div style={{ textAlign: 'center', width: '40%' }}>
+                              <p>Mengetahui,</p>
+                              <p>Kepala Sekolah</p>
+                              <br/><br/><br/>
+                              <p style={{ fontWeight: 'bold', textDecoration: 'underline' }}>{formData.namaKepsek}</p>
+                              <p>NIP. {formData.nipKepsek || '-'}</p>
+                          </div>
+                          <div style={{ textAlign: 'center', width: '40%' }}>
+                              <p>{formData.namaSatuan}, {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                              <p>Guru Mata Pelajaran</p>
+                              <br/><br/><br/>
+                              <p style={{ fontWeight: 'bold', textDecoration: 'underline' }}>{formData.namaGuru}</p>
+                              <p>NIP. {formData.nipGuru || '-'}</p>
+                          </div>
+                      </div>
+
                     </div>
                   ))}
                   {rubricContent && <div className="mt-8 page-break"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 1: RUBRIK PENILAIAN</h3><div dangerouslySetInnerHTML={{ __html: rubricContent }} /></div>}
