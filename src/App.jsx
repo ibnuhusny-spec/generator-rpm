@@ -328,6 +328,29 @@ export default function RPMGenerator() {
       : <input className="w-full p-1 border bg-yellow-50 text-sm font-sans" value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />;
   };
 
+  // Fungsi PEMBERSIH & PERAPI TEKS (Hapus * dan buat Poin)
+  const formatRender = (text) => {
+    if (!text) return '-';
+    // 1. Bersihkan simbol markdown (*, #, `)
+    let clean = text.replace(/[*#`_]/g, '');
+    
+    // 2. Deteksi jika ada baris baru (\n) -> Jadikan List HTML
+    if (clean.includes('\n')) {
+        const lines = clean.split('\n').map(l => l.trim()).filter(l => l);
+        if (lines.length > 0) {
+            return (
+                <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'disc' }}>
+                    {lines.map((l, i) => (
+                        // Hapus bullet point manual (-, •, 1.) di awal kalimat jika ada
+                        <li key={i}>{l.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '')}</li>
+                    ))}
+                </ul>
+            );
+        }
+    }
+    return clean;
+  };
+
   // --- EXPORT ---
   const handlePrint = () => {
     if (!outputRef.current) return;
@@ -376,7 +399,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.0</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.1</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -572,11 +595,11 @@ export default function RPMGenerator() {
                               </tr>
                               <tr>
                                   <td style={{ width: '30%', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Capaian Pembelajaran</td>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formData.cp}</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.cp)}</td>
                               </tr>
                               <tr>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Tujuan Pembelajaran</td>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formData.tp}</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.tp)}</td>
                               </tr>
                               <tr>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Profil Pelajar Pancasila</td>
