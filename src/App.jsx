@@ -258,6 +258,16 @@ export default function RPMGenerator() {
     } catch (e) { setErrorMsg(e.message); return null; }
   };
 
+  // --- CLEANER FUNCTION (Pembersih Respon AI) ---
+  const cleanAIResponse = (text) => {
+    if (!text) return "";
+    // Hapus kalimat pembuka umum bahasa Indonesia AI
+    let cleaned = text.replace(/^(Tentu|Berikut|Baik|Ini|Silakan|Di bawah|Sebagai).*?(:|\n)/i, '');
+    // Hapus catatan akhir
+    cleaned = cleaned.replace(/(Catatan|Note|Penting|Harap|Perlu diingat).*?$/is, '');
+    return cleaned.trim();
+  }
+
   // --- GENERATE FUNCTIONS ---
   const generateSimple = async (type, prompt, label) => {
     if (type === 'cp' && !formData.mapel) return alert("Isi Mapel dulu");
@@ -265,12 +275,22 @@ export default function RPMGenerator() {
     if ((type === 'rubric' || type === 'lkpd') && !formData.tp) return alert("Isi TP dulu");
 
     setLoadingStatus(label);
-    const res = await callAI(prompt);
+    
+    // MODIFIKASI: Menambahkan instruksi ketat agar AI tidak basa-basi
+    let strictPrompt = prompt;
+    if (type === 'cp' || type === 'tp') {
+        strictPrompt += ". INSTRUKSI PENTING: Langsung berikan isinya saja. JANGAN GUNAKAN kalimat pembuka seperti 'Tentu', 'Berikut adalah', atau 'Ini adalah'. JANGAN GUNAKAN 'Catatan Penting' atau penjelasan tambahan di akhir. Hanya teks intinya saja.";
+    }
+
+    const res = await callAI(strictPrompt);
     setLoadingStatus('');
     
     if (res) {
-      if (type === 'cp') setFormData(p => ({ ...p, cp: res.trim() }));
-      else if (type === 'tp') setFormData(p => ({ ...p, tp: res.trim() }));
+      // Bersihkan respon sebelum disimpan
+      const cleanedRes = cleanAIResponse(res);
+
+      if (type === 'cp') setFormData(p => ({ ...p, cp: cleanedRes }));
+      else if (type === 'tp') setFormData(p => ({ ...p, tp: cleanedRes }));
       else if (type === 'rubric') setRubricContent(res.replace(/```html/g,'').replace(/```/g,''));
       else if (type === 'lkpd') setLkpdContent(res.replace(/```html/g,'').replace(/```/g,''));
     }
@@ -399,7 +419,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.1</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.2</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
