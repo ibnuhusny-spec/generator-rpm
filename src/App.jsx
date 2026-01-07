@@ -292,7 +292,24 @@ export default function RPMGenerator() {
     } else if (type === 'rubric') {
         strictPrompt += ". INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.";
     } else if (type === 'lkpd') {
-        strictPrompt += ". INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML yang rapi (gunakan tag <div>, <h3>, <ol>, <li>). JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.";
+        // INSTRUKSI KHUSUS LKPD YANG LEBIH LENGKAP
+        strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
+        
+        Data Tujuan Pembelajaran (TP): ${formData.tp}
+        
+        Instruksi Output:
+        1. Format WAJIB: HTML Murni (tanpa Markdown, tanpa backticks).
+        2. Gaya Bahasa: Menarik untuk siswa, instruktif, dan jelas.
+        3. Struktur Wajib:
+           - Judul Kegiatan (Tag <h3>, Center)
+           - Identitas Siswa (Tabel atau baris titik-titik untuk Nama, Kelas, Tanggal)
+           - Petunjuk Pengerjaan (List <ol>)
+           - Alat dan Bahan (Jika perlu)
+           - Langkah Kegiatan (Inti aktivitas: Berikan instruksi step-by-step detail apa yang harus dilakukan siswa. Misal: "Amati gambar...", "Diskusikan...", "Hitunglah..."). Buat ini mendetail dan relevan dengan materi.
+           - Lembar Jawab/Diskusi (Sediakan soal-soal latihan/diskusi (3-5 soal) dan area/kotak kosong dengan border atau garis titik-titik <hr> untuk siswa menulis jawaban).
+           - Kesimpulan (Area kosong untuk menyimpulkan).
+        
+        Styling: Gunakan style inline css untuk mempercantik (border untuk kotak jawaban, padding yang cukup).`;
     }
 
     const res = await callAI(strictPrompt);
@@ -304,11 +321,9 @@ export default function RPMGenerator() {
       if (type === 'cp') setFormData(p => ({ ...p, cp: cleanedRes }));
       else if (type === 'tp') setFormData(p => ({ ...p, tp: cleanedRes }));
       else if (type === 'rubric') {
-          // Bersihkan sisa-sisa markdown untuk konten HTML
           setRubricContent(cleanHtmlContent(cleanedRes));
       }
       else if (type === 'lkpd') {
-          // Bersihkan sisa-sisa markdown untuk konten HTML
           setLkpdContent(cleanHtmlContent(cleanedRes));
       }
     }
@@ -414,8 +429,9 @@ export default function RPMGenerator() {
       /* Tambahan CSS untuk Rubrik & LKPD agar tidak berantakan */
       .custom-html-content table { width: 100%; border-collapse: collapse; margin-top: 10px; }
       .custom-html-content th, .custom-html-content td { border: 1px solid black; padding: 5px; text-align: left; }
-      .custom-html-content h3 { font-weight: bold; font-size: 12pt; margin-top: 15px; }
+      .custom-html-content h3 { font-weight: bold; font-size: 12pt; margin-top: 15px; border-bottom: 1px solid black; padding-bottom: 5px; }
       .custom-html-content ul, .custom-html-content ol { padding-left: 20px; margin-bottom: 10px; }
+      .custom-html-content .lkpd-section { margin-bottom: 20px; }
     </style></head><body>${outputRef.current.innerHTML}<script>window.onload=function(){window.print();window.close()}</script></body></html>`);
     w.document.close();
   };
@@ -443,7 +459,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.4</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.5</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
