@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   BookOpen, RefreshCcw, Sparkles, Wand2, Loader2, Moon, Sun, History, 
   Printer, FileDown, Edit, X, Trash2, Table, FileSignature, Key, 
-  AlertTriangle, Layers
+  AlertTriangle, Layers, Cpu
 } from 'lucide-react';
 
 // --- UTILITIES AMAN ---
@@ -47,6 +47,14 @@ const GRADIENT_THEMES = [
   { id: 'berry', class: 'from-pink-600 via-rose-600 to-purple-700' }
 ];
 
+// Opsi Model AI (Solusi Anti Error)
+const AI_MODELS = [
+  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Tercepat)' },
+  { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B (Ringan)' },
+  { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro (Stabil/Lama)' },
+  { id: 'gemini-pro', name: 'Gemini Pro (Legacy)' }
+];
+
 export default function RPMGenerator() {
   // --- STATE ---
   const [formData, setFormData] = useState({
@@ -57,9 +65,10 @@ export default function RPMGenerator() {
 
   const [isGenerated, setIsGenerated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingStatus, setLoadingStatus] = useState(''); // text status
+  const [loadingStatus, setLoadingStatus] = useState(''); 
   
   const [userApiKey, setUserApiKey] = useState('');
+  const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash'); // Default Model
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   
@@ -77,10 +86,13 @@ export default function RPMGenerator() {
 
   // --- INIT ---
   useEffect(() => {
-    // Load Key
+    // Load Key & Model Preference
     const storedKey = safeStorage.getItem('user_gemini_api_key');
     if (storedKey) setUserApiKey(storedKey);
     else setShowApiKeyInput(true);
+
+    const storedModel = safeStorage.getItem('user_gemini_model');
+    if (storedModel) setSelectedModel(storedModel);
 
     // Load History Safe
     const savedHistory = safeStorage.getItem('rpm_history');
@@ -112,11 +124,17 @@ export default function RPMGenerator() {
 
   // --- HANDLERS ---
   const saveKey = (k) => {
-    const v = k.trim();
+    const v = k.trim(); // Hapus spasi tidak sengaja
     setUserApiKey(v);
     safeStorage.setItem('user_gemini_api_key', v);
     setShowApiKeyInput(false);
     setErrorMsg(null);
+  };
+
+  const handleModelChange = (e) => {
+    const val = e.target.value;
+    setSelectedModel(val);
+    safeStorage.setItem('user_gemini_model', val);
   };
 
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -134,11 +152,12 @@ export default function RPMGenerator() {
       return null; 
     }
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userApiKey}`, {
+      // Menggunakan Model yang Dipilih User
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${userApiKey}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || "Gagal menghubungi AI");
+      if (!res.ok) throw new Error(data.error?.message || `Gagal menghubungi model ${selectedModel}`);
       return data.candidates?.[0]?.content?.parts?.[0]?.text;
     } catch (e) { setErrorMsg(e.message); return null; }
   };
@@ -180,7 +199,7 @@ export default function RPMGenerator() {
         setIsGenerated(true);
         setIsEditing(false);
         setHistory(p => [{ id: Date.now(), date: new Date().toLocaleDateString(), title: `${formData.mapel} ${formData.kelas}`, formData: {...formData}, aiContent: json }, ...p]);
-      } catch (e) { setErrorMsg("Format AI tidak valid. Coba lagi."); }
+      } catch (e) { setErrorMsg("Format AI tidak valid. Coba model lain atau generate ulang."); }
     }
     setIsLoading(false);
   };
@@ -249,7 +268,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v3.8</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v4.0</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -260,8 +279,29 @@ export default function RPMGenerator() {
         </div>
       </header>
 
-      {/* INPUT API KEY */}
-      {showApiKeyInput && <div className="max-w-6xl mx-auto mt-4 px-4 no-print animate-fade-in"><div className="bg-white p-4 rounded shadow-lg border-l-4 border-indigo-500 flex flex-col md:flex-row gap-4 items-center"><div className="flex-1 text-gray-800"><h3 className="font-bold flex items-center gap-2"><Key size={16}/> API Key Gemini</h3><p className="text-xs">Simpan di browser Anda (Local Storage).</p></div><div className="flex gap-2 w-full md:w-auto"><input type="password" placeholder="Paste Key..." value={userApiKey} onChange={e=>setUserApiKey(e.target.value)} className="border p-2 rounded w-full md:w-64 text-gray-800"/><button onClick={()=>saveKey(userApiKey)} className="bg-indigo-600 text-white px-4 py-2 rounded">Simpan</button></div></div></div>}
+      {/* INPUT API KEY & MODEL SELECTOR */}
+      {showApiKeyInput && <div className="max-w-6xl mx-auto mt-4 px-4 no-print animate-fade-in">
+        <div className="bg-white p-4 rounded shadow-lg border-l-4 border-indigo-500 flex flex-col gap-4">
+          <div className="flex-1 text-gray-800">
+            <h3 className="font-bold flex items-center gap-2"><Key size={16}/> Pengaturan AI</h3>
+            <p className="text-xs text-gray-500">Masukkan API Key Gemini Anda.</p>
+          </div>
+          <div className="flex flex-col md:flex-row gap-2 w-full">
+            <input type="password" placeholder="Paste Key (AIza...)" value={userApiKey} onChange={e=>setUserApiKey(e.target.value)} className="border p-2 rounded flex-1 text-gray-800"/>
+            
+            {/* DROPDOWN PEMILIH MODEL */}
+            <div className="flex items-center gap-2 border p-2 rounded bg-gray-50">
+                <Cpu size={16} className="text-gray-500"/>
+                <select value={selectedModel} onChange={handleModelChange} className="bg-transparent text-sm text-gray-700 outline-none">
+                    {AI_MODELS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
+            </div>
+
+            <button onClick={()=>saveKey(userApiKey)} className="bg-indigo-600 text-white px-4 py-2 rounded">Simpan</button>
+          </div>
+          <p className="text-[10px] text-gray-400">Tips: Jika error "Not Found", coba ganti Model di pilihan di atas.</p>
+        </div>
+      </div>}
       
       {/* ERROR */}
       {errorMsg && <div className="max-w-6xl mx-auto mt-4 px-4 no-print"><div className="bg-red-100 text-red-700 px-4 py-2 rounded flex items-center gap-2"><AlertTriangle size={16}/> {errorMsg} <button className="ml-auto" onClick={()=>setErrorMsg(null)}><X size={16}/></button></div></div>}
@@ -371,7 +411,3 @@ export default function RPMGenerator() {
     </div>
   );
 }
-
-
-
-
