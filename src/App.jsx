@@ -307,26 +307,31 @@ export default function RPMGenerator() {
     if (type === 'cp' || type === 'tp') {
         strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Jangan pakai kata pengantar. Jangan pakai penjelasan akhir.${tambahanKonteks}`;
     } else if (type === 'rubric') {
-        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.${tambahanKonteks}`;
+        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.${tambahanKonteks}
+        STRUKTUR TABEL WAJIB:
+        1. Bagi menjadi 3 aspek penilaian secara terstruktur: Kognitif (Pemahaman), Psikomotorik (Keterampilan Praktik), dan Afektif (Sikap/Penerapan Dimensi Profil Pelajar).
+        2. Gunakan indikator yang konkret dan terukur pada setiap kriteria (bukan sekadar kata "sangat baik" atau "kurang").
+        3. Tambahkan satu baris/tabel terpisah di bagian paling bawah khusus untuk rekomendasi Tindak Lanjut (Saran aktivitas Remedial & Pengayaan).`;
     } else if (type === 'lkpd') {
-        strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
+        strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP, KREATIF, dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
         
         Data Tujuan Pembelajaran (TP): ${formData.tp}
         
         Instruksi Output:
         1. Format WAJIB: HTML Murni (tanpa Markdown, tanpa backticks).
-        2. Gaya Bahasa: Menarik untuk siswa, instruktif, dan jelas.${tambahanKonteks}
+        2. Gaya Bahasa: Menarik untuk siswa, instruktif, interaktif, dan jelas.${tambahanKonteks}
         3. Struktur Wajib:
            - Judul Kegiatan (Tag <h3>, Center)
            - Identitas Siswa (Tabel atau baris titik-titik untuk Nama, Kelas, Tanggal)
-           - Petunjuk Pengerjaan (List <ol>)
-           - Alat dan Bahan (Jika perlu)
-           - Langkah Kegiatan (Inti aktivitas: Berikan instruksi step-by-step detail apa yang harus dilakukan siswa).
-           ${isIslamic ? '- Hikmah/Nilai Islami (Sisipkan kolom singkat berisi pesan moral atau keterkaitan materi dengan nilai spiritual)' : ''}
-           - Lembar Jawab/Diskusi (Sediakan soal-soal latihan/diskusi (3-5 soal) dan area kosong dengan garis titik-titik <hr> untuk siswa menulis jawaban).
-           - Kesimpulan (Area kosong untuk menyimpulkan).
+           - Pojok Eksplorasi: Buatkan satu kotak (dengan border putus-putus) bertuliskan "Scan QR Code / Marker AR di sini untuk mengeksplorasi materi tambahan atau mendengar audio penjelasan".
+           ${isIslamic ? '- Mufradat Hari Ini: Sisipkan 1-2 kosakata bahasa Arab (mufrad) dasar yang berkaitan dengan materi pelajaran hari ini beserta artinya.' : ''}
+           - Pemanasan/Gamifikasi: Berikan satu teka-teki ringan, tantangan susun kata, atau pertanyaan pemantik interaktif sebelum masuk ke aktivitas inti.
+           - Langkah Kegiatan & Petunjuk (Inti aktivitas: Berikan instruksi step-by-step detail apa yang harus dilakukan siswa).
+           ${isIslamic ? '- Hikmah/Nilai Islami: Sisipkan kolom singkat berisi pesan moral atau keterkaitan materi dengan nilai spiritual.' : ''}
+           - Lembar Jawab/Diskusi: Sediakan soal-soal latihan (3-5 soal) dan area kosong dengan garis titik-titik <hr> untuk siswa menulis jawaban.
+           - Jurnal Refleksi Siswa: Buatkan area di bawah untuk siswa merenungkan perasaannya setelah belajar (misal: sediakan opsi [ Senang ] [ Biasa ] [ Bingung ] untuk dicentang) dan satu baris untuk menuliskan kesimpulan belajar hari ini.
         
-        Styling: Gunakan style inline css untuk mempercantik (border untuk kotak jawaban, padding yang cukup).`;
+        Styling: Gunakan style inline css untuk mempercantik (border elegan, background warna tipis seperti #f8f9fa untuk kotak-kotak khusus, padding yang cukup agar rapi saat dicetak).`;
     }
 
     const res = await callAI(strictPrompt);
