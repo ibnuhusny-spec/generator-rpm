@@ -20,15 +20,27 @@ const safeStorage = {
 
 // --- DATA ---
 const JENJANG_OPTIONS = [
-  { value: 'SD', label: 'SD (Sekolah Dasar)' },
-  { value: 'SMP', label: 'SMP (Sekolah Menengah Pertama)' },
-  { value: 'SMA', label: 'SMA (Sekolah Menengah Atas)' }
+  { value: 'SD Umum', label: 'SD Umum' },
+  { value: 'SDIT', label: 'SDIT (Sekolah Dasar Islam Terpadu)' },
+  { value: 'MI', label: 'MI (Madrasah Ibtidaiyah)' },
+  { value: 'SMP Umum', label: 'SMP Umum' },
+  { value: 'SMPIT', label: 'SMPIT (Sekolah Menengah Pertama Islam Terpadu)' },
+  { value: 'MTs', label: 'MTs (Madrasah Tsanawiyah)' },
+  { value: 'SMA Umum', label: 'SMA Umum' },
+  { value: 'SMAIT', label: 'SMAIT (Sekolah Menengah Atas Islam Terpadu)' },
+  { value: 'MA', label: 'MA (Madrasah Aliyah)' },
+  { value: 'SMK', label: 'SMK (Sekolah Menengah Kejuruan)' }
 ];
 
+const KELAS_SD = ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'];
+const KELAS_SMP = ['Kelas 7', 'Kelas 8', 'Kelas 9'];
+const KELAS_SMA = ['Kelas 10', 'Kelas 11', 'Kelas 12'];
+
 const KELAS_BY_JENJANG = {
-  'SD': ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'],
-  'SMP': ['Kelas 7', 'Kelas 8', 'Kelas 9'],
-  'SMA': ['Kelas 10', 'Kelas 11', 'Kelas 12']
+  'SD Umum': KELAS_SD, 'SDIT': KELAS_SD, 'MI': KELAS_SD,
+  'SMP Umum': KELAS_SMP, 'SMPIT': KELAS_SMP, 'MTs': KELAS_SMP,
+  'SMA Umum': KELAS_SMA, 'SMAIT': KELAS_SMA, 'MA': KELAS_SMA,
+  'SMK': KELAS_SMA
 };
 
 const PEDAGOGI_OPTIONS = [
@@ -60,7 +72,7 @@ export default function RPMGenerator() {
   // --- STATE ---
   const [formData, setFormData] = useState({
     namaSatuan: '', namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
-    jenjang: 'SD', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', materi: '',
+    jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', materi: '',
     jumlahPertemuan: 1, durasi: '2 x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
   });
 
@@ -76,8 +88,7 @@ export default function RPMGenerator() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [debugLog, setDebugLog] = useState(null);
   
-  // State baru untuk Daftar Model
-  const [availableModels, setAvailableModels] = useState([]); // Default array kosong biar aman
+  const [availableModels, setAvailableModels] = useState([]); 
   const [isCheckingModels, setIsCheckingModels] = useState(false);
   
   const [aiContent, setAiContent] = useState([]); 
@@ -152,7 +163,6 @@ export default function RPMGenerator() {
   }
 
   const selectFoundModel = (modelName) => {
-      // Bersihkan prefix 'models/' jika ada
       const cleanName = modelName.replace('models/', '');
       setSelectedModel('custom');
       setCustomModelName(cleanName);
@@ -163,19 +173,26 @@ export default function RPMGenerator() {
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   const handleMethodChange = (i, v) => setFormData(prev => { const m = [...prev.metodePerPertemuan]; m[i] = v; return { ...prev, metodePerPertemuan: m }; });
   const handleCheckboxChange = (v) => setFormData(prev => { const c = prev.dimensi; return { ...prev, dimensi: c.includes(v) ? c.filter(i => i !== v) : [...c, v] }; });
-  const handleJenjangChange = (e) => setFormData(prev => ({ ...prev, jenjang: e.target.value, kelas: KELAS_BY_JENJANG[e.target.value][0] }));
+  
+  const handleJenjangChange = (e) => {
+    const newJenjang = e.target.value;
+    setFormData(prev => ({ 
+        ...prev, 
+        jenjang: newJenjang, 
+        kelas: KELAS_BY_JENJANG[newJenjang][0] 
+    }));
+  };
 
   // --- API ---
   const getActiveModelName = () => {
       return selectedModel === 'custom' ? customModelName : selectedModel;
   }
 
-  // Fungsi Baru: Cek Model apa saja yang tersedia untuk Key ini (VERSI ANTI CRASH)
   const checkAvailableModels = async () => {
       if (!userApiKey) return alert("Masukkan API Key dulu.");
       setIsCheckingModels(true);
       setErrorMsg(null);
-      setAvailableModels([]); // Reset ke array kosong
+      setAvailableModels([]); 
       
       try {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${userApiKey}`);
@@ -184,11 +201,8 @@ export default function RPMGenerator() {
           if (!res.ok) throw new Error(data.error?.message || "Gagal mengambil daftar model");
           
           if (data && data.models && Array.isArray(data.models)) {
-              // Filter lebih ketat: pastikan 'name' ada agar tidak crash
               const validModels = data.models.filter(m => 
-                  m && // Pastikan m tidak null
-                  m.name && // Cek nama ada
-                  m.supportedGenerationMethods && 
+                  m && m.name && m.supportedGenerationMethods && 
                   m.supportedGenerationMethods.includes("generateContent")
               );
               setAvailableModels(validModels);
@@ -197,7 +211,7 @@ export default function RPMGenerator() {
           }
       } catch (e) {
           setErrorMsg(`Gagal Cek Model: ${e.message}`);
-          setAvailableModels([]); // Pastikan tetap array jika error
+          setAvailableModels([]); 
       } finally {
           setIsCheckingModels(false);
       }
@@ -260,7 +274,6 @@ export default function RPMGenerator() {
     } catch (e) { setErrorMsg(e.message); return null; }
   };
 
-  // --- CLEANER FUNCTION (Pembersih Respon AI) ---
   const cleanAIResponse = (text) => {
     if (!text) return "";
     let cleaned = text.replace(/^(Tentu|Berikut|Baik|Ini|Silakan|Di bawah|Sebagai|Halo).*?(:|\n)/i, '');
@@ -268,7 +281,6 @@ export default function RPMGenerator() {
     return cleaned.trim();
   }
 
-  // --- HTML CLEANER (Hapus Simbol Markdown dari HTML) ---
   const cleanHtmlContent = (text) => {
     if (!text) return "";
     let cleaned = text.replace(/```html/g, '').replace(/```/g, ''); 
@@ -284,11 +296,18 @@ export default function RPMGenerator() {
 
     setLoadingStatus(label);
     
+    // Logika Konteks Jenjang
+    const isIslamic = ['SDIT', 'MI', 'SMPIT', 'MTs', 'SMAIT', 'MA'].includes(formData.jenjang);
+    const isVocational = formData.jenjang === 'SMK';
+    let tambahanKonteks = "";
+    if (isIslamic) tambahanKonteks = " PASTIKAN menyisipkan nilai-nilai keislaman, akhlak, atau hikmah spiritual yang relevan dengan materi.";
+    if (isVocational) tambahanKonteks = " PASTIKAN bahasa dan studi kasus berfokus pada ranah vokasional, praktik industri, atau kesiapan kerja.";
+
     let strictPrompt = prompt;
     if (type === 'cp' || type === 'tp') {
-        strictPrompt += ". INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Jangan pakai kata pengantar. Jangan pakai penjelasan akhir.";
+        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Jangan pakai kata pengantar. Jangan pakai penjelasan akhir.${tambahanKonteks}`;
     } else if (type === 'rubric') {
-        strictPrompt += ". INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.";
+        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.${tambahanKonteks}`;
     } else if (type === 'lkpd') {
         strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
         
@@ -296,14 +315,15 @@ export default function RPMGenerator() {
         
         Instruksi Output:
         1. Format WAJIB: HTML Murni (tanpa Markdown, tanpa backticks).
-        2. Gaya Bahasa: Menarik untuk siswa, instruktif, dan jelas.
+        2. Gaya Bahasa: Menarik untuk siswa, instruktif, dan jelas.${tambahanKonteks}
         3. Struktur Wajib:
            - Judul Kegiatan (Tag <h3>, Center)
            - Identitas Siswa (Tabel atau baris titik-titik untuk Nama, Kelas, Tanggal)
            - Petunjuk Pengerjaan (List <ol>)
            - Alat dan Bahan (Jika perlu)
-           - Langkah Kegiatan (Inti aktivitas: Berikan instruksi step-by-step detail apa yang harus dilakukan siswa. Misal: "Amati gambar...", "Diskusikan...", "Hitunglah..."). Buat ini mendetail dan relevan dengan materi.
-           - Lembar Jawab/Diskusi (Sediakan soal-soal latihan/diskusi (3-5 soal) dan area/kotak kosong dengan border atau garis titik-titik <hr> untuk siswa menulis jawaban).
+           - Langkah Kegiatan (Inti aktivitas: Berikan instruksi step-by-step detail apa yang harus dilakukan siswa).
+           ${isIslamic ? '- Hikmah/Nilai Islami (Sisipkan kolom singkat berisi pesan moral atau keterkaitan materi dengan nilai spiritual)' : ''}
+           - Lembar Jawab/Diskusi (Sediakan soal-soal latihan/diskusi (3-5 soal) dan area kosong dengan garis titik-titik <hr> untuk siswa menulis jawaban).
            - Kesimpulan (Area kosong untuk menyimpulkan).
         
         Styling: Gunakan style inline css untuk mempercantik (border untuk kotak jawaban, padding yang cukup).`;
@@ -329,7 +349,19 @@ export default function RPMGenerator() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const prompt = `Buatkan RPM ${formData.jumlahPertemuan} pertemuan. JSON Array Only. Data: ${JSON.stringify(formData)}. Metode: ${formData.metodePerPertemuan.join(', ')}. Struktur: [{"siswa":"","lintasDisiplin":"","topik":"","kemitraan":"","lingkungan":"","digital":"","pengalaman":{"memahami":"","mengaplikasi":"","refleksi":""},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
+
+    // Instruksi Spesifik Jenjang untuk RPP Utama
+    const isIslamic = ['SDIT', 'MI', 'SMPIT', 'MTs', 'SMAIT', 'MA'].includes(formData.jenjang);
+    const isVocational = formData.jenjang === 'SMK';
+    let instruksiJenjang = "";
+    
+    if (isIslamic) {
+        instruksiJenjang = "INSTRUKSI KHUSUS: Integrasikan nilai-nilai spiritual, akhlak islami, atau ayat/hadits yang relevan secara natural ke dalam kegiatan pendahuluan, inti, refleksi, maupun asesmen. ";
+    } else if (isVocational) {
+        instruksiJenjang = "INSTRUKSI KHUSUS: Fokuskan pengalaman belajar dan asesmen pada keterampilan praktis (hard skills), pemecahan masalah dunia nyata, dan kesiapan industri/kerja. ";
+    }
+
+    const prompt = `Buatkan RPM ${formData.jumlahPertemuan} pertemuan. JSON Array Only. Data: ${JSON.stringify(formData)}. Metode: ${formData.metodePerPertemuan.join(', ')}. ${instruksiJenjang}Struktur: [{"siswa":"","lintasDisiplin":"","topik":"","kemitraan":"","lingkungan":"","digital":"","pengalaman":{"memahami":"","mengaplikasi":"","refleksi":""},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
     
     const res = await callAI(prompt);
     if (res) {
@@ -378,7 +410,6 @@ export default function RPMGenerator() {
       : <input className="w-full p-1 border bg-yellow-50 text-sm font-sans" value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />;
   };
 
-  // Fungsi PEMBERSIH & PERAPI TEKS (Hapus * dan buat Poin)
   const formatRender = (text) => {
     if (!text) return '-';
     let clean = text.replace(/[*#`_]/g, '');
@@ -451,7 +482,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.8 (Word Fix)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.9 (Spesifik Jenjang)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -471,11 +502,9 @@ export default function RPMGenerator() {
           </div>
           
           <div className="space-y-3 w-full">
-            {/* INPUT KEY */}
             <input type="password" placeholder="Paste Key (AIza...)" value={userApiKey} onChange={e=>setUserApiKey(e.target.value)} className="w-full border p-2 rounded text-gray-800"/>
             
             <div className="flex flex-col md:flex-row gap-2">
-                {/* PILIH MODEL */}
                 <div className="flex items-center gap-2 border p-2 rounded bg-gray-50 flex-1">
                     <Cpu size={16} className="text-gray-500"/>
                     <select value={selectedModel} onChange={handleModelChange} className="bg-transparent text-sm text-gray-700 outline-none w-full">
@@ -483,7 +512,6 @@ export default function RPMGenerator() {
                     </select>
                 </div>
 
-                {/* INPUT MODEL MANUAL (Jika pilih Custom) */}
                 {selectedModel === 'custom' && (
                     <input 
                         type="text" 
@@ -503,8 +531,6 @@ export default function RPMGenerator() {
                 </button>
             </div>
 
-            {/* HASIL CEK DAFTAR MODEL */}
-            {/* Pengaman: Hanya tampilkan jika availableModels adalah Array dan ada isinya */}
             {Array.isArray(availableModels) && availableModels.length > 0 && (
                 <div className="mt-2 bg-emerald-50 border border-emerald-200 p-3 rounded text-sm text-gray-800">
                     <h4 className="font-bold flex items-center gap-2 mb-2 text-emerald-700"><Check size={14}/> Model yang Diizinkan untuk Key ini:</h4>
@@ -543,7 +569,7 @@ export default function RPMGenerator() {
       )}
 
       {/* HISTORY */}
-      {showHistory && <div className="fixed inset-0 z-50 flex justify-end"><div className="absolute inset-0 bg-black/50" onClick={()=>setShowHistory(false)}></div><div className={`relative w-80 h-full shadow-xl flex flex-col ${isDarkMode?'bg-gray-900 text-white':'bg-white text-gray-800'}`}><div className="p-4 border-b flex justify-between"><h2 className="font-bold">Riwayat</h2><button onClick={()=>setShowHistory(false)}><X/></button></div><div className="flex-1 overflow-y-auto p-4 space-y-2">{history.map(h=><div key={h.id} className="p-2 border rounded cursor-pointer hover:border-indigo-500" onClick={()=>{setFormData(h.formData); setContent({ai:h.aiContent, rubric:null, lkpd:null}); setIsGenerated(true); setShowHistory(false)}}><div className="font-bold text-sm">{h.title}</div><div className="text-xs opacity-60">{h.date}</div><button onClick={(e)=>{e.stopPropagation();setHistory(x=>x.filter(i=>i.id!==h.id))}} className="text-red-500 text-xs mt-1">Hapus</button></div>)}</div></div></div>}
+      {showHistory && <div className="fixed inset-0 z-50 flex justify-end"><div className="absolute inset-0 bg-black/50" onClick={()=>setShowHistory(false)}></div><div className={`relative w-80 h-full shadow-xl flex flex-col ${isDarkMode?'bg-gray-900 text-white':'bg-white text-gray-800'}`}><div className="p-4 border-b flex justify-between"><h2 className="font-bold">Riwayat</h2><button onClick={()=>setShowHistory(false)}><X/></button></div><div className="flex-1 overflow-y-auto p-4 space-y-2">{history.map(h=><div key={h.id} className="p-2 border rounded cursor-pointer hover:border-indigo-500" onClick={()=>{setFormData(h.formData); setAiContent(h.aiContent); setRubricContent(null); setLkpdContent(null); setIsGenerated(true); setShowHistory(false)}}><div className="font-bold text-sm">{h.title}</div><div className="text-xs opacity-60">{h.date}</div><button onClick={(e)=>{e.stopPropagation();setHistory(x=>x.filter(i=>i.id!==h.id))}} className="text-red-500 text-xs mt-1">Hapus</button></div>)}</div></div></div>}
 
       <main className="max-w-6xl mx-auto mt-6 px-4 pb-20 flex-grow">
         {!isGenerated ? (
@@ -718,7 +744,7 @@ export default function RPMGenerator() {
                           </tbody>
                       </table>
 
-                      {/* SIGNATURE SECTION - CHANGED TO TABLE FOR WORD COMPATIBILITY */}
+                      {/* SIGNATURE SECTION */}
                       <table className="signature-section no-border" style={{ width: '100%', marginTop: '50px', border: 'none' }}>
                           <tbody>
                               <tr>
@@ -742,7 +768,6 @@ export default function RPMGenerator() {
 
                     </div>
                   ))}
-                  {/* CSS CLASS 'custom-html-content' ditambahkan untuk styling tabel rubrik/lkpd */}
                   {rubricContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 1: RUBRIK PENILAIAN</h3><div dangerouslySetInnerHTML={{ __html: rubricContent }} /></div>}
                   {lkpdContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 2: LKPD</h3><div dangerouslySetInnerHTML={{ __html: lkpdContent }} /></div>}
                 </div>
