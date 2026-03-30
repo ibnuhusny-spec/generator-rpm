@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   BookOpen, RefreshCcw, Sparkles, Wand2, Loader2, Moon, Sun, History, 
   Printer, FileDown, Edit, X, Trash2, Table, FileSignature, Key, 
-  AlertTriangle, Layers, Cpu, Activity, Terminal, Menu, Check
+  AlertTriangle, Layers, Cpu, Activity, Terminal, Menu, Check, Info, HelpCircle
 } from 'lucide-react';
 
 // --- UTILITIES AMAN ---
@@ -49,7 +49,32 @@ const PEDAGOGI_OPTIONS = [
   'Differentiated Instruction', 'Culturally Responsive Teaching', 'Social Emotional Learning', 'Ceramah Interaktif'
 ];
 
+const PEDAGOGI_INFO = {
+  'Inkuiri-Discovery Learning': 'Siswa mencari dan menemukan jawaban secara mandiri melalui observasi/eksperimen.',
+  'Project Based Learning (PjBL)': 'Menghasilkan produk nyata (karya, maket, video) melalui tugas berbasis proyek.',
+  'Problem Based Learning (PBL)': 'Memecahkan masalah dunia nyata untuk melatih berpikir kritis dan solusi kreatif.',
+  'Game Based Learning': 'Menggunakan elemen permainan agar proses belajar menjadi interaktif dan menyenangkan.',
+  'Station Learning': 'Siswa berpindah antar pos/stasiun di kelas yang memiliki aktivitas berbeda-beda.',
+  'Flipped Classroom': 'Materi dipelajari di rumah, sedangkan waktu kelas fokus untuk diskusi dan praktik.',
+  'Cooperative Learning': 'Belajar berkelompok secara terstruktur untuk mencapai tujuan bersama.',
+  'Differentiated Instruction': 'Menyesuaikan metode dan materi berdasarkan gaya belajar unik tiap siswa.',
+  'Culturally Responsive Teaching': 'Mengaitkan materi pelajaran dengan latar belakang budaya siswa.',
+  'Social Emotional Learning': 'Fokus pada keterampilan mengelola emosi, empati, dan keputusan bertanggung jawab.',
+  'Ceramah Interaktif': 'Penyampaian materi satu arah namun tetap melibatkan tanya jawab dengan siswa.'
+};
+
 const DIMENSI_OPTIONS = ['Keimanan & Ketakwaan', 'Kewargaan', 'Penalaran Kritis', 'Kreativitas', 'Kolaborasi', 'Kemandirian', 'Kesehatan', 'Komunikasi'];
+
+const DIMENSI_INFO = {
+  'Keimanan & Ketakwaan': 'Berakhlak mulia terhadap Tuhan, sesama, alam, dan negara.',
+  'Kewargaan': 'Mengenal budaya, menghargai keberagaman, dan cinta tanah air.',
+  'Penalaran Kritis': 'Mampu memproses informasi, menganalisis, dan mengevaluasi.',
+  'Kreativitas': 'Mampu memodifikasi dan menghasilkan karya orisinal yang bermakna.',
+  'Kolaborasi': 'Kemampuan bekerja sama, peduli, dan berbagi dengan orang lain.',
+  'Kemandirian': 'Sadar atas diri sendiri, situasi, dan mampu meregulasi diri.',
+  'Kesehatan': 'Kesadaran menjaga kesehatan fisik dan mental secara mandiri.',
+  'Komunikasi': 'Kemampuan berinteraksi dan bertukar ide secara efektif.'
+};
 
 const GRADIENT_THEMES = [
   { id: 'royal', class: 'from-indigo-600 via-purple-600 to-violet-800' },
@@ -59,7 +84,6 @@ const GRADIENT_THEMES = [
   { id: 'berry', class: 'from-pink-600 via-rose-600 to-purple-700' }
 ];
 
-// Opsi Model AI Standar
 const AI_MODELS = [
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Standar)' },
   { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Exp)' },
@@ -72,7 +96,7 @@ export default function RPMGenerator() {
   // --- STATE ---
   const [formData, setFormData] = useState({
     namaSatuan: '', namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
-    jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', materi: '',
+    jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', materi: '', catatanKhusus: '',
     jumlahPertemuan: 1, durasi: '2 x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
   });
 
@@ -85,6 +109,7 @@ export default function RPMGenerator() {
   const [customModelName, setCustomModelName] = useState('');
   
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [showApiGuide, setShowApiGuide] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [debugLog, setDebugLog] = useState(null);
   
@@ -103,7 +128,7 @@ export default function RPMGenerator() {
 
   const outputRef = useRef(null);
 
-  // --- INIT ---
+  // --- INIT & AUTO-SAVE ---
   useEffect(() => {
     const storedKey = safeStorage.getItem('user_gemini_api_key');
     if (storedKey) setUserApiKey(storedKey);
@@ -122,11 +147,29 @@ export default function RPMGenerator() {
         if (Array.isArray(parsed)) setHistory(parsed);
       } catch (e) { safeStorage.removeItem('rpm_history'); }
     }
+
+    // Auto-load saved form data
+    const savedFormData = safeStorage.getItem('rpm_form_data');
+    if (savedFormData) {
+      try {
+        const parsed = JSON.parse(savedFormData);
+        // Ensure array properties exist
+        if (!parsed.metodePerPertemuan) parsed.metodePerPertemuan = ['Inkuiri-Discovery Learning'];
+        if (!parsed.dimensi) parsed.dimensi = [];
+        setFormData(prev => ({...prev, ...parsed}));
+      } catch (e) { safeStorage.removeItem('rpm_form_data'); }
+    }
   }, []);
 
+  // Auto-save history
   useEffect(() => {
     if (history.length > 0) safeStorage.setItem('rpm_history', JSON.stringify(history));
   }, [history]);
+
+  // Auto-save form data
+  useEffect(() => {
+    safeStorage.setItem('rpm_form_data', JSON.stringify(formData));
+  }, [formData]);
 
   useEffect(() => {
     setFormData(prev => {
@@ -181,6 +224,17 @@ export default function RPMGenerator() {
         jenjang: newJenjang, 
         kelas: KELAS_BY_JENJANG[newJenjang][0] 
     }));
+  };
+
+  const clearForm = () => {
+    if(window.confirm("Apakah Anda yakin ingin menghapus semua isian form?")) {
+        setFormData({
+            namaSatuan: '', namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
+            jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', materi: '', catatanKhusus: '',
+            jumlahPertemuan: 1, durasi: '2 x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
+        });
+        safeStorage.removeItem('rpm_form_data');
+    }
   };
 
   // --- API ---
@@ -303,11 +357,14 @@ export default function RPMGenerator() {
     if (isIslamic) tambahanKonteks = " PASTIKAN menyisipkan nilai-nilai keislaman, akhlak, atau hikmah spiritual yang relevan dengan materi.";
     if (isVocational) tambahanKonteks = " PASTIKAN bahasa dan studi kasus berfokus pada ranah vokasional, praktik industri, atau kesiapan kerja.";
 
+    // Gabungkan Catatan Khusus jika ada
+    const catatanGuru = formData.catatanKhusus ? ` CATATAN TAMBAHAN DARI GURU: ${formData.catatanKhusus}. Harap sesuaikan hasil dengan catatan ini.` : "";
+
     let strictPrompt = prompt;
     if (type === 'cp' || type === 'tp') {
-        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Jangan pakai kata pengantar. Jangan pakai penjelasan akhir.${tambahanKonteks}`;
+        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Jangan pakai kata pengantar. Jangan pakai penjelasan akhir.${tambahanKonteks}${catatanGuru}`;
     } else if (type === 'rubric') {
-        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.${tambahanKonteks}
+        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.${tambahanKonteks}${catatanGuru}
         STRUKTUR TABEL WAJIB:
         1. Bagi menjadi 3 aspek penilaian secara terstruktur: Kognitif (Pemahaman), Psikomotorik (Keterampilan Praktik), dan Afektif (Sikap/Penerapan Dimensi Profil Pelajar).
         2. Gunakan indikator yang konkret dan terukur pada setiap kriteria (bukan sekadar kata "sangat baik" atau "kurang").
@@ -316,6 +373,7 @@ export default function RPMGenerator() {
         strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP, KREATIF, dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
         
         Data Tujuan Pembelajaran (TP): ${formData.tp}
+        ${catatanGuru}
         
         Instruksi Output:
         1. Format WAJIB: HTML Murni (tanpa Markdown, tanpa backticks).
@@ -366,7 +424,11 @@ export default function RPMGenerator() {
         instruksiJenjang = "INSTRUKSI KHUSUS: Fokuskan pengalaman belajar dan asesmen pada keterampilan praktis (hard skills), pemecahan masalah dunia nyata, dan kesiapan industri/kerja. ";
     }
 
-    const prompt = `Buatkan RPM ${formData.jumlahPertemuan} pertemuan. JSON Array Only. Data: ${JSON.stringify(formData)}. Metode: ${formData.metodePerPertemuan.join(', ')}. ${instruksiJenjang}Struktur: [{"siswa":"","lintasDisiplin":"","topik":"","kemitraan":"","lingkungan":"","digital":"","pengalaman":{"memahami":"","mengaplikasi":"","refleksi":""},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
+    const catatanGuru = formData.catatanKhusus ? `CATATAN/INSTRUKSI TAMBAHAN DARI GURU: ${formData.catatanKhusus}. Jadikan catatan ini sebagai prioritas utama dalam merancang aktivitas.` : "";
+
+    const prompt = `Buatkan RPM ${formData.jumlahPertemuan} pertemuan. JSON Array Only. Data: ${JSON.stringify({
+        ...formData, catatanKhusus: undefined // Exclude to avoid duplication in JSON
+    })}. Metode: ${formData.metodePerPertemuan.join(', ')}. ${instruksiJenjang} ${catatanGuru} Struktur: [{"siswa":"","lintasDisiplin":"","topik":"","kemitraan":"","lingkungan":"","digital":"","pengalaman":{"memahami":"","mengaplikasi":"","refleksi":""},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
     
     const res = await callAI(prompt);
     if (res) {
@@ -487,7 +549,7 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v6.9 (Spesifik Jenjang)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div><h1 className="text-xl font-bold">Generator RPM <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">AI v7.0 (Pro Features)</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="API Key"><Key /></button>
@@ -498,10 +560,41 @@ export default function RPMGenerator() {
         </div>
       </header>
 
+      {/* PANDUAN API KEY MODAL */}
+      {showApiGuide && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowApiGuide(false)}></div>
+            <div className={`relative w-full max-w-lg rounded-xl shadow-2xl p-6 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 className="font-bold text-lg flex items-center gap-2"><HelpCircle className="text-indigo-500"/> Cara Mendapatkan API Key Gratis</h3>
+                    <button onClick={() => setShowApiGuide(false)} className="text-gray-500 hover:text-red-500"><X/></button>
+                </div>
+                <div className="space-y-4 text-sm">
+                    <p>Aplikasi ini membutuhkan API Key dari Google Gemini untuk bisa bekerja menghasilkan RPP. Jangan khawatir, ini 100% gratis!</p>
+                    <ol className="list-decimal pl-5 space-y-2">
+                        <li>Buka halaman web <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-indigo-500 font-bold underline">Google AI Studio</a>.</li>
+                        <li>Pastikan Anda sudah login menggunakan akun Google / Gmail Anda.</li>
+                        <li>Klik tombol biru bertuliskan <strong>"Create API key"</strong>.</li>
+                        <li>Pilih project yang ada atau buat project baru.</li>
+                        <li>Salin (Copy) kode panjang yang muncul (biasanya berawalan <code>AIzaSy...</code>).</li>
+                        <li>Tempel (Paste) kode tersebut ke dalam kotak API Key di aplikasi ini, lalu klik <strong>Simpan Key</strong>.</li>
+                    </ol>
+                    <div className="bg-yellow-50 text-yellow-800 p-3 rounded border border-yellow-200 flex gap-2">
+                        <Info size={16} className="shrink-0 mt-0.5"/>
+                        <p className="text-xs">Satu API Key memiliki batas kuota penggunaan harian dari Google. Key Anda aman dan hanya tersimpan di perangkat (browser) Anda sendiri.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* INPUT API KEY & MODEL SELECTOR */}
       {showApiKeyInput && <div className="max-w-6xl mx-auto mt-4 px-4 no-print animate-fade-in">
-        <div className="bg-white p-4 rounded shadow-lg border-l-4 border-indigo-500 flex flex-col gap-4">
-          <div className="flex-1 text-gray-800">
+        <div className="bg-white p-4 rounded shadow-lg border-l-4 border-indigo-500 flex flex-col gap-4 relative">
+          <button onClick={() => setShowApiGuide(true)} className="absolute top-4 right-4 text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-indigo-200">
+            <HelpCircle size={12}/> Bingung cari API Key?
+          </button>
+          <div className="flex-1 text-gray-800 pr-32">
             <h3 className="font-bold flex items-center gap-2"><Key size={16}/> Pengaturan AI & Koneksi</h3>
             <p className="text-xs text-gray-500">Masukkan API Key Gemini Anda dan cek model yang tersedia.</p>
           </div>
@@ -578,8 +671,12 @@ export default function RPMGenerator() {
 
       <main className="max-w-6xl mx-auto mt-6 px-4 pb-20 flex-grow">
         {!isGenerated ? (
-          <form onSubmit={handleSubmit} className={`rounded-xl shadow-2xl p-6 md:p-8 border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-100 text-gray-800'}`}>
-            <h2 className="text-lg font-semibold mb-6 border-b pb-2 flex items-center gap-2">📝 Data Perencanaan</h2>
+          <form onSubmit={handleSubmit} className={`rounded-xl shadow-2xl p-6 md:p-8 border relative ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-100 text-gray-800'}`}>
+            <div className="flex justify-between items-center mb-6 border-b pb-2">
+                <h2 className="text-lg font-semibold flex items-center gap-2">📝 Data Perencanaan <span className="text-[10px] font-normal bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2">Tersimpan Otomatis</span></h2>
+                <button type="button" onClick={clearForm} className="text-xs text-red-500 hover:bg-red-50 px-2 py-1 rounded flex items-center gap-1"><Trash2 size={12}/> Bersihkan Form</button>
+            </div>
+            
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div><label className={cssLabel}>Satuan Pendidikan</label><input name="namaSatuan" value={formData.namaSatuan} onChange={handleChange} className={cssInput} required /></div>
               <div><label className={cssLabel}>Nama Guru</label><input name="namaGuru" value={formData.namaGuru} onChange={handleChange} className={cssInput} required /></div>
@@ -597,32 +694,82 @@ export default function RPMGenerator() {
               <div><label className={cssLabel}>Materi</label><textarea name="materi" value={formData.materi} onChange={handleChange} rows={2} className={cssInput} /></div>
               <div><label className={cssLabel}>Tujuan Pembelajaran <button type="button" onClick={() => generateSimple('tp', `Buat TP dari CP ${formData.cp} materi ${formData.materi}`, 'TP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'TP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat TP'}</button></label><textarea name="tp" value={formData.tp} onChange={handleChange} rows={2} className={cssInput} /></div>
             </div>
+            
             <div className="bg-indigo-50 p-4 rounded mb-4 border border-indigo-100 text-gray-800">
               <div className="grid grid-cols-2 gap-4 mb-2">
                 <div><label className="text-sm font-medium">Jml Pertemuan</label><input type="number" name="jumlahPertemuan" min="1" max="20" value={formData.jumlahPertemuan} onChange={handleChange} className="w-full p-2 border rounded" /></div>
                 <div><label className="text-sm font-medium">Durasi</label><input name="durasi" value={formData.durasi} onChange={handleChange} className="w-full p-2 border rounded" /></div>
               </div>
-              <div className="space-y-2 max-h-40 overflow-y-auto">{formData.metodePerPertemuan.map((m, i) => <div key={i} className="flex flex-col"><span className="text-xs text-gray-500 uppercase">Pertemuan {i + 1}</span><select value={m} onChange={e => handleMethodChange(i, e.target.value)} className="p-1 border rounded text-sm">{PEDAGOGI_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}</select></div>)}</div>
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                {formData.metodePerPertemuan.map((m, i) => (
+                  <div key={i} className="flex flex-col bg-white p-2 rounded shadow-sm border border-gray-200">
+                    <span className="text-[10px] font-bold text-indigo-600 uppercase mb-1 tracking-wider">
+                      Pertemuan {i + 1}
+                    </span>
+                    <select 
+                      value={m} 
+                      onChange={e => handleMethodChange(i, e.target.value)} 
+                      className="p-1.5 border border-gray-300 rounded text-sm w-full outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all bg-gray-50 mb-1"
+                    >
+                      {PEDAGOGI_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                    <span className="text-[10px] text-gray-500 leading-tight">
+                      <span className="font-bold text-amber-500">💡 Info:</span> {PEDAGOGI_INFO[m] || 'Pilih metode.'}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="mb-6"><span className={cssLabel}>Dimensi Profil</span><div className="grid grid-cols-2 md:grid-cols-4 gap-2">{DIMENSI_OPTIONS.map(d => <label key={d} className={`flex items-center p-2 border rounded text-xs cursor-pointer ${formData.dimensi.includes(d) ? 'bg-indigo-100 border-indigo-500' : ''}`}><input type="checkbox" checked={formData.dimensi.includes(d)} onChange={() => handleCheckboxChange(d)} className="mr-2" />{d}</label>)}</div></div>
+
+            <div className="mb-4">
+                <span className={cssLabel}>Dimensi Profil Pelajar Pancasila</span>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {DIMENSI_OPTIONS.map(d => (
+                        <div key={d} className="relative group">
+                            <label className={`flex items-center p-2 border rounded text-xs cursor-pointer h-full transition-colors ${formData.dimensi.includes(d) ? 'bg-indigo-100 border-indigo-500' : 'hover:bg-gray-50'}`}>
+                                <input type="checkbox" checked={formData.dimensi.includes(d)} onChange={() => handleCheckboxChange(d)} className="mr-2" />
+                                {d}
+                            </label>
+                            {/* Tooltip Info Dimensi */}
+                            <div className="absolute z-10 bottom-full mb-1 left-1/2 -translate-x-1/2 w-48 bg-gray-800 text-white text-[10px] p-2 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-lg pointer-events-none">
+                                {DIMENSI_INFO[d]}
+                                <svg className="absolute text-gray-800 h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xmlSpace="preserve"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="mb-6">
+                <label className={cssLabel}>Catatan Tambahan / Instruksi Khusus (Opsional)</label>
+                <textarea 
+                    name="catatanKhusus" 
+                    value={formData.catatanKhusus} 
+                    onChange={handleChange} 
+                    placeholder="Contoh: 'Siswa kelas saya sangat aktif bergerak, perbanyak aktivitas fisik', atau 'Buatkan game berburu kata terkait materi ini', dll."
+                    rows={2} 
+                    className={cssInput} 
+                />
+            </div>
+
             <button type="submit" disabled={isLoading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2">{isLoading ? <Loader2 className="animate-spin" /> : <Sparkles />} Generate RPM</button>
           </form>
         ) : (
           <div className="animate-slide-up">
             <div className={`flex flex-wrap gap-2 justify-between items-center mb-4 p-3 rounded shadow border no-print ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white text-gray-800'}`}>
               <div className="flex gap-2">
-                <button onClick={() => setIsGenerated(false)} className="px-3 py-1.5 border rounded text-sm hover:bg-gray-100 hover:text-black flex gap-1 items-center"><RefreshCcw size={14} /> Reset</button>
-                <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 border rounded text-sm flex gap-1 items-center ${isEditing ? 'bg-yellow-100 text-yellow-800' : 'hover:bg-gray-100 hover:text-black'}`}><Edit size={14} /> {isEditing ? 'Done' : 'Edit'}</button>
+                <button onClick={() => setIsGenerated(false)} className="px-3 py-1.5 border rounded text-sm hover:bg-gray-100 hover:text-black flex gap-1 items-center"><RefreshCcw size={14} /> Kembali ke Form</button>
+                <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 border rounded text-sm flex gap-1 items-center ${isEditing ? 'bg-yellow-100 text-yellow-800' : 'hover:bg-gray-100 hover:text-black'}`}><Edit size={14} /> {isEditing ? 'Selesai Edit' : 'Edit Hasil'}</button>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => generateSimple('rubric', `Buat rubrik TP ${formData.tp}`, 'Rubric')} disabled={loadingStatus === 'Rubric'} className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm flex gap-1 items-center">{loadingStatus === 'Rubric' ? <Loader2 className="animate-spin" size={14} /> : <Table size={14} />} Rubrik</button>
-                <button onClick={() => generateSimple('lkpd', `Buat LKPD ${formData.materi} ${formData.jenjang}`, 'LKPD')} disabled={loadingStatus === 'LKPD'} className="px-3 py-1.5 bg-teal-600 text-white rounded text-sm flex gap-1 items-center">{loadingStatus === 'LKPD' ? <Loader2 className="animate-spin" size={14} /> : <FileSignature size={14} />} LKPD</button>
-                <button onClick={handleWord} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm flex gap-1 items-center"><FileDown size={14} /> Word</button>
-                <button onClick={handlePrint} className="px-3 py-1.5 bg-red-600 text-white rounded text-sm flex gap-1 items-center"><Printer size={14} /> PDF</button>
+                <button onClick={() => generateSimple('rubric', `Buat rubrik TP ${formData.tp}`, 'Rubric')} disabled={loadingStatus === 'Rubric'} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Rubric' ? <Loader2 className="animate-spin" size={14} /> : <Table size={14} />} Rubrik</button>
+                <button onClick={() => generateSimple('lkpd', `Buat LKPD ${formData.materi} ${formData.jenjang}`, 'LKPD')} disabled={loadingStatus === 'LKPD'} className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'LKPD' ? <Loader2 className="animate-spin" size={14} /> : <FileSignature size={14} />} LKPD</button>
+                <button onClick={handleWord} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><FileDown size={14} /> Word</button>
+                <button onClick={handlePrint} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><Printer size={14} /> PDF/Cetak</button>
               </div>
             </div>
 
-            <div className="bg-gray-500/10 p-4 rounded overflow-auto">
+            <div className="bg-gray-500/10 p-4 rounded overflow-auto shadow-inner">
               <div id="printable-area" className="bg-white shadow-xl p-8 mx-auto text-black font-serif leading-relaxed" style={{ maxWidth: '21cm', minHeight: '29.7cm' }}>
                 <div ref={outputRef}>
                   {aiContent.map((rpm, i) => (
@@ -631,7 +778,6 @@ export default function RPMGenerator() {
                       {/* HEADER / KOP SURAT */}
                       <div className="kop-surat" style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '3px double black', paddingBottom: '10px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-                              {/* LOGO SEKOLAH (Placeholder) */}
                               <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed gray', fontSize: '10px', color: 'gray', textAlign: 'center' }}>
                                 LOGO<br/>SEKOLAH
                               </div>
