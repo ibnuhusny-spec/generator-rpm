@@ -263,6 +263,7 @@ export default function RPMGenerator() {
         loadCloudHistory(c); // Langsung coba sinkronisasi jika ada URL baru
     }
     alert("Semua Pengaturan & Kunci API berhasil tersimpan!");
+    setShowApiKeyInput(false); // Otomatis menyembunyikan panel pengaturan setelah disimpan
   };
 
   const handleModelChange = (e) => {
@@ -637,7 +638,7 @@ export default function RPMGenerator() {
       {/* 🌟 SPLASH SCREEN 🌟 */}
       {showSplash && (
         <div 
-          className={`fixed top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-[#2b307c] transition-opacity duration-700 ${fadeSplash ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`fixed top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-teal-600 to-emerald-900 transition-opacity duration-700 ${fadeSplash ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           style={{ zIndex: 9999 }}
         >
             <div className="flex flex-col items-center gap-4">
@@ -654,16 +655,16 @@ export default function RPMGenerator() {
                 
                 <div className="text-center text-white">
                     <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight drop-shadow-xl font-sans mb-2">
-                        <span className="text-white">{APP_NAME_P1}</span> <span className="text-[#ffd700]">{APP_NAME_P2}</span>
+                        <span className="text-white">{APP_NAME_P1}</span> <span className="text-amber-300">{APP_NAME_P2}</span>
                     </h1>
-                    <p className="text-sm md:text-base font-semibold text-indigo-200 tracking-wider">Asisten Cerdas Perencanaan Pembelajaran</p>
+                    <p className="text-sm md:text-base font-semibold text-emerald-100 tracking-wider">Asisten Cerdas Perencanaan Pembelajaran</p>
                 </div>
                 
                 {/* Elegant Bounce Loading Animation */}
                 <div className="mt-8 flex gap-3">
-                    <div className="w-3 h-3 bg-[#ffd700] rounded-full animate-bounce"></div>
-                    <div className="w-3 h-3 bg-[#ffd700] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
-                    <div className="w-3 h-3 bg-[#ffd700] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                    <div className="w-3 h-3 bg-amber-300 rounded-full animate-bounce"></div>
+                    <div className="w-3 h-3 bg-amber-300 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                    <div className="w-3 h-3 bg-amber-300 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                 </div>
             </div>
         </div>
@@ -672,7 +673,16 @@ export default function RPMGenerator() {
       <header className={`p-4 shadow-lg backdrop-blur-md no-print ${isDarkMode ? 'bg-gray-900/90 text-white' : 'bg-white/90 text-gray-800'}`}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
+            {/* Logo Aplikasi di Kiri Atas */}
+            <div className="relative w-10 h-10 flex items-center justify-center bg-indigo-50 rounded-lg shadow-sm border border-indigo-100 overflow-hidden shrink-0">
+                <img 
+                    src="/logo.png" 
+                    alt="Logo" 
+                    className="absolute inset-0 w-full h-full object-contain p-1 z-10" 
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                />
+                <BookOpen className="h-5 w-5 text-indigo-400" />
+            </div>
             <div>
                 <h1 className="text-xl font-bold font-sans">
                     <span>{APP_NAME_P1}</span> <span className="text-yellow-500">{APP_NAME_P2}</span> <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded ml-1">v7.0 SaaS</span>
@@ -732,11 +742,17 @@ export default function RPMGenerator() {
       {/* INPUT PENGATURAN API & SPREADSHEET */}
       {showApiKeyInput && <div className="max-w-6xl mx-auto mt-4 px-4 no-print animate-fade-in">
         <div className="bg-white p-4 rounded shadow-lg border-l-4 border-indigo-500 flex flex-col gap-4 relative">
-          <button onClick={() => setShowApiGuide(true)} className="absolute top-4 right-4 text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-indigo-200">
-            <HelpCircle size={12}/> Butuh Panduan?
-          </button>
+          <div className="absolute top-4 right-4 flex gap-3 items-center">
+              <button onClick={() => setShowApiGuide(true)} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-indigo-200">
+                <HelpCircle size={12}/> Butuh Panduan?
+              </button>
+              {/* Tombol X untuk menutup pengaturan */}
+              <button onClick={() => setShowApiKeyInput(false)} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Tutup Pengaturan">
+                <X size={18}/>
+              </button>
+          </div>
           
-          <div className="flex-1 text-gray-800 pr-32">
+          <div className="flex-1 text-gray-800 pr-40">
             <h3 className="font-bold flex items-center gap-2"><Key size={16}/> API Key Google Gemini</h3>
             <p className="text-xs text-gray-500">Masukkan kunci API untuk mengaktifkan kecerdasan buatan.</p>
           </div>
@@ -966,16 +982,8 @@ export default function RPMGenerator() {
                       {/* HEADER / KOP SURAT */}
                       <div className="kop-surat" style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '3px double black', paddingBottom: '10px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-                              <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <img 
-                                      src="/logo.png" 
-                                      alt="Logo Sekolah" 
-                                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                      onError={(e) => { 
-                                          e.target.onerror = null; 
-                                          e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23f0f0f0' stroke='%23ccc' stroke-dasharray='4'/%3E%3Ctext x='50%25' y='45%25' font-size='10' fill='%23888' text-anchor='middle' dy='.3em' font-family='sans-serif'%3ELOGO%3C/text%3E%3Ctext x='50%25' y='55%25' font-size='10' fill='%23888' text-anchor='middle' dy='.3em' font-family='sans-serif'%3ESEKOLAH%3C/text%3E%3C/svg%3E";
-                                      }}
-                                  />
+                              <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed gray', fontSize: '10px', color: 'gray', textAlign: 'center' }}>
+                                LOGO<br/>SEKOLAH
                               </div>
                               <div>
                                   <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>PEMERINTAH KABUPATEN/KOTA</h4>
