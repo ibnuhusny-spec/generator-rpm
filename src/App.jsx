@@ -94,7 +94,8 @@ const AI_MODELS = [
 ];
 
 export default function RPMGenerator() {
-  const APP_NAME = "RencanaKu Pro";
+  const APP_NAME_P1 = "RencanaKu";
+  const APP_NAME_P2 = "Pro";
 
   // --- STATE ---
   const [showSplash, setShowSplash] = useState(true);
@@ -590,6 +591,7 @@ export default function RPMGenerator() {
       @page { size: A4; margin: 2cm; }
       body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.4; font-size: 11pt; }
       .kop-surat { text-align: center; margin-bottom: 20px; border-bottom: 3px double black; padding-bottom: 10px; }
+      .kop-surat img { max-width: 80px; max-height: 80px; object-fit: contain; }
       .kop-surat h3 { margin: 0; font-size: 14pt; text-transform: uppercase; }
       .kop-surat h4 { margin: 0; font-size: 12pt; text-transform: uppercase; font-weight: normal; }
       .kop-surat p { margin: 0; font-size: 10pt; font-style: italic; }
@@ -635,31 +637,33 @@ export default function RPMGenerator() {
       {/* 🌟 SPLASH SCREEN 🌟 */}
       {showSplash && (
         <div 
-          className={`fixed top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gradient-to-br ${selectedGradient.class} transition-opacity duration-700 ${fadeSplash ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`fixed top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-[#2b307c] transition-opacity duration-700 ${fadeSplash ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           style={{ zIndex: 9999 }}
         >
-            <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-4">
                 {/* Image with Fallback Icon */}
-                <div className="relative w-32 h-32 flex items-center justify-center bg-white/20 rounded-3xl shadow-2xl backdrop-blur-md border border-white/30">
+                <div className="relative w-32 h-32 flex items-center justify-center bg-white/10 rounded-full shadow-2xl backdrop-blur-md border border-white/20 mb-2">
                     <img 
-                        src="Logo.png" 
+                        src="/logo.png" 
                         alt="Logo" 
-                        className="absolute inset-0 w-full h-full object-contain p-2 drop-shadow-xl z-10" 
+                        className="absolute inset-0 w-full h-full object-contain p-3 drop-shadow-xl z-10" 
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
-                    <BookOpen size={64} className="text-white opacity-80" />
+                    <BookOpen size={56} className="text-white opacity-50" />
                 </div>
                 
                 <div className="text-center text-white">
-                    <h1 className="text-5xl font-extrabold tracking-tight drop-shadow-lg">{APP_NAME}</h1>
-                    <p className="text-lg mt-2 font-medium opacity-90 drop-shadow">Asisten Cerdas Perencanaan Pembelajaran</p>
+                    <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight drop-shadow-xl font-sans mb-2">
+                        <span className="text-white">{APP_NAME_P1}</span> <span className="text-[#ffd700]">{APP_NAME_P2}</span>
+                    </h1>
+                    <p className="text-sm md:text-base font-semibold text-indigo-200 tracking-wider">Asisten Cerdas Perencanaan Pembelajaran</p>
                 </div>
                 
                 {/* Elegant Bounce Loading Animation */}
-                <div className="mt-10 flex gap-3">
-                    <div className="w-3 h-3 bg-white rounded-full animate-bounce"></div>
-                    <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
-                    <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                <div className="mt-8 flex gap-3">
+                    <div className="w-3 h-3 bg-[#ffd700] rounded-full animate-bounce"></div>
+                    <div className="w-3 h-3 bg-[#ffd700] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                    <div className="w-3 h-3 bg-[#ffd700] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                 </div>
             </div>
         </div>
@@ -669,7 +673,12 @@ export default function RPMGenerator() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded bg-indigo-100"><BookOpen className="h-6 w-6 text-indigo-600" /></div>
-            <div><h1 className="text-xl font-bold">{APP_NAME} <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded">v7.0 SaaS</span></h1><p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p></div>
+            <div>
+                <h1 className="text-xl font-bold font-sans">
+                    <span>{APP_NAME_P1}</span> <span className="text-yellow-500">{APP_NAME_P2}</span> <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded ml-1">v7.0 SaaS</span>
+                </h1>
+                <p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p>
+            </div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="Pengaturan AI & Cloud"><Settings /></button>
@@ -957,8 +966,16 @@ export default function RPMGenerator() {
                       {/* HEADER / KOP SURAT */}
                       <div className="kop-surat" style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '3px double black', paddingBottom: '10px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-                              <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed gray', fontSize: '10px', color: 'gray', textAlign: 'center' }}>
-                                LOGO<br/>SEKOLAH
+                              <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <img 
+                                      src="/logo.png" 
+                                      alt="Logo Sekolah" 
+                                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                      onError={(e) => { 
+                                          e.target.onerror = null; 
+                                          e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23f0f0f0' stroke='%23ccc' stroke-dasharray='4'/%3E%3Ctext x='50%25' y='45%25' font-size='10' fill='%23888' text-anchor='middle' dy='.3em' font-family='sans-serif'%3ELOGO%3C/text%3E%3Ctext x='50%25' y='55%25' font-size='10' fill='%23888' text-anchor='middle' dy='.3em' font-family='sans-serif'%3ESEKOLAH%3C/text%3E%3C/svg%3E";
+                                      }}
+                                  />
                               </div>
                               <div>
                                   <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>PEMERINTAH KABUPATEN/KOTA</h4>
@@ -1106,7 +1123,7 @@ export default function RPMGenerator() {
           </div>
         )}
       </main>
-      <footer className="text-center py-6 text-sm text-gray-500 no-print">{APP_NAME} © {new Date().getFullYear()} • Dev: Ibnu Husny</footer>
+      <footer className="text-center py-6 text-sm text-gray-500 no-print">{APP_NAME_P1} {APP_NAME_P2} © {new Date().getFullYear()} • Dev: Ibnu Husny</footer>
     </div>
   );
 }
