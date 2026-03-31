@@ -877,7 +877,15 @@ export default function RPMGenerator() {
         {!isGenerated ? (
           <form onSubmit={handleSubmit} className={`rounded-xl shadow-2xl p-6 md:p-8 border relative ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-100 text-gray-800'}`}>
             <div className="flex justify-between items-center mb-6 border-b pb-2">
-                <h2 className="text-lg font-semibold flex items-center gap-2">📝 Data Perencanaan <span className="text-[10px] font-normal bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2 flex items-center gap-1"><Cloud size={10}/> Cloud Ready</span></h2>
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                    📝 Data Perencanaan 
+                    <span 
+                        className="text-[10px] font-normal bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2 flex items-center gap-1 cursor-help" 
+                        title="Jika URL Spreadsheet diatur, RPP otomatis tersimpan ke Cloud saat di-Generate."
+                    >
+                        <Cloud size={10}/> Auto-Sync Cloud
+                    </span>
+                </h2>
                 <button type="button" onClick={clearForm} className="text-xs text-red-500 hover:bg-red-50 px-2 py-1 rounded flex items-center gap-1"><Trash2 size={12}/> Bersihkan Form</button>
             </div>
             
@@ -1131,7 +1139,9 @@ export default function RPMGenerator() {
           </div>
         )}
       </main>
-      <footer className="text-center py-6 text-sm text-gray-500 no-print">{APP_NAME_P1} {APP_NAME_P2} © {new Date().getFullYear()} • Dev: Ibnu Husny</footer>
+      <footer className={`text-center py-6 text-sm font-medium no-print ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        {APP_NAME_P1} {APP_NAME_P2} © {new Date().getFullYear()} • Dev: Ibnu Husny
+      </footer>
     </div>
   );
 }
