@@ -102,7 +102,8 @@ export default function RPMGenerator() {
   const [fadeSplash, setFadeSplash] = useState(false);
 
   const [formData, setFormData] = useState({
-    namaSatuan: '', namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
+    pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
+    namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
     jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
     jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
   });
@@ -127,7 +128,7 @@ export default function RPMGenerator() {
   const [aiContent, setAiContent] = useState([]); 
   const [rubricContent, setRubricContent] = useState(null);
   const [lkpdContent, setLkpdContent] = useState(null);
-  const [instrumenContent, setInstrumenContent] = useState(null); // State Instrumen Penilaian
+  const [instrumenContent, setInstrumenContent] = useState(null); 
   
   const [isEditing, setIsEditing] = useState(false); 
   const [history, setHistory] = useState([]); 
@@ -177,21 +178,21 @@ export default function RPMGenerator() {
         const parsed = JSON.parse(savedFormData);
         if (!parsed.metodePerPertemuan) parsed.metodePerPertemuan = ['Inkuiri-Discovery Learning'];
         if (!parsed.dimensi) parsed.dimensi = [];
-        if (!parsed.indikator) parsed.indikator = ''; // Menjamin kompatibilitas backward
+        if (!parsed.indikator) parsed.indikator = ''; 
+        if (!parsed.pemda) parsed.pemda = '';
+        if (!parsed.alamatSekolah) parsed.alamatSekolah = '';
+        if (!parsed.tempatTtd) parsed.tempatTtd = '';
         setFormData(prev => ({...prev, ...parsed}));
       } catch (e) { safeStorage.removeItem('rpm_form_data'); }
     }
 
-    // Cleanup timers
     return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
   }, []);
 
-  // Auto-save history locally
   useEffect(() => {
     if (history.length > 0) safeStorage.setItem('rpm_history', JSON.stringify(history));
   }, [history]);
 
-  // Auto-save form data
   useEffect(() => {
     safeStorage.setItem('rpm_form_data', JSON.stringify(formData));
   }, [formData]);
@@ -256,7 +257,7 @@ export default function RPMGenerator() {
     safeStorage.setItem('user_cloud_api_url', c);
     
     if(c && c.startsWith('https://script.google.com/')) {
-        loadCloudHistory(c); // Langsung coba sinkronisasi jika ada URL baru
+        loadCloudHistory(c); 
     }
     alert("Semua Pengaturan & Kunci API berhasil tersimpan!");
     setShowApiKeyInput(false);
@@ -298,7 +299,8 @@ export default function RPMGenerator() {
   const clearForm = () => {
     if(window.confirm("Apakah Anda yakin ingin menghapus semua isian form?")) {
         setFormData({
-            namaSatuan: '', namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
+            pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
+            namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
             jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
             jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
         });
@@ -444,12 +446,12 @@ export default function RPMGenerator() {
         
         INSTRUKSI OUTPUT (WAJIB HTML MURNI tanpa markdown):
         Jadikan Tujuan Pembelajaran di atas sebagai acuan MUTLAK dalam membuat soal.
-        Buatkan 3 Bagian Utama yang menarik dan rapi menggunakan tag HTML (<h3>, <table>, <ul>, dll):
+        Gunakan tag HTML <h4> untuk judul-judul bagian agar ukuran teksnya tidak terlalu besar (Jangan gunakan <h1> atau <h2>).
+        Buatkan 3 Bagian Utama yang menarik dan rapi menggunakan tag HTML (<h4>, <table>, <ul>, dll):
         1. Kisi-kisi Soal (Bentuk Tabel yang memuat Indikator Soal, Bentuk Soal, dan Bobot).
         2. Lembar Soal Evaluasi (Berisi minimal 5 soal pilihan ganda dan 3 soal isian/essay yang berbobot/HOTS).
         3. Kunci Jawaban & Pedoman Penskoran (Berisi jawaban dan tabel cara menghitung nilai akhir).${tambahanKonteks}`;
     } else if (type === 'lkpd') {
-        // Cek Khusus untuk FASE A (Kelas 1 atau Kelas 2)
         const isFaseA = formData.kelas === 'Kelas 1' || formData.kelas === 'Kelas 2';
         const intruksiFaseA = isFaseA ? "KARENA INI UNTUK KELAS 1/2 (FASE A), BUAT DESAIN YANG SANGAT RAMAH ANAK. Gunakan banyak EMOJI HTML (🌟, 🍎, 🚗, 🐶, 🖍️, dll) sebagai pengganti gambar ilustrasi di berbagai bagian. Gunakan kalimat instruksi yang sangat pendek, sederhana, dan hindari kata rumit. Berikan ruang lebar untuk menggambar atau menebalkan huruf." : "";
 
@@ -575,7 +577,6 @@ export default function RPMGenerator() {
 
   const formatRender = (text) => {
     if (!text) return '-';
-    // Menghilangkan bintang markdown untuk penekanan, tapi mempertahankan nomor list
     let clean = text.replace(/[*`_]/g, '').replace(/#/g, ''); 
     
     if (clean.includes('\n')) {
@@ -609,14 +610,15 @@ export default function RPMGenerator() {
       td, th { padding: 8px 10px; vertical-align: top; text-align: left; }
       .header-section { background-color: #f0f0f0; font-weight: bold; text-align: center; }
       .sub-header { font-weight: bold; background-color: #fafafa; }
-      .no-border, .no-border td { border: none !important; }
+      .no-border, .no-border td, .no-border th { border: none !important; }
       .page-break { page-break-before: always; }
       .signature-section { margin-top: 50px; page-break-inside: avoid; }
       .signature-section td { text-align: center; border: none !important; }
       ul, ol { margin: 0; padding-left: 20px; }
       .custom-html-content table { width: 100%; border-collapse: collapse; margin-top: 10px; }
       .custom-html-content th, .custom-html-content td { border: 1px solid black; padding: 5px; text-align: left; }
-      .custom-html-content h3 { font-weight: bold; font-size: 12pt; margin-top: 15px; border-bottom: 1px solid black; padding-bottom: 5px; }
+      .custom-html-content h1, .custom-html-content h2, .custom-html-content h3 { font-weight: bold; font-size: 13pt; margin-top: 15px; margin-bottom: 10px; }
+      .custom-html-content h4, .custom-html-content h5 { font-weight: bold; font-size: 11pt; margin-top: 10px; margin-bottom: 5px; }
       .custom-html-content ul, .custom-html-content ol { padding-left: 20px; margin-bottom: 10px; }
       .custom-html-content .lkpd-section { margin-bottom: 20px; }
     </style></head><body>${outputRef.current.innerHTML}<script>window.onload=function(){window.print();window.close()}</script></body></html>`);
@@ -631,6 +633,8 @@ export default function RPMGenerator() {
       td, th { border: 1px solid black; padding: 5px; vertical-align: top; }
       .header-section { background-color: #f0f0f0; font-weight: bold; }
       .no-border td, .no-border th { border: none !important; }
+      .custom-html-content h1, .custom-html-content h2, .custom-html-content h3 { font-size: 13pt; font-weight: bold; }
+      .custom-html-content h4, .custom-html-content h5 { font-size: 11pt; font-weight: bold; }
     </style></head><body>${outputRef.current.innerHTML}</body></html>`;
     const url = URL.createObjectURL(new Blob(['\ufeff', html], { type: 'application/msword' }));
     const a = document.createElement('a'); a.href = url; a.download = `RPM_${formData.mapel}.doc`; a.click();
@@ -877,6 +881,15 @@ export default function RPMGenerator() {
           </div>
       )}
 
+      {/* CUSTOM CSS UNTUK PREVIEW */}
+      <style>{`
+        .custom-html-content table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .custom-html-content th, .custom-html-content td { border: 1px solid black; padding: 5px; text-align: left; }
+        .custom-html-content h1, .custom-html-content h2, .custom-html-content h3 { font-size: 1.15rem; font-weight: bold; margin-top: 1.2rem; margin-bottom: 0.5rem; }
+        .custom-html-content h4, .custom-html-content h5 { font-size: 1rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .custom-html-content ul, .custom-html-content ol { padding-left: 20px; margin-bottom: 10px; list-style-type: disc; }
+      `}</style>
+
       <main className="max-w-6xl mx-auto mt-6 px-4 pb-20 flex-grow">
         {!isGenerated ? (
           <form onSubmit={handleSubmit} className={`rounded-xl shadow-2xl p-6 md:p-8 border relative ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-100 text-gray-800'}`}>
@@ -894,11 +907,18 @@ export default function RPMGenerator() {
             </div>
             
             <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div><label className={cssLabel}>Pemerintah Daerah (Kop)</label><input name="pemda" value={formData.pemda} onChange={handleChange} className={cssInput} placeholder="Cth: Pemerintah Kabupaten Maros" /></div>
               <div><label className={cssLabel}>Satuan Pendidikan</label><input name="namaSatuan" value={formData.namaSatuan} onChange={handleChange} className={cssInput} required /></div>
+              
+              <div className="md:col-span-2"><label className={cssLabel}>Alamat Sekolah</label><input name="alamatSekolah" value={formData.alamatSekolah} onChange={handleChange} className={cssInput} placeholder="Cth: Jl. Pendidikan No. 1, Kec. Mandai..." /></div>
+              
+              <div><label className={cssLabel}>Nama Kepala Sekolah</label><input name="namaKepsek" value={formData.namaKepsek} onChange={handleChange} className={cssInput} required /></div>
+              <div><label className={cssLabel}>NIP Kepsek</label><input name="nipKepsek" value={formData.nipKepsek} onChange={handleChange} className={cssInput} /></div>
+              
               <div><label className={cssLabel}>Nama Guru</label><input name="namaGuru" value={formData.namaGuru} onChange={handleChange} className={cssInput} required /></div>
               <div><label className={cssLabel}>NIP Guru</label><input name="nipGuru" value={formData.nipGuru} onChange={handleChange} className={cssInput} /></div>
-              <div><label className={cssLabel}>Kepala Sekolah</label><input name="namaKepsek" value={formData.namaKepsek} onChange={handleChange} className={cssInput} required /></div>
-              <div><label className={cssLabel}>NIP Kepsek</label><input name="nipKepsek" value={formData.nipKepsek} onChange={handleChange} className={cssInput} /></div>
+              
+              <div><label className={cssLabel}>Kota/Kab Tempat TTD</label><input name="tempatTtd" value={formData.tempatTtd} onChange={handleChange} className={cssInput} placeholder="Cth: Maros" required /></div>
             </div>
             <div className="grid md:grid-cols-3 gap-4 mb-4">
               <div><label className={cssLabel}>Jenjang</label><select name="jenjang" value={formData.jenjang} onChange={handleJenjangChange} className={cssInput}>{JENJANG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
@@ -910,14 +930,12 @@ export default function RPMGenerator() {
               <div><label className={cssLabel}>Materi</label><textarea name="materi" value={formData.materi} onChange={handleChange} rows={2} className={cssInput} /></div>
               <div><label className={cssLabel}>Tujuan Pembelajaran <button type="button" onClick={() => generateSimple('tp', `Buat TP dari CP ${formData.cp} materi ${formData.materi}`, 'TP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'TP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat TP'}</button></label><textarea name="tp" value={formData.tp} onChange={handleChange} rows={2} className={cssInput} /></div>
               
-              {/* FITUR BARU: INDIKATOR */}
               <div><label className={cssLabel}>Indikator Pembelajaran (IKTP/KD) <button type="button" onClick={() => generateSimple('indikator', `Buat minimal 3 Indikator Ketercapaian Tujuan Pembelajaran (IKTP) dari TP: ${formData.tp}, materi: ${formData.materi}`, 'Indikator')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'Indikator' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat Indikator'}</button></label><textarea name="indikator" value={formData.indikator} onChange={handleChange} rows={2} className={cssInput} placeholder="Siswa mampu menyebutkan..., Siswa mampu mempraktikkan..." /></div>
             </div>
             
             <div className="bg-indigo-50 p-4 rounded mb-4 border border-indigo-100 text-gray-800">
               <div className="grid grid-cols-2 gap-4 mb-2">
                 <div><label className="text-sm font-medium">Jml Pertemuan</label><input type="number" name="jumlahPertemuan" min="1" max="20" value={formData.jumlahPertemuan} onChange={handleChange} className="w-full p-2 border rounded" /></div>
-                {/* DIUBAH MENJADI ALOKASI WAKTU */}
                 <div><label className="text-sm font-medium">Alokasi Waktu (JP)</label><input name="durasi" value={formData.durasi} onChange={handleChange} className="w-full p-2 border rounded" placeholder="Contoh: 2 JP x 35 Menit" /></div>
               </div>
               <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
@@ -950,7 +968,6 @@ export default function RPMGenerator() {
                                 <input type="checkbox" checked={formData.dimensi.includes(d)} onChange={() => handleCheckboxChange(d)} className="mr-2" />
                                 {d}
                             </label>
-                            {/* Tooltip Info Dimensi */}
                             <div className="absolute z-10 bottom-full mb-1 left-1/2 -translate-x-1/2 w-48 bg-gray-800 text-white text-[10px] p-2 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-lg pointer-events-none">
                                 {DIMENSI_INFO[d]}
                                 <svg className="absolute text-gray-800 h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xmlSpace="preserve"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
@@ -983,9 +1000,7 @@ export default function RPMGenerator() {
               </div>
               <div className="flex gap-2 flex-wrap">
                 <button onClick={() => generateSimple('rubric', `Buat rubrik TP ${formData.tp}`, 'Rubric')} disabled={loadingStatus === 'Rubric'} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Rubric' ? <Loader2 className="animate-spin" size={14} /> : <Table size={14} />} Rubrik</button>
-                {/* TOMBOL INSTRUMEN PENILAIAN BARU */}
                 <button onClick={() => generateSimple('instrumen', `Buat instrumen TP ${formData.tp}`, 'Instrumen')} disabled={loadingStatus === 'Instrumen'} className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Instrumen' ? <Loader2 className="animate-spin" size={14} /> : <ClipboardCheck size={14} />} Instrumen</button>
-                
                 <button onClick={() => generateSimple('lkpd', `Buat LKPD ${formData.materi} ${formData.jenjang}`, 'LKPD')} disabled={loadingStatus === 'LKPD'} className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'LKPD' ? <Loader2 className="animate-spin" size={14} /> : <FileSignature size={14} />} LKPD</button>
                 <button onClick={handleWord} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><FileDown size={14} /> Word</button>
                 <button onClick={handlePrint} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><Printer size={14} /> PDF/Cetak</button>
@@ -998,7 +1013,7 @@ export default function RPMGenerator() {
                   {aiContent.map((rpm, i) => (
                     <div key={i} className={i > 0 ? "page-break" : ""} style={{ marginBottom: '40px', pageBreakBefore: i > 0 ? 'always' : 'auto' }}>
                       
-                      {/* HEADER / KOP SURAT (Disesuaikan untuk MS Word dengan Table Layout) */}
+                      {/* HEADER / KOP SURAT Tahan Banting MS Word */}
                       <table className="kop-surat no-border" style={{ width: '100%', marginBottom: '20px', borderBottom: '3px double black', paddingBottom: '10px', borderCollapse: 'collapse', border: 'none' }}>
                           <tbody>
                               <tr>
@@ -1008,10 +1023,10 @@ export default function RPMGenerator() {
                                       </div>
                                   </td>
                                   <td style={{ width: '70%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
-                                      <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>PEMERINTAH KABUPATEN/KOTA</h4>
+                                      <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>{formData.pemda || 'PEMERINTAH KABUPATEN/KOTA'}</h4>
                                       <h3 style={{ margin: 0, fontSize: '14pt', fontWeight: 'bold', textTransform: 'uppercase' }}>DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
                                       <h3 style={{ margin: 0, fontSize: '16pt', fontWeight: 'bold', textTransform: 'uppercase' }}>{formData.namaSatuan}</h3>
-                                      <p style={{ margin: 0, fontSize: '10pt', fontStyle: 'italic' }}>Alamat: Jl. Pendidikan No. 1 (Contoh Alamat Sekolah)</p>
+                                      <p style={{ margin: 0, fontSize: '10pt', fontStyle: 'italic' }}>Alamat: {formData.alamatSekolah || 'Jl. Pendidikan No. 1 (Contoh Alamat Sekolah)'}</p>
                                   </td>
                                   <td style={{ width: '15%', border: 'none' }}></td>
                               </tr>
@@ -1062,7 +1077,7 @@ export default function RPMGenerator() {
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Tujuan Pembelajaran</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.tp)}</td>
                               </tr>
-                              {/* BARIS INDIKATOR BARU */}
+                              {/* BARIS INDIKATOR */}
                               {formData.indikator && (
                                   <tr>
                                       <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Indikator (IKTP)</td>
@@ -1142,7 +1157,7 @@ export default function RPMGenerator() {
                                       <p style={{ margin: 0 }}>NIP. {formData.nipKepsek || '-'}</p>
                                   </td>
                                   <td style={{ textAlign: 'center', width: '50%', verticalAlign: 'top', border: 'none' }}>
-                                      <p style={{ margin: 0 }}>{formData.namaSatuan}, {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                      <p style={{ margin: 0 }}>{formData.tempatTtd || formData.namaSatuan}, {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                       <p style={{ margin: 0 }}>Guru Mata Pelajaran</p>
                                       <br /><br /><br /><br />
                                       <p style={{ fontWeight: 'bold', textDecoration: 'underline', margin: 0 }}>{formData.namaGuru}</p>
