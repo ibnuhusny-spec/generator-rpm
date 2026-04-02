@@ -142,7 +142,6 @@ export default function RPMGenerator() {
 
   // --- INIT & SPLASH SCREEN ---
   useEffect(() => {
-    // Timer Splash Screen (Tampil 3 detik penuh, lalu fade out 0.5 detik)
     const fadeTimer = setTimeout(() => { setFadeSplash(true); }, 3000);
     const hideTimer = setTimeout(() => { setShowSplash(false); }, 3500);
 
@@ -162,7 +161,6 @@ export default function RPMGenerator() {
     const storedCustom = safeStorage.getItem('user_gemini_custom_model');
     if (storedCustom) setCustomModelName(storedCustom);
 
-    // Load local history
     const savedHistory = safeStorage.getItem('rpm_history');
     if (savedHistory) {
       try {
@@ -171,7 +169,6 @@ export default function RPMGenerator() {
       } catch (e) { safeStorage.removeItem('rpm_history'); }
     }
 
-    // Auto-load saved form data
     const savedFormData = safeStorage.getItem('rpm_form_data');
     if (savedFormData) {
       try {
@@ -1054,7 +1051,7 @@ export default function RPMGenerator() {
                                   <td>{formData.jenjang} / {formData.kelas}</td>
                               </tr>
                               <tr>
-                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Alokasi Waktu</td>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Alokasi Waktu (JP)</td>
                                   <td>{formData.durasi} (Pert. {i + 1})</td>
                                   <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Materi Pokok</td>
                                   <td>{formData.materi}</td>
