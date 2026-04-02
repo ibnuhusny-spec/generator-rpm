@@ -104,7 +104,7 @@ export default function RPMGenerator() {
   const [formData, setFormData] = useState({
     pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
     namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
-    jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
+    jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
     jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
   });
 
@@ -167,8 +167,7 @@ export default function RPMGenerator() {
         const parsed = JSON.parse(savedHistory);
         if (Array.isArray(parsed)) setHistory(parsed);
       } catch (e) { safeStorage.removeItem('rpm_history'); }
-    }
-
+    // Auto-load saved form data
     const savedFormData = safeStorage.getItem('rpm_form_data');
     if (savedFormData) {
       try {
@@ -179,6 +178,7 @@ export default function RPMGenerator() {
         if (!parsed.pemda) parsed.pemda = '';
         if (!parsed.alamatSekolah) parsed.alamatSekolah = '';
         if (!parsed.tempatTtd) parsed.tempatTtd = '';
+        if (!parsed.semester) parsed.semester = 'Ganjil';
         setFormData(prev => ({...prev, ...parsed}));
       } catch (e) { safeStorage.removeItem('rpm_form_data'); }
     }
@@ -298,7 +298,7 @@ export default function RPMGenerator() {
         setFormData({
             pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
             namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
-            jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
+            jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
             jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
         });
         safeStorage.removeItem('rpm_form_data');
@@ -917,9 +917,10 @@ export default function RPMGenerator() {
               
               <div><label className={cssLabel}>Kota/Kab Tempat TTD</label><input name="tempatTtd" value={formData.tempatTtd} onChange={handleChange} className={cssInput} placeholder="Cth: Maros" required /></div>
             </div>
-            <div className="grid md:grid-cols-3 gap-4 mb-4">
+            <div className="grid md:grid-cols-4 gap-4 mb-4">
               <div><label className={cssLabel}>Jenjang</label><select name="jenjang" value={formData.jenjang} onChange={handleJenjangChange} className={cssInput}>{JENJANG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
               <div><label className={cssLabel}>Kelas</label><select name="kelas" value={formData.kelas} onChange={handleChange} className={cssInput}>{KELAS_BY_JENJANG[formData.jenjang].map(k => <option key={k} value={k}>{k}</option>)}</select></div>
+              <div><label className={cssLabel}>Semester</label><select name="semester" value={formData.semester} onChange={handleChange} className={cssInput}><option value="Ganjil">Ganjil</option><option value="Genap">Genap</option></select></div>
               <div><label className={cssLabel}>Mapel</label><input name="mapel" value={formData.mapel} onChange={handleChange} className={cssInput} required /></div>
             </div>
             <div className="space-y-4 mb-4">
@@ -1047,8 +1048,8 @@ export default function RPMGenerator() {
                               <tr>
                                   <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Satuan Pendidikan</td>
                                   <td>{formData.namaSatuan}</td>
-                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Jenjang/Kelas</td>
-                                  <td>{formData.jenjang} / {formData.kelas}</td>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Jenjang/Kls/Smt</td>
+                                  <td>{formData.jenjang} / {formData.kelas} / {formData.semester}</td>
                               </tr>
                               <tr>
                                   <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Alokasi Waktu (JP)</td>
