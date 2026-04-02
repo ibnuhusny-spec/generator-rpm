@@ -138,6 +138,55 @@ export default function RPMGenerator() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_THEMES[0]);
 
+  // State tambahan untuk fitur Copy Script
+  const [copied, setCopied] = useState(false);
+
+  // Script Database Google Sheets yang akan dicopy pengguna
+  const appsScriptCode = `const SHEET_NAME = 'Riwayat';
+
+function doPost(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    const data = JSON.parse(e.postData.contents);
+    const newRow = [data.id || new Date().getTime(), data.tanggal || new Date().toLocaleDateString(), data.mapel || '', data.kelas || '', JSON.stringify(data.formData || {}), JSON.stringify(data.aiContent || [])];
+    sheet.appendRow(newRow);
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success' })).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.message })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    const rows = sheet.getDataRange().getValues();
+    if (rows.length <= 1) return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
+    const data = [];
+    for (let i = 1; i < rows.length; i++) {
+      data.push({ id: rows[i][0], date: rows[i][1], title: rows[i][2] + ' ' + rows[i][3], formData: JSON.parse(rows[i][4] || '{}'), aiContent: JSON.parse(rows[i][5] || '[]') });
+    }
+    data.reverse();
+    return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.message })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
+  const copyScript = () => {
+    const textArea = document.createElement("textarea");
+    textArea.value = appsScriptCode;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+        console.error('Gagal menyalin', err);
+    }
+    document.body.removeChild(textArea);
+  };
+
   const outputRef = useRef(null);
 
   // --- INIT & SPLASH SCREEN ---
@@ -714,12 +763,12 @@ export default function RPMGenerator() {
       {showApiGuide && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowApiGuide(false)}></div>
-            <div className={`relative w-full max-w-lg rounded-xl shadow-2xl p-6 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-                <div className="flex justify-between items-center mb-4 border-b pb-2">
+            <div className={`relative w-full max-w-2xl rounded-xl shadow-2xl p-6 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} flex flex-col max-h-[90vh]`}>
+                <div className="flex justify-between items-center mb-4 border-b pb-2 shrink-0">
                     <h3 className="font-bold text-lg flex items-center gap-2"><HelpCircle className="text-indigo-500"/> Panduan Pengaturan API & Cloud</h3>
                     <button onClick={() => setShowApiGuide(false)} className="text-gray-500 hover:text-red-500"><X/></button>
                 </div>
-                <div className="space-y-4 text-sm max-h-96 overflow-y-auto pr-2">
+                <div className="space-y-4 text-sm overflow-y-auto pr-2 flex-1">
                     <p>Aplikasi ini membutuhkan API Key gratis dari Google Gemini dan URL Spreadsheet (Opsional) jika ingin menyimpan data di cloud.</p>
                     
                     <h4 className="font-bold border-b pb-1 mt-4">1. Cara Mendapatkan API Key (Wajib)</h4>
@@ -733,12 +782,26 @@ export default function RPMGenerator() {
                     <ol className="list-decimal pl-5 space-y-1">
                         <li>Buat Spreadsheet kosong di Google Drive. Beri nama Sheet pertama: <strong>Riwayat</strong></li>
                         <li>Tulis Header di baris 1 (A-F): <code>id, tanggal, mapel, kelas, formData, aiContent</code></li>
-                        <li>Klik <strong>Ekstensi &gt; Apps Script</strong>, tempelkan kode script yang diberikan *developer*.</li>
-                        <li>Klik <strong>Terapkan &gt; Deployment Baru</strong> (Pilih Aplikasi Web, Akses: Siapa Saja).</li>
-                        <li>Salin URL Web App dan tempelkan di menu pengaturan aplikasi ini.</li>
+                        <li>Klik <strong>Ekstensi &gt; Apps Script</strong>, hapus semua kode bawaan, lalu tempelkan (paste) kode di bawah ini:</li>
+                    </ol>
+
+                    <div className="relative mt-2">
+                        <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto font-mono border border-gray-700 max-h-40">
+                            <code>{appsScriptCode}</code>
+                        </pre>
+                        <button onClick={copyScript} className="absolute top-2 right-2 bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded text-[10px] flex items-center gap-1 backdrop-blur-sm transition-colors">
+                            {copied ? <><Check size={12}/> Tersalin</> : 'Copy Code'}
+                        </button>
+                    </div>
+
+                    <ol className="list-decimal pl-5 space-y-1 mt-3" start="4">
+                        <li>Klik <strong>Terapkan (Deploy) &gt; Deployment Baru</strong>.</li>
+                        <li>Pada bagian jenis, pilih <strong>Aplikasi Web</strong> (Web App).</li>
+                        <li>Pada bagian <em>Akses (Who has access)</em>, WAJIB pilih: <strong>Siapa Saja (Anyone)</strong>. Klik Terapkan.</li>
+                        <li>Salin URL Web App yang muncul dan tempelkan di menu pengaturan aplikasi ini.</li>
                     </ol>
                     
-                    <div className="bg-yellow-50 text-yellow-800 p-3 rounded border border-yellow-200 mt-4">
+                    <div className="bg-yellow-50 text-yellow-800 p-3 rounded border border-yellow-200 mt-4 shrink-0">
                         <Info size={16} className="inline mb-1 mr-1"/>
                         <span className="text-xs">Data rahasia Anda (Key & URL) hanya tersimpan lokal di peramban (browser) yang Anda gunakan saat ini.</span>
                     </div>
