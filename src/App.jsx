@@ -3,7 +3,7 @@ import {
   BookOpen, RefreshCcw, Sparkles, Loader2, Moon, Sun, History, 
   Printer, FileDown, Edit, X, Trash2, Table, FileSignature, Key, 
   AlertTriangle, Cpu, Activity, Terminal, Menu, Check, Info, HelpCircle,
-  Cloud, RefreshCw, Database, Settings
+  Cloud, RefreshCw, Database, Settings, ClipboardCheck
 } from 'lucide-react';
 
 // --- UTILITIES AMAN ---
@@ -103,8 +103,8 @@ export default function RPMGenerator() {
 
   const [formData, setFormData] = useState({
     namaSatuan: '', namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
-    jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', materi: '', catatanKhusus: '',
-    jumlahPertemuan: 1, durasi: '2 x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
+    jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
+    jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
   });
 
   const [isGenerated, setIsGenerated] = useState(false);
@@ -127,6 +127,7 @@ export default function RPMGenerator() {
   const [aiContent, setAiContent] = useState([]); 
   const [rubricContent, setRubricContent] = useState(null);
   const [lkpdContent, setLkpdContent] = useState(null);
+  const [instrumenContent, setInstrumenContent] = useState(null); // State Instrumen Penilaian
   
   const [isEditing, setIsEditing] = useState(false); 
   const [history, setHistory] = useState([]); 
@@ -141,13 +142,8 @@ export default function RPMGenerator() {
   // --- INIT & SPLASH SCREEN ---
   useEffect(() => {
     // Timer Splash Screen (Tampil 3 detik penuh, lalu fade out 0.5 detik)
-    const fadeTimer = setTimeout(() => {
-        setFadeSplash(true);
-    }, 3000);
-
-    const hideTimer = setTimeout(() => {
-        setShowSplash(false);
-    }, 3500);
+    const fadeTimer = setTimeout(() => { setFadeSplash(true); }, 3000);
+    const hideTimer = setTimeout(() => { setShowSplash(false); }, 3500);
 
     const storedKey = safeStorage.getItem('user_gemini_api_key');
     if (storedKey) setUserApiKey(storedKey);
@@ -181,15 +177,13 @@ export default function RPMGenerator() {
         const parsed = JSON.parse(savedFormData);
         if (!parsed.metodePerPertemuan) parsed.metodePerPertemuan = ['Inkuiri-Discovery Learning'];
         if (!parsed.dimensi) parsed.dimensi = [];
+        if (!parsed.indikator) parsed.indikator = ''; // Menjamin kompatibilitas backward
         setFormData(prev => ({...prev, ...parsed}));
       } catch (e) { safeStorage.removeItem('rpm_form_data'); }
     }
 
     // Cleanup timers
-    return () => {
-        clearTimeout(fadeTimer);
-        clearTimeout(hideTimer);
-    };
+    return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
   }, []);
 
   // Auto-save history locally
@@ -243,10 +237,8 @@ export default function RPMGenerator() {
       try {
           await fetch(url, {
               method: 'POST',
-              mode: 'no-cors', // Penting: Wajib ditambahkan agar Google tidak memblokir request
-              headers: {
-                  'Content-Type': 'text/plain;charset=utf-8',
-              },
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify(record)
           });
       } catch (e) {
@@ -267,7 +259,7 @@ export default function RPMGenerator() {
         loadCloudHistory(c); // Langsung coba sinkronisasi jika ada URL baru
     }
     alert("Semua Pengaturan & Kunci API berhasil tersimpan!");
-    setShowApiKeyInput(false); // Otomatis menyembunyikan panel pengaturan setelah disimpan
+    setShowApiKeyInput(false);
   };
 
   const handleModelChange = (e) => {
@@ -307,8 +299,8 @@ export default function RPMGenerator() {
     if(window.confirm("Apakah Anda yakin ingin menghapus semua isian form?")) {
         setFormData({
             namaSatuan: '', namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
-            jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', materi: '', catatanKhusus: '',
-            jumlahPertemuan: 1, durasi: '2 x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
+            jenjang: 'SD Umum', kelas: 'Kelas 1', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
+            jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
         });
         safeStorage.removeItem('rpm_form_data');
     }
@@ -422,49 +414,62 @@ export default function RPMGenerator() {
   // --- GENERATE FUNCTIONS ---
   const generateSimple = async (type, prompt, label) => {
     if (type === 'cp' && !formData.mapel) return alert("Isi Mapel dulu");
-    if (type === 'tp' && !formData.cp) return alert("Isi CP dulu");
-    if ((type === 'rubric' || type === 'lkpd') && !formData.tp) return alert("Isi TP dulu");
+    if ((type === 'tp' || type === 'indikator') && !formData.cp) return alert("Isi CP dulu");
+    if (type === 'indikator' && !formData.tp) return alert("Isi TP dulu");
+    if ((type === 'rubric' || type === 'lkpd' || type === 'instrumen') && !formData.tp) return alert("Isi TP dulu");
 
     setLoadingStatus(label);
     
     const isIslamic = ['SDIT', 'MI', 'SMPIT', 'MTs', 'SMAIT', 'MA'].includes(formData.jenjang);
     const isVocational = formData.jenjang === 'SMK';
     let tambahanKonteks = "";
-    if (isIslamic) tambahanKonteks = " PASTIKAN menyisipkan nilai-nilai keislaman, akhlak, atau hikmah spiritual yang relevan dengan materi.";
-    if (isVocational) tambahanKonteks = " PASTIKAN bahasa dan studi kasus berfokus pada ranah vokasional, praktik industri, atau kesiapan kerja.";
+    if (isIslamic) tambahanKonteks = " PASTIKAN menyisipkan nilai-nilai keislaman, akhlak, atau hikmah spiritual yang relevan.";
+    if (isVocational) tambahanKonteks = " PASTIKAN berfokus pada ranah vokasional, praktik industri, atau kesiapan kerja.";
 
-    const catatanGuru = formData.catatanKhusus ? ` CATATAN TAMBAHAN DARI GURU: ${formData.catatanKhusus}. Harap sesuaikan hasil dengan catatan ini.` : "";
+    const catatanGuru = formData.catatanKhusus ? ` CATATAN GURU: ${formData.catatanKhusus}.` : "";
 
     let strictPrompt = prompt;
-    if (type === 'cp' || type === 'tp') {
-        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Jangan pakai kata pengantar. Jangan pakai penjelasan akhir.${tambahanKonteks}${catatanGuru}`;
+    if (type === 'cp' || type === 'tp' || type === 'indikator') {
+        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Gunakan poin nomor urut biasa (1, 2, 3). Jangan pakai kata pengantar atau penjelasan akhir. Gunakan acuan materi dan mapel yang diberikan secara ketat.${tambahanKonteks}${catatanGuru}`;
     } else if (type === 'rubric') {
-        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. JANGAN gunakan format Markdown (*, #, -). Langsung kode HTML saja.${tambahanKonteks}${catatanGuru}
+        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. Langsung kode HTML saja. Jadikan Tujuan Pembelajaran (TP) yang saya berikan sebagai ACUAN UTAMA.
         STRUKTUR TABEL WAJIB:
-        1. Bagi menjadi 3 aspek penilaian secara terstruktur: Kognitif (Pemahaman), Psikomotorik (Keterampilan Praktik), dan Afektif (Sikap/Penerapan Dimensi Profil Pelajar).
-        2. Gunakan indikator yang konkret dan terukur pada setiap kriteria (bukan sekadar kata "sangat baik" atau "kurang").
-        3. Tambahkan satu baris/tabel terpisah di bagian paling bawah khusus untuk rekomendasi Tindak Lanjut (Saran aktivitas Remedial & Pengayaan).`;
+        1. Bagi 3 aspek: Kognitif (Pemahaman), Psikomotorik (Keterampilan Praktik), dan Afektif (Sikap/Profil Pelajar).
+        2. Gunakan indikator yang terukur.
+        3. Tambahkan tabel khusus untuk Tindak Lanjut (Remedial & Pengayaan).${tambahanKonteks}${catatanGuru}`;
+    } else if (type === 'instrumen') {
+        strictPrompt = `Buatkan Dokumen Instrumen Penilaian LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas}. 
+        Tujuan Pembelajaran: ${formData.tp}
+        ${catatanGuru}
+        
+        INSTRUKSI OUTPUT (WAJIB HTML MURNI tanpa markdown):
+        Jadikan Tujuan Pembelajaran di atas sebagai acuan MUTLAK dalam membuat soal.
+        Buatkan 3 Bagian Utama yang menarik dan rapi menggunakan tag HTML (<h3>, <table>, <ul>, dll):
+        1. Kisi-kisi Soal (Bentuk Tabel yang memuat Indikator Soal, Bentuk Soal, dan Bobot).
+        2. Lembar Soal Evaluasi (Berisi minimal 5 soal pilihan ganda dan 3 soal isian/essay yang berbobot/HOTS).
+        3. Kunci Jawaban & Pedoman Penskoran (Berisi jawaban dan tabel cara menghitung nilai akhir).${tambahanKonteks}`;
     } else if (type === 'lkpd') {
+        // Cek Khusus untuk FASE A (Kelas 1 atau Kelas 2)
+        const isFaseA = formData.kelas === 'Kelas 1' || formData.kelas === 'Kelas 2';
+        const intruksiFaseA = isFaseA ? "KARENA INI UNTUK KELAS 1/2 (FASE A), BUAT DESAIN YANG SANGAT RAMAH ANAK. Gunakan banyak EMOJI HTML (🌟, 🍎, 🚗, 🐶, 🖍️, dll) sebagai pengganti gambar ilustrasi di berbagai bagian. Gunakan kalimat instruksi yang sangat pendek, sederhana, dan hindari kata rumit. Berikan ruang lebar untuk menggambar atau menebalkan huruf." : "";
+
         strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP, KREATIF, dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
         
         Data Tujuan Pembelajaran (TP): ${formData.tp}
         ${catatanGuru}
         
         Instruksi Output:
-        1. Format WAJIB: HTML Murni (tanpa Markdown, tanpa backticks).
-        2. Gaya Bahasa: Menarik untuk siswa, instruktif, interaktif, dan jelas.${tambahanKonteks}
+        1. Format WAJIB: HTML Murni (tanpa Markdown). Gunakan atribut style seperlunya agar terlihat rapi (jangan panggil CSS eksternal).
+        2. Gaya Bahasa: Menarik untuk siswa. ${intruksiFaseA} ${tambahanKonteks}
         3. Struktur Wajib:
            - Judul Kegiatan (Tag <h3>, Center)
-           - Identitas Siswa (Tabel atau baris titik-titik untuk Nama, Kelas, Tanggal)
-           - Pojok Eksplorasi: Buatkan satu kotak (dengan border putus-putus) bertuliskan "Scan QR Code / Marker AR di sini untuk mengeksplorasi materi tambahan atau mendengar audio penjelasan".
-           ${isIslamic ? '- Mufradat Hari Ini: Sisipkan 1-2 kosakata bahasa Arab (mufrad) dasar yang berkaitan dengan materi pelajaran hari ini beserta artinya.' : ''}
-           - Pemanasan/Gamifikasi: Berikan satu teka-teki ringan, tantangan susun kata, atau pertanyaan pemantik interaktif sebelum masuk ke aktivitas inti.
-           - Langkah Kegiatan & Petunjuk (Inti aktivitas: Berikan instruksi step-by-step detail apa yang harus dilakukan siswa).
-           ${isIslamic ? '- Hikmah/Nilai Islami: Sisipkan kolom singkat berisi pesan moral atau keterkaitan materi dengan nilai spiritual.' : ''}
+           - Identitas Siswa (Kotak atau baris titik-titik Nama, Kelas)
+           - Pojok Eksplorasi (Kotak putus-putus untuk QR Code)
+           ${isIslamic ? '- Mufradat/Kata Hikmah Hari Ini' : ''}
+           - Pemanasan/Gamifikasi (Teka-teki ringan/permainan awal)
+           - Langkah Kegiatan / Petunjuk Belajar
            - Lembar Jawab/Diskusi: Sediakan soal-soal latihan (3-5 soal) dan area kosong dengan garis titik-titik <hr> untuk siswa menulis jawaban.
-           - Jurnal Refleksi Siswa: Buatkan area di bawah untuk siswa merenungkan perasaannya setelah belajar (misal: sediakan opsi [ Senang ] [ Biasa ] [ Bingung ] untuk dicentang) dan satu baris untuk menuliskan kesimpulan belajar hari ini.
-        
-        Styling: Gunakan style inline css untuk mempercantik (border elegan, background warna tipis seperti #f8f9fa untuk kotak-kotak khusus, padding yang cukup agar rapi saat dicetak).`;
+           - Jurnal Refleksi Anak (Sediakan opsi centang seperti [ Senang 😊 ] [ Biasa 😐 ] [ Sedih 😢 ]).`;
     }
 
     const res = await callAI(strictPrompt);
@@ -475,12 +480,10 @@ export default function RPMGenerator() {
 
       if (type === 'cp') setFormData(p => ({ ...p, cp: cleanedRes }));
       else if (type === 'tp') setFormData(p => ({ ...p, tp: cleanedRes }));
-      else if (type === 'rubric') {
-          setRubricContent(cleanHtmlContent(cleanedRes));
-      }
-      else if (type === 'lkpd') {
-          setLkpdContent(cleanHtmlContent(cleanedRes));
-      }
+      else if (type === 'indikator') setFormData(p => ({ ...p, indikator: cleanedRes }));
+      else if (type === 'rubric') setRubricContent(cleanHtmlContent(cleanedRes));
+      else if (type === 'instrumen') setInstrumenContent(cleanHtmlContent(cleanedRes));
+      else if (type === 'lkpd') setLkpdContent(cleanHtmlContent(cleanedRes));
     }
   };
 
@@ -490,19 +493,19 @@ export default function RPMGenerator() {
 
     const isIslamic = ['SDIT', 'MI', 'SMPIT', 'MTs', 'SMAIT', 'MA'].includes(formData.jenjang);
     const isVocational = formData.jenjang === 'SMK';
-    let instruksiJenjang = "";
+    let instruksiJenjang = isIslamic ? "Integrasikan nilai spiritual/islami secara natural. " : isVocational ? "Fokuskan pada hard skills dunia kerja. " : "";
+    const catatanGuru = formData.catatanKhusus ? `CATATAN GURU: ${formData.catatanKhusus}.` : "";
+
+    const prompt = `Buatkan RPM ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
+    Data Utama: ${JSON.stringify({...formData, catatanKhusus: undefined})}. Metode: ${formData.metodePerPertemuan.join(', ')}. ${instruksiJenjang} ${catatanGuru} 
     
-    if (isIslamic) {
-        instruksiJenjang = "INSTRUKSI KHUSUS: Integrasikan nilai-nilai spiritual, akhlak islami, atau ayat/hadits yang relevan secara natural ke dalam kegiatan pendahuluan, inti, refleksi, maupun asesmen. ";
-    } else if (isVocational) {
-        instruksiJenjang = "INSTRUKSI KHUSUS: Fokuskan pengalaman belajar dan asesmen pada keterampilan praktis (hard skills), pemecahan masalah dunia nyata, dan kesiapan industri/kerja. ";
-    }
-
-    const catatanGuru = formData.catatanKhusus ? `CATATAN/INSTRUKSI TAMBAHAN DARI GURU: ${formData.catatanKhusus}. Jadikan catatan ini sebagai prioritas utama dalam merancang aktivitas.` : "";
-
-    const prompt = `Buatkan RPM ${formData.jumlahPertemuan} pertemuan. JSON Array Only. Data: ${JSON.stringify({
-        ...formData, catatanKhusus: undefined 
-    })}. Metode: ${formData.metodePerPertemuan.join(', ')}. ${instruksiJenjang} ${catatanGuru} Struktur: [{"siswa":"","lintasDisiplin":"","topik":"","kemitraan":"","lingkungan":"","digital":"","pengalaman":{"memahami":"","mengaplikasi":"","refleksi":""},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
+    INSTRUKSI SANGAT PENTING:
+    1. ACUAN MUTLAK: Anda WAJIB menggunakan Capaian Pembelajaran (CP), Tujuan Pembelajaran (TP), dan Indikator dari Data Utama di atas, terlepas dari apakah bentuknya paragraf biasa atau poin-poin!
+    2. Untuk bagian pengalaman belajar (memahami/Pendahuluan, mengaplikasi/Inti, dan refleksi/Penutup), JANGAN GUNAKAN PARAGRAF ATAU NARASI PANJANG!
+    3. WAJIB TULIS DALAM BENTUK DAFTAR ANGKA BERURUTAN KE BAWAH (Contoh: "1. Guru mengucapkan salam...", "2. Siswa dibagi menjadi kelompok...", "3. ...").
+    4. Untuk kegiatan Pendahuluan/Memahami, langkah nomor 1 WAJIB berupa salam, doa, dan apersepsi.
+    
+    Struktur JSON: [{"siswa":"","lintasDisiplin":"","topik":"","kemitraan":"","lingkungan":"","digital":"","pengalaman":{"memahami":"(Tulis list 1, 2, 3...)","mengaplikasi":"(Tulis list 1, 2, 3...)","refleksi":"(Tulis list 1, 2, 3...)"},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
     
     const res = await callAI(prompt);
     if (res) {
@@ -522,6 +525,7 @@ export default function RPMGenerator() {
         setAiContent(json.slice(0, count));
         setRubricContent(null);
         setLkpdContent(null);
+        setInstrumenContent(null);
         setIsGenerated(true);
         setIsEditing(false);
 
@@ -543,7 +547,7 @@ export default function RPMGenerator() {
         setHistory(p => [newRecord, ...p]);
         saveToCloud(newRecord);
 
-      } catch (e) { setErrorMsg("Format AI tidak valid. Coba model lain atau generate ulang."); }
+      } catch (e) { setErrorMsg("Format AI tidak valid. Klik tombol Generate RPM sekali lagi."); }
     }
     setIsLoading(false);
   };
@@ -571,17 +575,18 @@ export default function RPMGenerator() {
 
   const formatRender = (text) => {
     if (!text) return '-';
-    let clean = text.replace(/[*#`_]/g, '');
+    // Menghilangkan bintang markdown untuk penekanan, tapi mempertahankan nomor list
+    let clean = text.replace(/[*`_]/g, '').replace(/#/g, ''); 
     
     if (clean.includes('\n')) {
         const lines = clean.split('\n').map(l => l.trim()).filter(l => l);
         if (lines.length > 0) {
             return (
-                <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'disc' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {lines.map((l, i) => (
-                        <li key={i}>{l.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '')}</li>
+                        <span key={i}>{l}</span>
                     ))}
-                </ul>
+                </div>
             );
         }
     }
@@ -596,7 +601,6 @@ export default function RPMGenerator() {
       @page { size: A4; margin: 2cm; }
       body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.4; font-size: 11pt; }
       .kop-surat { text-align: center; margin-bottom: 20px; border-bottom: 3px double black; padding-bottom: 10px; }
-      .kop-surat img { max-width: 80px; max-height: 80px; object-fit: contain; }
       .kop-surat h3 { margin: 0; font-size: 14pt; text-transform: uppercase; }
       .kop-surat h4 { margin: 0; font-size: 12pt; text-transform: uppercase; font-weight: normal; }
       .kop-surat p { margin: 0; font-size: 10pt; font-style: italic; }
@@ -626,7 +630,7 @@ export default function RPMGenerator() {
       table { border-collapse: collapse; width: 100%; }
       td, th { border: 1px solid black; padding: 5px; vertical-align: top; }
       .header-section { background-color: #f0f0f0; font-weight: bold; }
-      .no-border td { border: none !important; }
+      .no-border td, .no-border th { border: none !important; }
     </style></head><body>${outputRef.current.innerHTML}</body></html>`;
     const url = URL.createObjectURL(new Blob(['\ufeff', html], { type: 'application/msword' }));
     const a = document.createElement('a'); a.href = url; a.download = `RPM_${formData.mapel}.doc`; a.click();
@@ -646,7 +650,6 @@ export default function RPMGenerator() {
           style={{ zIndex: 9999 }}
         >
             <div className="flex flex-col items-center gap-4">
-                {/* Image with Fallback Icon */}
                 <div className="relative w-32 h-32 flex items-center justify-center bg-white/10 rounded-full shadow-2xl backdrop-blur-md border border-white/20 mb-2">
                     <img 
                         src="/logo.png" 
@@ -664,7 +667,6 @@ export default function RPMGenerator() {
                     <p className="text-sm md:text-base font-semibold text-emerald-100 tracking-wider">Asisten Cerdas Perencanaan Pembelajaran</p>
                 </div>
                 
-                {/* Elegant Bounce Loading Animation */}
                 <div className="mt-8 flex gap-3">
                     <div className="w-3 h-3 bg-amber-300 rounded-full animate-bounce"></div>
                     <div className="w-3 h-3 bg-amber-300 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
@@ -677,7 +679,6 @@ export default function RPMGenerator() {
       <header className={`p-4 shadow-lg backdrop-blur-md no-print ${isDarkMode ? 'bg-gray-900/90 text-white' : 'bg-white/90 text-gray-800'}`}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {/* Logo Aplikasi di Kiri Atas */}
             <div className="relative w-10 h-10 flex items-center justify-center bg-indigo-50 rounded-lg shadow-sm border border-indigo-100 overflow-hidden shrink-0">
                 <img 
                     src="/logo.png" 
@@ -689,7 +690,7 @@ export default function RPMGenerator() {
             </div>
             <div>
                 <h1 className="text-xl font-bold font-sans">
-                    <span>{APP_NAME_P1}</span> <span className="text-yellow-500">{APP_NAME_P2}</span> <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded ml-1">v7.0 SaaS</span>
+                    <span>{APP_NAME_P1}</span> <span className="text-yellow-500">{APP_NAME_P2}</span> <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded ml-1">v8.0 Max</span>
                 </h1>
                 <p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p>
             </div>
@@ -750,7 +751,6 @@ export default function RPMGenerator() {
               <button onClick={() => setShowApiGuide(true)} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-indigo-200">
                 <HelpCircle size={12}/> Butuh Panduan?
               </button>
-              {/* Tombol X untuk menutup pengaturan */}
               <button onClick={() => setShowApiKeyInput(false)} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Tutup Pengaturan">
                 <X size={18}/>
               </button>
@@ -779,7 +779,6 @@ export default function RPMGenerator() {
 
             <hr className="my-2 border-gray-200"/>
 
-            {/* TAMBAHAN UNTUK SPREADSHEET */}
             <div className="flex-1 text-gray-800">
                 <h3 className="font-bold flex items-center gap-2"><Database size={16}/> Database Google Sheets (Opsional)</h3>
                 <p className="text-xs text-gray-500">Masukkan URL Web App dari Apps Script untuk menyimpan bank RPP Anda di cloud.</p>
@@ -858,6 +857,7 @@ export default function RPMGenerator() {
                                       setAiContent(h.aiContent); 
                                       setRubricContent(null); 
                                       setLkpdContent(null); 
+                                      setInstrumenContent(null);
                                       setIsGenerated(true); 
                                       setShowHistory(false);
                                   }}>
@@ -906,15 +906,19 @@ export default function RPMGenerator() {
               <div><label className={cssLabel}>Mapel</label><input name="mapel" value={formData.mapel} onChange={handleChange} className={cssInput} required /></div>
             </div>
             <div className="space-y-4 mb-4">
-              <div><label className={cssLabel}>Capaian Pembelajaran <button type="button" onClick={() => generateSimple('cp', `Carikan CP Kurikulum Merdeka ${formData.mapel} ${formData.jenjang} ${formData.kelas}`, 'CP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'CP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Cari CP'}</button></label><textarea name="cp" value={formData.cp} onChange={handleChange} rows={3} className={cssInput} /></div>
+              <div><label className={cssLabel}>Capaian Pembelajaran <button type="button" onClick={() => generateSimple('cp', `Carikan CP Kurikulum Merdeka ${formData.mapel} ${formData.jenjang} ${formData.kelas}`, 'CP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'CP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Cari CP'}</button></label><textarea name="cp" value={formData.cp} onChange={handleChange} rows={2} className={cssInput} /></div>
               <div><label className={cssLabel}>Materi</label><textarea name="materi" value={formData.materi} onChange={handleChange} rows={2} className={cssInput} /></div>
               <div><label className={cssLabel}>Tujuan Pembelajaran <button type="button" onClick={() => generateSimple('tp', `Buat TP dari CP ${formData.cp} materi ${formData.materi}`, 'TP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'TP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat TP'}</button></label><textarea name="tp" value={formData.tp} onChange={handleChange} rows={2} className={cssInput} /></div>
+              
+              {/* FITUR BARU: INDIKATOR */}
+              <div><label className={cssLabel}>Indikator Pembelajaran (IKTP/KD) <button type="button" onClick={() => generateSimple('indikator', `Buat minimal 3 Indikator Ketercapaian Tujuan Pembelajaran (IKTP) dari TP: ${formData.tp}, materi: ${formData.materi}`, 'Indikator')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'Indikator' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat Indikator'}</button></label><textarea name="indikator" value={formData.indikator} onChange={handleChange} rows={2} className={cssInput} placeholder="Siswa mampu menyebutkan..., Siswa mampu mempraktikkan..." /></div>
             </div>
             
             <div className="bg-indigo-50 p-4 rounded mb-4 border border-indigo-100 text-gray-800">
               <div className="grid grid-cols-2 gap-4 mb-2">
                 <div><label className="text-sm font-medium">Jml Pertemuan</label><input type="number" name="jumlahPertemuan" min="1" max="20" value={formData.jumlahPertemuan} onChange={handleChange} className="w-full p-2 border rounded" /></div>
-                <div><label className="text-sm font-medium">Durasi</label><input name="durasi" value={formData.durasi} onChange={handleChange} className="w-full p-2 border rounded" /></div>
+                {/* DIUBAH MENJADI ALOKASI WAKTU */}
+                <div><label className="text-sm font-medium">Alokasi Waktu (JP)</label><input name="durasi" value={formData.durasi} onChange={handleChange} className="w-full p-2 border rounded" placeholder="Contoh: 2 JP x 35 Menit" /></div>
               </div>
               <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                 {formData.metodePerPertemuan.map((m, i) => (
@@ -977,8 +981,11 @@ export default function RPMGenerator() {
                 <button onClick={() => setIsGenerated(false)} className="px-3 py-1.5 border rounded text-sm hover:bg-gray-100 hover:text-black flex gap-1 items-center"><RefreshCcw size={14} /> Kembali ke Form</button>
                 <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 border rounded text-sm flex gap-1 items-center ${isEditing ? 'bg-yellow-100 text-yellow-800' : 'hover:bg-gray-100 hover:text-black'}`}><Edit size={14} /> {isEditing ? 'Selesai Edit' : 'Edit Hasil'}</button>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button onClick={() => generateSimple('rubric', `Buat rubrik TP ${formData.tp}`, 'Rubric')} disabled={loadingStatus === 'Rubric'} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Rubric' ? <Loader2 className="animate-spin" size={14} /> : <Table size={14} />} Rubrik</button>
+                {/* TOMBOL INSTRUMEN PENILAIAN BARU */}
+                <button onClick={() => generateSimple('instrumen', `Buat instrumen TP ${formData.tp}`, 'Instrumen')} disabled={loadingStatus === 'Instrumen'} className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Instrumen' ? <Loader2 className="animate-spin" size={14} /> : <ClipboardCheck size={14} />} Instrumen</button>
+                
                 <button onClick={() => generateSimple('lkpd', `Buat LKPD ${formData.materi} ${formData.jenjang}`, 'LKPD')} disabled={loadingStatus === 'LKPD'} className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'LKPD' ? <Loader2 className="animate-spin" size={14} /> : <FileSignature size={14} />} LKPD</button>
                 <button onClick={handleWord} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><FileDown size={14} /> Word</button>
                 <button onClick={handlePrint} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><Printer size={14} /> PDF/Cetak</button>
@@ -991,20 +998,25 @@ export default function RPMGenerator() {
                   {aiContent.map((rpm, i) => (
                     <div key={i} className={i > 0 ? "page-break" : ""} style={{ marginBottom: '40px', pageBreakBefore: i > 0 ? 'always' : 'auto' }}>
                       
-                      {/* HEADER / KOP SURAT */}
-                      <div className="kop-surat" style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '3px double black', paddingBottom: '10px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-                              <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed gray', fontSize: '10px', color: 'gray', textAlign: 'center' }}>
-                                LOGO<br/>SEKOLAH
-                              </div>
-                              <div>
-                                  <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>PEMERINTAH KABUPATEN/KOTA</h4>
-                                  <h3 style={{ margin: 0, fontSize: '14pt', fontWeight: 'bold', textTransform: 'uppercase' }}>DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
-                                  <h3 style={{ margin: 0, fontSize: '16pt', fontWeight: 'bold', textTransform: 'uppercase' }}>{formData.namaSatuan}</h3>
-                                  <p style={{ margin: 0, fontSize: '10pt', fontStyle: 'italic' }}>Alamat: Jl. Pendidikan No. 1 (Contoh Alamat Sekolah)</p>
-                              </div>
-                          </div>
-                      </div>
+                      {/* HEADER / KOP SURAT (Disesuaikan untuk MS Word dengan Table Layout) */}
+                      <table className="kop-surat no-border" style={{ width: '100%', marginBottom: '20px', borderBottom: '3px double black', paddingBottom: '10px', borderCollapse: 'collapse', border: 'none' }}>
+                          <tbody>
+                              <tr>
+                                  <td style={{ width: '15%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
+                                      <div style={{ width: '80px', height: '80px', margin: '0 auto', border: '1px dashed gray', padding: '25px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
+                                          LOGO<br/>SEKOLAH
+                                      </div>
+                                  </td>
+                                  <td style={{ width: '70%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
+                                      <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>PEMERINTAH KABUPATEN/KOTA</h4>
+                                      <h3 style={{ margin: 0, fontSize: '14pt', fontWeight: 'bold', textTransform: 'uppercase' }}>DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
+                                      <h3 style={{ margin: 0, fontSize: '16pt', fontWeight: 'bold', textTransform: 'uppercase' }}>{formData.namaSatuan}</h3>
+                                      <p style={{ margin: 0, fontSize: '10pt', fontStyle: 'italic' }}>Alamat: Jl. Pendidikan No. 1 (Contoh Alamat Sekolah)</p>
+                                  </td>
+                                  <td style={{ width: '15%', border: 'none' }}></td>
+                              </tr>
+                          </tbody>
+                      </table>
 
                       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                           <h2 style={{ fontSize: '14pt', fontWeight: 'bold', textDecoration: 'underline', margin: '0 0 5px 0' }}>MODUL AJAR / RPP</h2>
@@ -1050,6 +1062,13 @@ export default function RPMGenerator() {
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Tujuan Pembelajaran</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.tp)}</td>
                               </tr>
+                              {/* BARIS INDIKATOR BARU */}
+                              {formData.indikator && (
+                                  <tr>
+                                      <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Indikator (IKTP)</td>
+                                      <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.indikator)}</td>
+                                  </tr>
+                              )}
                               <tr>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Dimensi Profil Lulusan</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formData.dimensi.join(', ')}</td>
@@ -1135,8 +1154,11 @@ export default function RPMGenerator() {
 
                     </div>
                   ))}
+                  
+                  {/* LAMPIRAN-LAMPIRAN */}
                   {rubricContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 1: RUBRIK PENILAIAN</h3><div dangerouslySetInnerHTML={{ __html: rubricContent }} /></div>}
-                  {lkpdContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 2: LKPD</h3><div dangerouslySetInnerHTML={{ __html: lkpdContent }} /></div>}
+                  {instrumenContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 2: INSTRUMEN EVALUASI</h3><div dangerouslySetInnerHTML={{ __html: instrumenContent }} /></div>}
+                  {lkpdContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 3: LEMBAR KERJA PESERTA DIDIK (LKPD)</h3><div dangerouslySetInnerHTML={{ __html: lkpdContent }} /></div>}
                 </div>
               </div>
             </div>
