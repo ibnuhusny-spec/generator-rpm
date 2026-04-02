@@ -167,6 +167,8 @@ export default function RPMGenerator() {
         const parsed = JSON.parse(savedHistory);
         if (Array.isArray(parsed)) setHistory(parsed);
       } catch (e) { safeStorage.removeItem('rpm_history'); }
+    }
+
     // Auto-load saved form data
     const savedFormData = safeStorage.getItem('rpm_form_data');
     if (savedFormData) {
