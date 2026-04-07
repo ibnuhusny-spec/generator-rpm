@@ -138,10 +138,8 @@ export default function RPMGenerator() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_THEMES[0]);
 
-  // State tambahan untuk fitur Copy Script
   const [copied, setCopied] = useState(false);
 
-  // Script Database Google Sheets yang akan dicopy pengguna
   const appsScriptCode = `const SHEET_NAME = 'Riwayat';
 
 function doPost(e) {
@@ -218,7 +216,6 @@ function doGet(e) {
       } catch (e) { safeStorage.removeItem('rpm_history'); }
     }
 
-    // Auto-load saved form data
     const savedFormData = safeStorage.getItem('rpm_form_data');
     if (savedFormData) {
       try {
@@ -323,13 +320,21 @@ function doGet(e) {
     safeStorage.setItem('user_gemini_custom_model', val);
   }
 
+  // LOGIKA SELEKSI MODEL DIPERBAIKI
   const selectFoundModel = (modelName) => {
       const cleanName = modelName.replace('models/', '');
-      setSelectedModel('custom');
-      setCustomModelName(cleanName);
-      safeStorage.setItem('user_gemini_model', 'custom');
-      safeStorage.setItem('user_gemini_custom_model', cleanName);
-  }
+      const isStandardModel = AI_MODELS.some(m => m.id === cleanName);
+
+      if (isStandardModel) {
+          setSelectedModel(cleanName);
+          safeStorage.setItem('user_gemini_model', cleanName);
+      } else {
+          setSelectedModel('custom');
+          setCustomModelName(cleanName);
+          safeStorage.setItem('user_gemini_model', 'custom');
+          safeStorage.setItem('user_gemini_custom_model', cleanName);
+      }
+  };
 
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   const handleMethodChange = (i, v) => setFormData(prev => { const m = [...prev.metodePerPertemuan]; m[i] = v; return { ...prev, metodePerPertemuan: m }; });
@@ -748,13 +753,13 @@ function doGet(e) {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="Pengaturan AI & Cloud"><Settings /></button>
-            <button onClick={() => setShowHistory(true)} className="p-2 rounded-full relative">
+            <button type="button" onClick={() => setShowApiKeyInput(!showApiKeyInput)} className={`p-2 rounded-full ${userApiKey ? 'text-green-500' : 'text-red-500'}`} title="Pengaturan AI & Cloud"><Settings /></button>
+            <button type="button" onClick={() => setShowHistory(true)} className="p-2 rounded-full relative">
                 <History />
                 {history.length > 0 && <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>}
             </button>
-            <div className="flex gap-1 hidden md:flex">{GRADIENT_THEMES.map(t => <button key={t.id} onClick={() => setSelectedGradient(t)} className={`w-5 h-5 rounded-full bg-gradient-to-br ${t.class} border-2 ${selectedGradient.id === t.id ? 'border-white' : 'border-transparent'}`} />)}</div>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full">{isDarkMode ? <Sun /> : <Moon />}</button>
+            <div className="flex gap-1 hidden md:flex">{GRADIENT_THEMES.map(t => <button key={t.id} type="button" onClick={() => setSelectedGradient(t)} className={`w-5 h-5 rounded-full bg-gradient-to-br ${t.class} border-2 ${selectedGradient.id === t.id ? 'border-white' : 'border-transparent'}`} />)}</div>
+            <button type="button" onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full">{isDarkMode ? <Sun /> : <Moon />}</button>
           </div>
         </div>
       </header>
@@ -766,7 +771,7 @@ function doGet(e) {
             <div className={`relative w-full max-w-2xl rounded-xl shadow-2xl p-6 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} flex flex-col max-h-[90vh]`}>
                 <div className="flex justify-between items-center mb-4 border-b pb-2 shrink-0">
                     <h3 className="font-bold text-lg flex items-center gap-2"><HelpCircle className="text-indigo-500"/> Panduan Pengaturan API & Cloud</h3>
-                    <button onClick={() => setShowApiGuide(false)} className="text-gray-500 hover:text-red-500"><X/></button>
+                    <button type="button" onClick={() => setShowApiGuide(false)} className="text-gray-500 hover:text-red-500"><X/></button>
                 </div>
                 <div className="space-y-4 text-sm overflow-y-auto pr-2 flex-1">
                     <p>Aplikasi ini membutuhkan API Key gratis dari Google Gemini dan URL Spreadsheet (Opsional) jika ingin menyimpan data di cloud.</p>
@@ -789,7 +794,7 @@ function doGet(e) {
                         <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto font-mono border border-gray-700 max-h-40">
                             <code>{appsScriptCode}</code>
                         </pre>
-                        <button onClick={copyScript} className="absolute top-2 right-2 bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded text-[10px] flex items-center gap-1 backdrop-blur-sm transition-colors">
+                        <button type="button" onClick={copyScript} className="absolute top-2 right-2 bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded text-[10px] flex items-center gap-1 backdrop-blur-sm transition-colors">
                             {copied ? <><Check size={12}/> Tersalin</> : 'Copy Code'}
                         </button>
                     </div>
@@ -814,10 +819,10 @@ function doGet(e) {
       {showApiKeyInput && <div className="max-w-6xl mx-auto mt-4 px-4 no-print animate-fade-in">
         <div className="bg-white p-4 rounded shadow-lg border-l-4 border-indigo-500 flex flex-col gap-4 relative">
           <div className="absolute top-4 right-4 flex gap-3 items-center">
-              <button onClick={() => setShowApiGuide(true)} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-indigo-200">
+              <button type="button" onClick={() => setShowApiGuide(true)} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-indigo-200">
                 <HelpCircle size={12}/> Butuh Panduan?
               </button>
-              <button onClick={() => setShowApiKeyInput(false)} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Tutup Pengaturan">
+              <button type="button" onClick={() => setShowApiKeyInput(false)} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Tutup Pengaturan">
                 <X size={18}/>
               </button>
           </div>
@@ -852,9 +857,9 @@ function doGet(e) {
             <input type="text" placeholder="https://script.google.com/macros/s/..." value={cloudApiUrl} onChange={e=>setCloudApiUrl(e.target.value)} className="w-full border p-2 rounded text-gray-800 text-sm"/>
 
             <div className="flex gap-2 flex-wrap mt-4">
-                <button onClick={saveSettings} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded flex-1 font-bold">Simpan Pengaturan</button>
-                <button id="btn-test" onClick={testConnection} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-1"><Activity size={14}/> Tes Koneksi AI</button>
-                <button onClick={checkAvailableModels} disabled={isCheckingModels} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-1">
+                <button type="button" onClick={saveSettings} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded flex-1 font-bold">Simpan Pengaturan</button>
+                <button type="button" id="btn-test" onClick={testConnection} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-1"><Activity size={14}/> Tes Koneksi AI</button>
+                <button type="button" onClick={checkAvailableModels} disabled={isCheckingModels} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-1">
                     {isCheckingModels ? <Loader2 className="animate-spin" size={14}/> : <Menu size={14}/>} Cek Daftar Model
                 </button>
             </div>
@@ -865,11 +870,17 @@ function doGet(e) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                         {availableModels.map((m, index) => {
                             const cleanName = m.name ? m.name.replace('models/', '') : 'Model Tanpa Nama';
+                            const isActive = getActiveModelName() === cleanName; // Cek apakah model ini sedang aktif
+
                             return (
-                                <div key={m.name || index} className="flex justify-between items-center bg-white p-2 border rounded shadow-sm">
-                                    <span className="font-mono text-xs">{cleanName}</span>
-                                    <button onClick={() => selectFoundModel(m.name)} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-200">
-                                        Pilih
+                                <div key={m.name || index} className={`flex justify-between items-center p-2 border rounded shadow-sm transition-colors ${isActive ? 'bg-emerald-50 border-emerald-500' : 'bg-white'}`}>
+                                    <span className={`font-mono text-xs ${isActive ? 'font-bold text-emerald-800' : 'text-gray-700'}`}>{cleanName}</span>
+                                    <button 
+                                        type="button"
+                                        onClick={() => selectFoundModel(m.name)} 
+                                        className={`text-xs px-3 py-1 rounded transition-colors ${isActive ? 'bg-emerald-600 text-white font-bold' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
+                                    >
+                                        {isActive ? '✓ Terpilih' : 'Pilih'}
                                     </button>
                                 </div>
                             );
@@ -885,7 +896,7 @@ function doGet(e) {
       {errorMsg && (
         <div className="max-w-6xl mx-auto mt-4 px-4 no-print">
             <div className="bg-red-100 text-red-700 px-4 py-2 rounded flex flex-col gap-2">
-                <div className="flex items-center gap-2 font-bold"><AlertTriangle size={16}/> {errorMsg} <button className="ml-auto" onClick={()=>{setErrorMsg(null); setDebugLog(null);}}><X size={16}/></button></div>
+                <div className="flex items-center gap-2 font-bold"><AlertTriangle size={16}/> {errorMsg} <button type="button" className="ml-auto" onClick={()=>{setErrorMsg(null); setDebugLog(null);}}><X size={16}/></button></div>
                 {debugLog && (
                     <div className="mt-2 bg-black text-green-400 p-2 rounded text-xs font-mono overflow-auto max-h-40">
                         <div className="flex items-center gap-2 border-b border-gray-700 pb-1 mb-1"><Terminal size={12}/> Respon Asli dari Google:</div>
@@ -906,10 +917,10 @@ function doGet(e) {
                           <Cloud className="text-blue-500" size={18}/> Riwayat Cloud
                       </h2>
                       <div className="flex gap-3 items-center">
-                          <button onClick={() => loadCloudHistory()} className={`text-blue-500 hover:text-blue-700 ${isSyncing ? 'animate-spin' : ''}`} title="Sinkronisasi Ulang">
+                          <button type="button" onClick={() => loadCloudHistory()} className={`text-blue-500 hover:text-blue-700 ${isSyncing ? 'animate-spin' : ''}`} title="Sinkronisasi Ulang">
                               <RefreshCw size={16}/>
                           </button>
-                          <button onClick={()=>setShowHistory(false)} className="text-gray-500 hover:text-red-500"><X size={18}/></button>
+                          <button type="button" onClick={()=>setShowHistory(false)} className="text-gray-500 hover:text-red-500"><X size={18}/></button>
                       </div>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -929,7 +940,7 @@ function doGet(e) {
                                   }}>
                                   <div className="font-bold text-sm text-indigo-700">{h.title}</div>
                                   <div className="text-xs opacity-60 mt-1 flex items-center gap-1"><Cloud size={10}/> {h.date}</div>
-                                  <button onClick={(e)=>{
+                                  <button type="button" onClick={(e)=>{
                                       e.stopPropagation();
                                       if(window.confirm('Hapus dari riwayat lokal? (Data di Google Sheets tidak terhapus)')) {
                                           setHistory(x=>x.filter(i=>i.id!==h.id))
@@ -1058,15 +1069,15 @@ function doGet(e) {
           <div className="animate-slide-up">
             <div className={`flex flex-wrap gap-2 justify-between items-center mb-4 p-3 rounded shadow border no-print ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white text-gray-800'}`}>
               <div className="flex gap-2">
-                <button onClick={() => setIsGenerated(false)} className="px-3 py-1.5 border rounded text-sm hover:bg-gray-100 hover:text-black flex gap-1 items-center"><RefreshCcw size={14} /> Kembali ke Form</button>
-                <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 border rounded text-sm flex gap-1 items-center ${isEditing ? 'bg-yellow-100 text-yellow-800' : 'hover:bg-gray-100 hover:text-black'}`}><Edit size={14} /> {isEditing ? 'Selesai Edit' : 'Edit Hasil'}</button>
+                <button type="button" onClick={() => setIsGenerated(false)} className="px-3 py-1.5 border rounded text-sm hover:bg-gray-100 hover:text-black flex gap-1 items-center"><RefreshCcw size={14} /> Kembali ke Form</button>
+                <button type="button" onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 border rounded text-sm flex gap-1 items-center ${isEditing ? 'bg-yellow-100 text-yellow-800' : 'hover:bg-gray-100 hover:text-black'}`}><Edit size={14} /> {isEditing ? 'Selesai Edit' : 'Edit Hasil'}</button>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <button onClick={() => generateSimple('rubric', `Buat rubrik TP ${formData.tp}`, 'Rubric')} disabled={loadingStatus === 'Rubric'} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Rubric' ? <Loader2 className="animate-spin" size={14} /> : <Table size={14} />} Rubrik</button>
-                <button onClick={() => generateSimple('instrumen', `Buat instrumen TP ${formData.tp}`, 'Instrumen')} disabled={loadingStatus === 'Instrumen'} className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Instrumen' ? <Loader2 className="animate-spin" size={14} /> : <ClipboardCheck size={14} />} Instrumen</button>
-                <button onClick={() => generateSimple('lkpd', `Buat LKPD ${formData.materi} ${formData.jenjang}`, 'LKPD')} disabled={loadingStatus === 'LKPD'} className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'LKPD' ? <Loader2 className="animate-spin" size={14} /> : <FileSignature size={14} />} LKPD</button>
-                <button onClick={handleWord} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><FileDown size={14} /> Word</button>
-                <button onClick={handlePrint} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><Printer size={14} /> PDF/Cetak</button>
+                <button type="button" onClick={() => generateSimple('rubric', `Buat rubrik TP ${formData.tp}`, 'Rubric')} disabled={loadingStatus === 'Rubric'} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Rubric' ? <Loader2 className="animate-spin" size={14} /> : <Table size={14} />} Rubrik</button>
+                <button type="button" onClick={() => generateSimple('instrumen', `Buat instrumen TP ${formData.tp}`, 'Instrumen')} disabled={loadingStatus === 'Instrumen'} className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Instrumen' ? <Loader2 className="animate-spin" size={14} /> : <ClipboardCheck size={14} />} Instrumen</button>
+                <button type="button" onClick={() => generateSimple('lkpd', `Buat LKPD ${formData.materi} ${formData.jenjang}`, 'LKPD')} disabled={loadingStatus === 'LKPD'} className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'LKPD' ? <Loader2 className="animate-spin" size={14} /> : <FileSignature size={14} />} LKPD</button>
+                <button type="button" onClick={handleWord} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><FileDown size={14} /> Word</button>
+                <button type="button" onClick={handlePrint} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><Printer size={14} /> PDF/Cetak</button>
               </div>
             </div>
 
