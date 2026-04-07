@@ -1139,14 +1139,15 @@ function doGet(e) {
                           <tbody>
                               <tr>
                                   <td style={{ width: '15%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
-                                      {formData.gunakanLogoQA ? (
-                                          <img src={logoBase64 || "/sekolah.png"} alt="Logo Sekolah" style={{ width: '80px', height: '80px', objectFit: 'contain', margin: '0 auto' }} />
-                                      ) : (
-                                          <div style={{ width: '80px', height: '80px', margin: '0 auto', border: '1px dashed gray', padding: '25px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
-                                              LOGO<br/>SEKOLAH
-                                          </div>
-                                      )}
-                                  </td>
+    {formData.gunakanLogoQA ? (
+        // Ukuran diperbesar jadi 115px, height diatur 'auto' agar tidak gepeng di MS Word
+        <img src={logoBase64 || "/sekolah.png"} alt="Logo Sekolah" style={{ width: '115px', height: 'auto', margin: '0 auto' }} />
+    ) : (
+        <div style={{ width: '100px', height: '100px', margin: '0 auto', border: '1px dashed gray', padding: '35px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
+            LOGO<br/>SEKOLAH
+        </div>
+    )}
+</td>
                                   <td style={{ width: '70%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
                                       <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>{formData.pemda || 'PEMERINTAH KABUPATEN/KOTA'}</h4>
                                       <h3 style={{ margin: 0, fontSize: '14pt', fontWeight: 'bold', textTransform: 'uppercase' }}>DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
