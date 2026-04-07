@@ -1140,10 +1140,15 @@ function doGet(e) {
                               <tr>
                                   <td style={{ width: '15%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
     {formData.gunakanLogoQA ? (
-        // Ukuran diperbesar jadi 115px, height diatur 'auto' agar tidak gepeng di MS Word
-        <img src={logoBase64 || "/sekolah.png"} alt="Logo Sekolah" style={{ width: '115px', height: 'auto', margin: '0 auto' }} />
+        // Tambahkan atribut width="110" secara langsung di luar tag style
+        <img 
+            src={logoBase64 || "/sekolah.png"} 
+            alt="Logo Sekolah" 
+            width="110" 
+            style={{ width: '110px', margin: '0 auto' }} 
+        />
     ) : (
-        <div style={{ width: '100px', height: '100px', margin: '0 auto', border: '1px dashed gray', padding: '35px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
+        <div style={{ width: '110px', height: '110px', margin: '0 auto', border: '1px dashed gray', padding: '40px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
             LOGO<br/>SEKOLAH
         </div>
     )}
