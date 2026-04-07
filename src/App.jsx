@@ -1035,7 +1035,7 @@ function doGet(e) {
                           onChange={(e) => setFormData(prev => ({...prev, gunakanLogoQA: e.target.checked}))} 
                           className="mr-3 w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500" 
                       />
-                      <span className="text-sm font-medium text-gray-700">Gunakan Logo SDIT Qurratu A’yun Al-Islami (sekolah.png)</span>
+                      <span className="text-sm font-medium text-gray-700">Gunakan Logo SDIT Qurratu A’yun Al-Islami</span>
                   </label>
               </div>
             </div>
