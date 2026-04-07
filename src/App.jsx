@@ -105,7 +105,8 @@ export default function RPMGenerator() {
     pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
     namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
     jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
-    jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
+    jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: [],
+    gunakanLogoQA: false, tanggalRPP: new Date().toISOString().split('T')[0]
   });
 
   const [isGenerated, setIsGenerated] = useState(false);
@@ -116,6 +117,7 @@ export default function RPMGenerator() {
   const [cloudApiUrl, setCloudApiUrl] = useState(''); 
   const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
   const [customModelName, setCustomModelName] = useState('');
+  const [dynamicModels, setDynamicModels] = useState(AI_MODELS);
   
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [showApiGuide, setShowApiGuide] = useState(false);
@@ -227,6 +229,8 @@ function doGet(e) {
         if (!parsed.alamatSekolah) parsed.alamatSekolah = '';
         if (!parsed.tempatTtd) parsed.tempatTtd = '';
         if (!parsed.semester) parsed.semester = 'Ganjil';
+        if (!parsed.tanggalRPP) parsed.tanggalRPP = new Date().toISOString().split('T')[0];
+        if (parsed.gunakanLogoQA === undefined) parsed.gunakanLogoQA = false;
         setFormData(prev => ({...prev, ...parsed}));
       } catch (e) { safeStorage.removeItem('rpm_form_data'); }
     }
@@ -320,10 +324,9 @@ function doGet(e) {
     safeStorage.setItem('user_gemini_custom_model', val);
   }
 
-  // LOGIKA SELEKSI MODEL DIPERBAIKI
   const selectFoundModel = (modelName) => {
       const cleanName = modelName.replace('models/', '');
-      const isStandardModel = AI_MODELS.some(m => m.id === cleanName);
+      const isStandardModel = dynamicModels.some(m => m.id === cleanName);
 
       if (isStandardModel) {
           setSelectedModel(cleanName);
@@ -355,7 +358,8 @@ function doGet(e) {
             pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
             namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
             jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
-            jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: []
+            jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: [],
+            gunakanLogoQA: false, tanggalRPP: new Date().toISOString().split('T')[0]
         });
         safeStorage.removeItem('rpm_form_data');
     }
@@ -384,6 +388,21 @@ function doGet(e) {
                   m.supportedGenerationMethods.includes("generateContent")
               );
               setAvailableModels(validModels);
+
+              // Auto inject to Dropdown
+              const newDropdownOptions = validModels.map(m => {
+                  const cleanName = m.name.replace('models/', '');
+                  return { id: cleanName, name: cleanName };
+              });
+              
+              const combined = [...AI_MODELS];
+              newDropdownOptions.forEach(newMod => {
+                  if (!combined.some(existing => existing.id === newMod.id)) {
+                      combined.splice(combined.length - 1, 0, newMod);
+                  }
+              });
+              setDynamicModels(combined);
+
           } else {
               throw new Error("Format data dari Google tidak sesuai atau kosong.");
           }
@@ -839,7 +858,7 @@ function doGet(e) {
                 <div className="flex items-center gap-2 border p-2 rounded bg-gray-50 flex-1">
                     <Cpu size={16} className="text-gray-500"/>
                     <select value={selectedModel} onChange={handleModelChange} className="bg-transparent text-sm text-gray-700 outline-none w-full">
-                        {AI_MODELS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                        {dynamicModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                     </select>
                 </div>
 
@@ -870,7 +889,7 @@ function doGet(e) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                         {availableModels.map((m, index) => {
                             const cleanName = m.name ? m.name.replace('models/', '') : 'Model Tanpa Nama';
-                            const isActive = getActiveModelName() === cleanName; // Cek apakah model ini sedang aktif
+                            const isActive = getActiveModelName() === cleanName;
 
                             return (
                                 <div key={m.name || index} className={`flex justify-between items-center p-2 border rounded shadow-sm transition-colors ${isActive ? 'bg-emerald-50 border-emerald-500' : 'bg-white'}`}>
@@ -992,8 +1011,23 @@ function doGet(e) {
               <div><label className={cssLabel}>NIP Guru</label><input name="nipGuru" value={formData.nipGuru} onChange={handleChange} className={cssInput} /></div>
               
               <div><label className={cssLabel}>Kota/Kab Tempat TTD</label><input name="tempatTtd" value={formData.tempatTtd} onChange={handleChange} className={cssInput} placeholder="Cth: Maros" required /></div>
+              <div><label className={cssLabel}>Tanggal RPP</label><input type="date" name="tanggalRPP" value={formData.tanggalRPP} onChange={handleChange} className={cssInput} required /></div>
+
+              <div className="md:col-span-2 mt-2">
+                  <label className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors ${formData.gunakanLogoQA ? 'bg-indigo-50 border-indigo-500' : 'bg-gray-50 border-gray-300'}`}>
+                      <input 
+                          type="checkbox" 
+                          name="gunakanLogoQA" 
+                          checked={formData.gunakanLogoQA} 
+                          onChange={(e) => setFormData(prev => ({...prev, gunakanLogoQA: e.target.checked}))} 
+                          className="mr-3 w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500" 
+                      />
+                      <span className="text-sm font-medium text-gray-700">Gunakan Logo SDIT Qurratu A’yun Al-Islami (sekolah.png)</span>
+                  </label>
+              </div>
             </div>
-            <div className="grid md:grid-cols-4 gap-4 mb-4">
+
+            <div className="grid md:grid-cols-4 gap-4 mb-4 mt-6">
               <div><label className={cssLabel}>Jenjang</label><select name="jenjang" value={formData.jenjang} onChange={handleJenjangChange} className={cssInput}>{JENJANG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
               <div><label className={cssLabel}>Kelas</label><select name="kelas" value={formData.kelas} onChange={handleChange} className={cssInput}>{KELAS_BY_JENJANG[formData.jenjang].map(k => <option key={k} value={k}>{k}</option>)}</select></div>
               <div><label className={cssLabel}>Semester</label><select name="semester" value={formData.semester} onChange={handleChange} className={cssInput}><option value="Ganjil">Ganjil</option><option value="Genap">Genap</option></select></div>
@@ -1092,9 +1126,13 @@ function doGet(e) {
                           <tbody>
                               <tr>
                                   <td style={{ width: '15%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
-                                      <div style={{ width: '80px', height: '80px', margin: '0 auto', border: '1px dashed gray', padding: '25px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
-                                          LOGO<br/>SEKOLAH
-                                      </div>
+                                      {formData.gunakanLogoQA ? (
+                                          <img src="/sekolah.png" alt="Logo Sekolah" style={{ width: '80px', height: '80px', objectFit: 'contain', margin: '0 auto' }} />
+                                      ) : (
+                                          <div style={{ width: '80px', height: '80px', margin: '0 auto', border: '1px dashed gray', padding: '25px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
+                                              LOGO<br/>SEKOLAH
+                                          </div>
+                                      )}
                                   </td>
                                   <td style={{ width: '70%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
                                       <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>{formData.pemda || 'PEMERINTAH KABUPATEN/KOTA'}</h4>
@@ -1231,7 +1269,7 @@ function doGet(e) {
                                       <p style={{ margin: 0 }}>NIP. {formData.nipKepsek || '-'}</p>
                                   </td>
                                   <td style={{ textAlign: 'center', width: '50%', verticalAlign: 'top', border: 'none' }}>
-                                      <p style={{ margin: 0 }}>{formData.tempatTtd || formData.namaSatuan}, {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                      <p style={{ margin: 0 }}>{formData.tempatTtd || formData.namaSatuan}, {new Date(formData.tanggalRPP).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                       <p style={{ margin: 0 }}>Guru Mata Pelajaran</p>
                                       <br /><br /><br /><br />
                                       <p style={{ fontWeight: 'bold', textDecoration: 'underline', margin: 0 }}>{formData.namaGuru}</p>
