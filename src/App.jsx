@@ -109,6 +109,8 @@ export default function RPMGenerator() {
     gunakanLogoQA: false, tanggalRPP: new Date().toISOString().split('T')[0]
   });
 
+  const [logoBase64, setLogoBase64] = useState(null); // State khusus untuk gambar di MS Word
+
   const [isGenerated, setIsGenerated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(''); 
@@ -193,6 +195,18 @@ function doGet(e) {
   useEffect(() => {
     const fadeTimer = setTimeout(() => { setFadeSplash(true); }, 3000);
     const hideTimer = setTimeout(() => { setShowSplash(false); }, 3500);
+
+    // Ambil gambar logo.png/sekolah.png dan jadikan Base64 untuk MS Word
+    fetch('/sekolah.png')
+      .then(response => response.blob())
+      .then(blob => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              setLogoBase64(reader.result);
+          };
+          reader.readAsDataURL(blob);
+      })
+      .catch(e => console.log("Logo sekolah.png belum tersedia", e));
 
     const storedKey = safeStorage.getItem('user_gemini_api_key');
     if (storedKey) setUserApiKey(storedKey);
@@ -389,7 +403,6 @@ function doGet(e) {
               );
               setAvailableModels(validModels);
 
-              // Auto inject to Dropdown
               const newDropdownOptions = validModels.map(m => {
                   const cleanName = m.name.replace('models/', '');
                   return { id: cleanName, name: cleanName };
@@ -632,7 +645,7 @@ function doGet(e) {
       const arr = [...prev];
       const d = { ...arr[i] };
       if (path.includes('.')) {
-        const [a, b] = path.split('.');
+        const [a, b] = split('.');
         d[a] = { ...d[a], [b]: val };
       } else { d[path] = val; }
       arr[i] = d;
@@ -1127,7 +1140,7 @@ function doGet(e) {
                               <tr>
                                   <td style={{ width: '15%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
                                       {formData.gunakanLogoQA ? (
-                                          <img src="/sekolah.png" alt="Logo Sekolah" style={{ width: '80px', height: '80px', objectFit: 'contain', margin: '0 auto' }} />
+                                          <img src={logoBase64 || "/sekolah.png"} alt="Logo Sekolah" style={{ width: '80px', height: '80px', objectFit: 'contain', margin: '0 auto' }} />
                                       ) : (
                                           <div style={{ width: '80px', height: '80px', margin: '0 auto', border: '1px dashed gray', padding: '25px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
                                               LOGO<br/>SEKOLAH
