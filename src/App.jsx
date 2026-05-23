@@ -654,7 +654,11 @@ function doGet(e) {
   };
 
   const EditCell = ({ val, idx, path, multi }) => {
-    if (!isEditing) return <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: val || '' }} />;
+    if (!isEditing) {
+      // Ubah karakter baris baru (\n) menjadi tag <br/> agar MS Word merendernya ke bawah
+      const formattedVal = val ? val.toString().replace(/\n/g, '<br/>') : '';
+      return <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: formattedVal }} />;
+    }
     return multi 
       ? <textarea className="w-full p-1 border bg-yellow-50 text-sm font-sans" rows={6} value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />
       : <input className="w-full p-1 border bg-yellow-50 text-sm font-sans" value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />;
@@ -670,7 +674,8 @@ function doGet(e) {
             return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {lines.map((l, i) => (
-                        <span key={i}>{l}</span>
+                        // Ubah <span> menjadi <div> agar terbaca sebagai baris baru di MS Word
+                        <div key={i}>{l}</div>
                     ))}
                 </div>
             );
