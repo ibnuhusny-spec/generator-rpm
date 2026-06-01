@@ -116,7 +116,7 @@ export default function RPMGenerator() {
   const [loadingStatus, setLoadingStatus] = useState(''); 
   
   const [userApiKey, setUserApiKey] = useState('');
-  const [cloudApiUrl, setCloudApiUrl] = useState(''); 
+  const [spreadsheetId, setSpreadsheetId] = useState(''); 
   const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
   const [customModelName, setCustomModelName] = useState('');
   const [dynamicModels, setDynamicModels] = useState(AI_MODELS);
@@ -212,10 +212,10 @@ function doGet(e) {
     if (storedKey) setUserApiKey(storedKey);
     else setShowApiKeyInput(true);
 
-    const storedCloudUrl = safeStorage.getItem('user_cloud_api_url');
-    if (storedCloudUrl) {
-        setCloudApiUrl(storedCloudUrl);
-        loadCloudHistory(storedCloudUrl);
+    const storedSpreadsheetId = safeStorage.getItem('user_spreadsheet_id');
+    if (storedSpreadsheetId) {
+        setSpreadsheetId(storedSpreadsheetId);
+        loadCloudHistory(storedSpreadsheetId);
     }
 
     const storedModel = safeStorage.getItem('user_gemini_model');
@@ -275,13 +275,18 @@ function doGet(e) {
   }, [formData.jumlahPertemuan]);
 
   // --- CLOUD DATABASE FUNCTIONS ---
-  const loadCloudHistory = async (urlOverride = null) => {
-    const url = urlOverride || cloudApiUrl || safeStorage.getItem('user_cloud_api_url');
-    if (!url || !url.startsWith('https://script.google.com/')) return;
+  // --- CLOUD DATABASE FUNCTIONS ---
+  // Tanamkan URL Web App Bapak di sini agar guru tidak perlu repot
+  const URL_PUSAT = "https://script.google.com/macros/s/AKfycbzQxgxqcGQMruz9fSQOj_yfbHc9O8JgNxcQRWbOgxJqy8FUkmH9dJ-Qri_lrr0l63k6/exec"; 
+
+  const loadCloudHistory = async (idOverride = null) => {
+    const id = idOverride || spreadsheetId || safeStorage.getItem('user_spreadsheet_id');
+    if (!id) return;
     
     setIsSyncing(true);
     try {
-        const res = await fetch(url);
+        // Mengirim ID guru ke server Bapak untuk meminta data riwayat
+        const res = await fetch(`${URL_PUSAT}?id=${id}`);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
             setHistory(data);
@@ -295,15 +300,18 @@ function doGet(e) {
   };
 
   const saveToCloud = async (record) => {
-      const url = cloudApiUrl || safeStorage.getItem('user_cloud_api_url');
-      if (!url || !url.startsWith('https://script.google.com/')) return;
+      const id = spreadsheetId || safeStorage.getItem('user_spreadsheet_id');
+      if (!id) return;
+      
+      // Sisipkan ID guru ke dalam paket data RPP
+      const dataYangDikirim = { ...record, spreadsheetId: id };
       
       try {
-          await fetch(url, {
+          await fetch(URL_PUSAT, {
               method: 'POST',
               mode: 'no-cors',
               headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-              body: JSON.stringify(record)
+              body: JSON.stringify(dataYangDikirim)
           });
       } catch (e) {
           console.error("Gagal menyimpan ke cloud:", e);
@@ -313,14 +321,14 @@ function doGet(e) {
   // --- HANDLERS ---
   const saveSettings = () => {
     const k = userApiKey.trim();
-    const c = cloudApiUrl.trim();
+    const sid = spreadsheetId.trim(); // <-- Sekarang kita menyimpan ID, bukan URL
     setUserApiKey(k);
-    setCloudApiUrl(c);
+    setSpreadsheetId(sid);
     safeStorage.setItem('user_gemini_api_key', k);
-    safeStorage.setItem('user_cloud_api_url', c);
+    safeStorage.setItem('user_spreadsheet_id', sid);
     
-    if(c && c.startsWith('https://script.google.com/')) {
-        loadCloudHistory(c); 
+    if(sid) {
+        loadCloudHistory(sid); 
     }
     alert("Semua Pengaturan & Kunci API berhasil tersimpan!");
     setShowApiKeyInput(false);
@@ -887,19 +895,19 @@ function doGet(e) {
 
             <hr className="my-2 border-gray-200"/>
 
-            <div className="flex-1 text-gray-800">
-                <h3 className="font-bold flex items-center gap-2"><Database size={16}/> Database Google Sheets (Opsional)</h3>
-                <p className="text-xs text-gray-500">Masukkan URL Web App dari Apps Script untuk menyimpan bank RPP Anda di cloud.</p>
-            </div>
-            <input type="text" placeholder="https://script.google.com/macros/s/..." value={cloudApiUrl} onChange={e=>setCloudApiUrl(e.target.value)} className="w-full border p-2 rounded text-gray-800 text-sm"/>
+<div className="flex-1 text-gray-800">
+    <h3 className="font-bold flex items-center gap-2"><Database size={16}/> Spreadsheet ID (Opsional)</h3>
+    <p className="text-xs text-gray-500">Masukkan ID Spreadsheet Anda untuk menyimpan bank RPP secara otomatis.</p>
+</div>
+<input type="text" placeholder="Paste ID Spreadsheet di sini..." value={spreadsheetId} onChange={e=>setSpreadsheetId(e.target.value)} className="w-full border p-2 rounded text-gray-800 text-sm"/>
 
-            <div className="flex gap-2 flex-wrap mt-4">
-                <button type="button" onClick={saveSettings} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded flex-1 font-bold">Simpan Pengaturan</button>
-                <button type="button" id="btn-test" onClick={testConnection} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-1"><Activity size={14}/> Tes Koneksi AI</button>
-                <button type="button" onClick={checkAvailableModels} disabled={isCheckingModels} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-1">
-                    {isCheckingModels ? <Loader2 className="animate-spin" size={14}/> : <Menu size={14}/>} Cek Daftar Model
-                </button>
-            </div>
+<div className="flex gap-2 flex-wrap mt-4">
+    <button type="button" onClick={saveSettings} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded flex-1 font-bold">Simpan Pengaturan</button>
+    <button type="button" id="btn-test" onClick={testConnection} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded flex items-center gap-1"><Activity size={14}/> Tes Koneksi AI</button>
+    <button type="button" onClick={checkAvailableModels} disabled={isCheckingModels} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-1">
+        {isCheckingModels ? <Loader2 className="animate-spin" size={14}/> : <Menu size={14}/>} Cek Daftar Model
+    </button>
+</div>
 
             {Array.isArray(availableModels) && availableModels.length > 0 && (
                 <div className="mt-2 bg-emerald-50 border border-emerald-200 p-3 rounded text-sm text-gray-800">
