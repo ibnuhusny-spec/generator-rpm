@@ -511,7 +511,6 @@ function doGet(e) {
   const cleanAIResponse = (text) => {
     if (!text) return "";
     let cleaned = text.replace(/^(Tentu|Berikut|Baik|Ini|Silakan|Di bawah|Sebagai|Halo).*?(:|\n)/i, '');
-    cleaned = cleaned.replace(/(Catatan|Note|Penting|Harap|Perlu diingat).*?$/is, '');
     return cleaned.trim();
   }
 
