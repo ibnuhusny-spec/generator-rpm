@@ -655,7 +655,7 @@ function doGet(e) {
 
         // Siapkan Data untuk Disimpan
         const recordID = Date.now();
-        const recordDate = new Date().toLocaleDateString();
+        const recordDate = new Date().toISOString();
         const newRecord = { 
             id: recordID, 
             date: recordDate, 
@@ -768,7 +768,18 @@ function doGet(e) {
     const url = URL.createObjectURL(new Blob(['\ufeff', html], { type: 'application/msword' }));
     const a = document.createElement('a'); a.href = url; a.download = `RPM_${formData.mapel}.doc`; a.click();
   };
-
+  
+const formatWaktuRiwayat = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleString('id-ID', { 
+        day: '2-digit', month: 'short', year: 'numeric', 
+        hour: '2-digit', minute: '2-digit' 
+      });
+    } catch(e) { return dateStr; }
+  };
+  
   // --- STYLES ---
   const cssInput = `mt-1 block w-full rounded-md shadow-sm border p-2 ${isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white border-gray-300'}`;
   const cssLabel = `block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`;
@@ -1015,7 +1026,7 @@ function doGet(e) {
                                       setShowHistory(false);
                                   }}>
                                   <div className="font-bold text-sm text-indigo-700">{h.title}</div>
-                                  <div className="text-xs opacity-60 mt-1 flex items-center gap-1"><Cloud size={10}/> {h.date}</div>
+                                  <div className="text-xs opacity-60 mt-1 flex items-center gap-1"><Cloud size={10}/> {formatWaktuRiwayat(h.date)}</div>
                                   <button type="button" onClick={(e)=>{
                                       e.stopPropagation();
                                       if(window.confirm('Hapus dari riwayat lokal? (Data di Google Sheets tidak terhapus)')) {
