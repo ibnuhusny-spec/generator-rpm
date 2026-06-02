@@ -635,10 +635,11 @@ function doGet(e) {
     const res = await callAI(prompt);
     if (res) {
       try {
-        let jsonStr = res.replace(/```json/g,'').replace(/```/g,'').trim();
+        let jsonStr = res.replace(/```json/g, '').replace(/
+```/g, '').trim();
         const firstBracket = jsonStr.indexOf('[');
         const lastBracket = jsonStr.lastIndexOf(']');
-        if(firstBracket !== -1 && lastBracket !== -1) {
+        if (firstBracket !== -1 && lastBracket !== -1) {
             jsonStr = jsonStr.substring(firstBracket, lastBracket + 1);
         }
         
@@ -672,16 +673,9 @@ function doGet(e) {
         setHistory(p => [newRecord, ...p]);
         saveToCloud(newRecord);
 
-      } catch (e) { setErrorMsg("Format AI tidak valid. Klik tombol Generate RPM sekali lagi."); }
-    }
-    setIsLoading(false);
-  };
-
-        // Simpan ke State Lokal & Cloud
-        setHistory(p => [newRecord, ...p]);
-        saveToCloud(newRecord);
-
-      } catch (e) { setErrorMsg("Format AI tidak valid. Klik tombol Generate RPM sekali lagi."); }
+      } catch (e) { 
+        setErrorMsg("Format AI tidak valid. Klik tombol Generate RPM sekali lagi."); 
+      }
     }
     setIsLoading(false);
   };
