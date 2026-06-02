@@ -607,21 +607,36 @@ function doGet(e) {
     let instruksiJenjang = isIslamic ? "Integrasikan nilai spiritual/islami secara natural. " : isVocational ? "Fokuskan pada hard skills dunia kerja. " : "";
     const catatanGuru = formData.catatanKhusus ? `CATATAN GURU: ${formData.catatanKhusus}.` : "";
 
-    const prompt = `Buatkan RPM ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
-    Data Utama: ${JSON.stringify({...formData, catatanKhusus: undefined})}. Metode: ${formData.metodePerPertemuan.join(', ')}. ${instruksiJenjang} ${catatanGuru} 
+    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING FRAMEWORK ===
+    const prompt = `Buatkan Rencana Pembelajaran Mendalam (Deep Learning Plan) untuk ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
+    Data Utama: ${JSON.stringify({...formData, catatanKhusus: undefined})}. 
+    Praktik Pedagogis (Metode): ${formData.metodePerPertemuan.join(', ')}. 
+    Profil Lulusan: ${formData.dimensi.length > 0 ? formData.dimensi.join(', ') : 'Mandiri, Bernalar Kritis'}.
+    ${instruksiJenjang} ${catatanGuru} 
     
-    INSTRUKSI SANGAT PENTING:
-    1. ACUAN MUTLAK: Anda WAJIB menggunakan Capaian Pembelajaran (CP), Tujuan Pembelajaran (TP), dan Indikator dari Data Utama di atas, terlepas dari apakah bentuknya paragraf biasa atau poin-poin!
-    2. Untuk bagian pengalaman belajar (memahami/Pendahuluan, mengaplikasi/Inti, dan refleksi/Penutup), JANGAN GUNAKAN PARAGRAF ATAU NARASI PANJANG!
-    3. WAJIB TULIS DALAM BENTUK DAFTAR ANGKA BERURUTAN KE BAWAH (Contoh: "1. Guru mengucapkan salam...", "2. Siswa dibagi menjadi kelompok...", "3. ...").
-    4. Untuk kegiatan Pendahuluan/Memahami, langkah nomor 1 WAJIB berupa salam, doa, dan apersepsi.
+    INSTRUKSI SANGAT PENTING & KERANGKA WAJIB:
+    1. ACUAN MUTLAK: Anda WAJIB menggunakan Capaian Pembelajaran (CP), Tujuan Pembelajaran (TP), dan Indikator dari Data Utama secara ketat.
+    2. PRINSIP PEMBELAJARAN: Seluruh skenario aktivitas WAJIB dirancang dengan prinsip:
+       - Bermakna (Relevan dengan dunia nyata siswa).
+       - Berkesadaran (Mindful, mendorong siswa fokus pada saat ini).
+       - Menggembirakan (Interaktif, menyenangkan, tidak membosankan).
+    3. INTEGRASI PROFIL LULUSAN: Sisipkan pembentukan karakter "Profil Lulusan" yang diminta ke dalam langkah-langkah kegiatan secara natural dan eksplisit.
+    4. KERANGKA PEMBELAJARAN (Isi pada key JSON yang sesuai):
+       - "lingkungan": Jelaskan desain Lingkungan Pembelajaran kelas/luar kelas yang mendukung.
+       - "digital": Jelaskan Pemanfaatan Digital/teknologi yang digunakan.
+       - "kemitraan": Jelaskan bentuk Kemitraan Pembelajaran (pelibatan orang tua, ahli, atau komunitas).
+    5. PENGALAMAN BELAJAR (PENTING: JANGAN GUNAKAN PARAGRAF! WAJIB DAFTAR ANGKA 1, 2, 3 KE BAWAH):
+       - "memahami": Ini adalah fase Pendahuluan. Langkah 1 wajib salam, doa, apersepsi bermakna. Siswa membangun pemahaman konsep awal.
+       - "mengaplikasi": Ini adalah fase Inti. Terapkan 'Praktik Pedagogis' di sini. Siswa mempraktikkan, menciptakan, atau mengeksplorasi.
+       - "refleksi": Ini adalah fase Penutup. Siswa melakukan refleksi mendalam atas apa yang dipelajari dan dirasakan.
     
     Struktur JSON: [{"siswa":"","lintasDisiplin":"","topik":"","kemitraan":"","lingkungan":"","digital":"","pengalaman":{"memahami":"(Tulis list 1, 2, 3...)","mengaplikasi":"(Tulis list 1, 2, 3...)","refleksi":"(Tulis list 1, 2, 3...)"},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
     
     const res = await callAI(prompt);
     if (res) {
       try {
-        let jsonStr = res.replace(/```json/g,'').replace(/```/g,'').trim();
+        let jsonStr = res.replace(/```json/g,'').replace(/
+```/g,'').trim();
         const firstBracket = jsonStr.indexOf('[');
         const lastBracket = jsonStr.lastIndexOf(']');
         if(firstBracket !== -1 && lastBracket !== -1) {
@@ -653,6 +668,15 @@ function doGet(e) {
             formData: {...formData}, 
             aiContent: json 
         };
+
+        // Simpan ke State Lokal & Cloud
+        setHistory(p => [newRecord, ...p]);
+        saveToCloud(newRecord);
+
+      } catch (e) { setErrorMsg("Format AI tidak valid. Klik tombol Generate RPM sekali lagi."); }
+    }
+    setIsLoading(false);
+  };
 
         // Simpan ke State Lokal & Cloud
         setHistory(p => [newRecord, ...p]);
