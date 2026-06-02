@@ -635,8 +635,7 @@ function doGet(e) {
     const res = await callAI(prompt);
     if (res) {
       try {
-        let jsonStr = res.replace(/```json/g, '').replace(/
-```/g, '').trim();
+        let jsonStr = res.replace(/```json/g, '').replace(/```/g, '').trim();
         const firstBracket = jsonStr.indexOf('[');
         const lastBracket = jsonStr.lastIndexOf(']');
         if (firstBracket !== -1 && lastBracket !== -1) {
