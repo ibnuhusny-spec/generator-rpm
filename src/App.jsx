@@ -669,7 +669,7 @@ function doGet(e) {
       const arr = [...prev];
       const d = { ...arr[i] };
       if (path.includes('.')) {
-        const [a, b] = split('.');
+        const [a, b] = path.split('.');
         d[a] = { ...d[a], [b]: val };
       } else { d[path] = val; }
       arr[i] = d;
