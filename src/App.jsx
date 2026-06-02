@@ -1126,7 +1126,7 @@ function doGet(e) {
             </div>
 
             <div className="mb-4">
-                <span className={cssLabel}>Dimensi Profil Pelajar Pancasila</span>
+                <span className={cssLabel}>Dimensi Profil Lulusan</span>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {DIMENSI_OPTIONS.map(d => (
                         <div key={d} className="relative group">
