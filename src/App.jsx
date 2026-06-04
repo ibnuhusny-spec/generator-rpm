@@ -717,24 +717,35 @@ function doGet(e) {
     if (!isEditing) {
       if (!val) return <div>-</div>;
       const strVal = val.toString();
+      
+      // Fungsi bantuan untuk merender teks biasa atau list (dengan tabel transparan)
+      const renderListOrText = (text, keyIndex = null) => {
+          // Deteksi apakah diawali angka/strip: "1. Teks..." atau "- Teks..."
+          const match = text.match(/^(\d+\.|-)\s+(.*)/);
+          if (match) {
+              return (
+                  <table key={keyIndex} className="no-border" style={{ width: '100%', borderCollapse: 'collapse', border: 'none', marginBottom: '4px' }}>
+                      <tbody>
+                          <tr>
+                              <td style={{ width: '22px', verticalAlign: 'top', padding: '0 6px 0 0', border: 'none' }}>{match[1]}</td>
+                              <td style={{ verticalAlign: 'top', padding: 0, border: 'none', textAlign: 'justify' }}>{match[2]}</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              );
+          }
+          return <div key={keyIndex} style={{ marginBottom: '4px', textAlign: 'justify' }}>{text}</div>;
+      };
+
       if (strVal.includes('\n')) {
           const lines = strVal.split('\n').map(l => l.trim()).filter(l => l);
           return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {lines.map((l, i) => {
-                      // Deteksi Regex: Apakah baris dimulai dengan angka (1. ) atau strip (- )
-                      const isList = /^(?:\d+\.|-)\s/.test(l);
-                      return (
-                          <div key={i} style={isList ? { paddingLeft: '1.8em', textIndent: '-1.8em' } : {}}>
-                              {l}
-                          </div>
-                      );
-                  })}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {lines.map((l, i) => renderListOrText(l, i))}
               </div>
           );
       }
-      const isList = /^(?:\d+\.|-)\s/.test(strVal);
-      return <div style={isList ? { paddingLeft: '1.8em', textIndent: '-1.8em' } : {}}>{strVal}</div>;
+      return renderListOrText(strVal);
     }
     return multi 
       ? <textarea className="w-full p-1 border bg-yellow-50 text-sm font-sans" rows={6} value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />
@@ -745,26 +756,35 @@ function doGet(e) {
     if (!text) return '-';
     let clean = text.replace(/[*`_]/g, '').replace(/#/g, ''); 
     
+    // Fungsi bantuan untuk merender teks biasa atau list (dengan tabel transparan)
+    const renderListOrText = (txt, keyIndex = null) => {
+        const match = txt.match(/^(\d+\.|-)\s+(.*)/);
+        if (match) {
+            return (
+                <table key={keyIndex} className="no-border" style={{ width: '100%', borderCollapse: 'collapse', border: 'none', marginBottom: '4px' }}>
+                    <tbody>
+                        <tr>
+                            <td style={{ width: '22px', verticalAlign: 'top', padding: '0 6px 0 0', border: 'none' }}>{match[1]}</td>
+                            <td style={{ verticalAlign: 'top', padding: 0, border: 'none', textAlign: 'justify' }}>{match[2]}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            );
+        }
+        return <div key={keyIndex} style={{ marginBottom: '4px', textAlign: 'justify' }}>{txt}</div>;
+    };
+
     if (clean.includes('\n')) {
         const lines = clean.split('\n').map(l => l.trim()).filter(l => l);
         if (lines.length > 0) {
             return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {lines.map((l, i) => {
-                        // Deteksi Regex: Apakah baris dimulai dengan angka (1. ) atau strip (- )
-                        const isList = /^(?:\d+\.|-)\s/.test(l);
-                        return (
-                            <div key={i} style={isList ? { paddingLeft: '1.8em', textIndent: '-1.8em' } : {}}>
-                                {l}
-                            </div>
-                        );
-                    })}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {lines.map((l, i) => renderListOrText(l, i))}
                 </div>
             );
         }
     }
-    const isList = /^(?:\d+\.|-)\s/.test(clean);
-    return <div style={isList ? { paddingLeft: '1.8em', textIndent: '-1.8em' } : {}}>{clean}</div>;
+    return renderListOrText(clean);
   };
 
   // --- EXPORT ---
