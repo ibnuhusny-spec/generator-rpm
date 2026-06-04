@@ -109,7 +109,8 @@ export default function RPMGenerator() {
     tanggalRPP: new Date().toISOString().split('T')[0]
   });
 
-  const [logoBase64, setLogoBase64] = useState(null); // State khusus untuk gambar di MS Word
+  const [logoBase64, setLogoBase64] = useState(null); // Logo Kiri
+  const [logoKananBase64, setLogoKananBase64] = useState(null); // Logo Kanan
 
   const [isGenerated, setIsGenerated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -202,7 +203,10 @@ function doGet(e) {
         setLogoBase64(savedLogo);
     } else {
         // Fallback default opsional jika tidak ada logo
-        setLogoBase64(null); 
+        setLogoBase64(null);
+      const savedLogoKanan = safeStorage.getItem('user_custom_logo_kanan');
+    if (savedLogoKanan) setLogoKananBase64(savedLogoKanan);
+    else setLogoKananBase64(null);
     }
 
     const storedKey = safeStorage.getItem('user_gemini_api_key');
@@ -380,6 +384,23 @@ function doGet(e) {
   const hapusLogo = () => {
     setLogoBase64(null);
     safeStorage.removeItem('user_custom_logo');
+  };
+  const handleLogoKananUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2000000) return alert("Ukuran logo terlalu besar. Maksimal 2MB.");
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoKananBase64(reader.result);
+        safeStorage.setItem('user_custom_logo_kanan', reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const hapusLogoKanan = () => {
+    setLogoKananBase64(null);
+    safeStorage.removeItem('user_custom_logo_kanan');
   };
   const handleJenjangChange = (e) => {
     const newJenjang = e.target.value;
@@ -1081,36 +1102,43 @@ const formatWaktuRiwayat = (dateStr) => {
               <div><label className={cssLabel}>Kota/Kab Tempat TTD</label><input name="tempatTtd" value={formData.tempatTtd} onChange={handleChange} className={cssInput} placeholder="Cth: Maros" required /></div>
               <div><label className={cssLabel}>Tanggal RPP</label><input type="date" name="tanggalRPP" value={formData.tanggalRPP} onChange={handleChange} className={cssInput} required /></div>
 
-              <div className="md:col-span-2 mt-2">
-                  <label className={cssLabel}>Logo Sekolah (Opsional)</label>
-                  <div className={`flex items-center gap-4 p-3 border rounded-md transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
-                      {logoBase64 ? (
-                          <div className="relative shrink-0">
-                              <img src={logoBase64} alt="Logo" className="w-16 h-16 object-contain border bg-white p-1 rounded" />
-                              <button type="button" onClick={hapusLogo} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md transition-colors" title="Hapus Logo">
-                                  <X size={12}/>
-                              </button>
+              {/* MULAI KODE UPLOAD LOGO GANDA */}
+              <div className="md:col-span-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                      <label className={cssLabel}>Logo Kiri (Pemda/Dinas)</label>
+                      <div className={`flex items-center gap-3 p-3 border rounded-md transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
+                          {logoBase64 ? (
+                              <div className="relative shrink-0">
+                                  <img src={logoBase64} alt="Logo Kiri" className="w-16 h-16 object-contain border bg-white p-1 rounded" />
+                                  <button type="button" onClick={hapusLogo} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md transition-colors" title="Hapus Logo"><X size={12}/></button>
+                              </div>
+                          ) : (
+                              <div className={`w-16 h-16 border-2 border-dashed flex items-center justify-center rounded text-[10px] text-center shrink-0 ${isDarkMode ? 'border-gray-500 text-gray-400 bg-gray-800' : 'border-gray-300 text-gray-400 bg-white'}`}>Kosong</div>
+                          )}
+                          <div className="flex-1 overflow-hidden">
+                              <input type="file" accept="image/*" onChange={handleLogoUpload} className={`text-[10px] cursor-pointer w-full ${isDarkMode ? 'text-gray-300 file:bg-gray-600 file:text-white' : 'text-gray-500 file:bg-indigo-50 file:text-indigo-700'}`} />
                           </div>
-                      ) : (
-                          <div className={`w-16 h-16 border-2 border-dashed flex items-center justify-center rounded text-xs text-center shrink-0 ${isDarkMode ? 'border-gray-500 text-gray-400 bg-gray-800' : 'border-gray-300 text-gray-400 bg-white'}`}>
-                              Tanpa Logo
+                      </div>
+                  </div>
+
+                  <div>
+                      <label className={cssLabel}>Logo Kanan (Sekolah)</label>
+                      <div className={`flex items-center gap-3 p-3 border rounded-md transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
+                          {logoKananBase64 ? (
+                              <div className="relative shrink-0">
+                                  <img src={logoKananBase64} alt="Logo Kanan" className="w-16 h-16 object-contain border bg-white p-1 rounded" />
+                                  <button type="button" onClick={hapusLogoKanan} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md transition-colors" title="Hapus Logo"><X size={12}/></button>
+                              </div>
+                          ) : (
+                              <div className={`w-16 h-16 border-2 border-dashed flex items-center justify-center rounded text-[10px] text-center shrink-0 ${isDarkMode ? 'border-gray-500 text-gray-400 bg-gray-800' : 'border-gray-300 text-gray-400 bg-white'}`}>Kosong</div>
+                          )}
+                          <div className="flex-1 overflow-hidden">
+                              <input type="file" accept="image/*" onChange={handleLogoKananUpload} className={`text-[10px] cursor-pointer w-full ${isDarkMode ? 'text-gray-300 file:bg-gray-600 file:text-white' : 'text-gray-500 file:bg-indigo-50 file:text-indigo-700'}`} />
                           </div>
-                      )}
-                      <div className="flex-1">
-                          <input 
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleLogoUpload} 
-                              className={`text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold cursor-pointer w-full
-                                  ${isDarkMode ? 'text-gray-300 file:bg-gray-600 file:text-white hover:file:bg-gray-500' : 'text-gray-500 file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'}`}
-                          />
-                          <p className={`text-[10px] mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                              Format JPG/PNG (Maks 2MB). Logo akan tersimpan otomatis di perangkat ini untuk penggunaan selanjutnya.
-                          </p>
                       </div>
                   </div>
               </div>
-              </div>
+              {/* AKHIR KODE UPLOAD LOGO GANDA */}
             <div className="grid md:grid-cols-4 gap-4 mb-4 mt-6">
               <div><label className={cssLabel}>Jenjang</label><select name="jenjang" value={formData.jenjang} onChange={handleJenjangChange} className={cssInput}>{JENJANG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
               <div><label className={cssLabel}>Kelas</label><select name="kelas" value={formData.kelas} onChange={handleChange} className={cssInput}>{KELAS_BY_JENJANG[formData.jenjang].map(k => <option key={k} value={k}>{k}</option>)}</select></div>
@@ -1210,18 +1238,9 @@ const formatWaktuRiwayat = (dateStr) => {
                           <tbody>
                               <tr>
                                   <td style={{ width: '15%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
-                                    {logoBase64 ? (
-                                        <img 
-                                            src={logoBase64} 
-                                            alt="Logo Sekolah" 
-                                            width="110" 
-                                            style={{ width: '110px', height: '110px', objectFit: 'contain', margin: '0 auto' }} 
-                                        />
-                                    ) : (
-                                        <div style={{ width: '110px', height: '110px', margin: '0 auto', border: '1px dashed gray', padding: '40px 0', boxSizing: 'border-box', fontSize: '10px', color: 'gray', textAlign: 'center', lineHeight: '1.2' }}>
-                                            LOGO<br/>SEKOLAH
-                                        </div>
-                                    )}
+                                      {logoBase64 && (
+                                          <img src={logoBase64} alt="Logo Kiri" width="110" style={{ width: '110px', height: '110px', objectFit: 'contain', margin: '0 auto' }} />
+                                      )}
                                   </td>
                                   <td style={{ width: '70%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
                                       <h4 style={{ margin: 0, fontSize: '12pt', fontWeight: 'normal', textTransform: 'uppercase' }}>{formData.pemda || 'PEMERINTAH KABUPATEN/KOTA'}</h4>
@@ -1229,7 +1248,11 @@ const formatWaktuRiwayat = (dateStr) => {
                                       <h3 style={{ margin: 0, fontSize: '16pt', fontWeight: 'bold', textTransform: 'uppercase' }}>{formData.namaSatuan}</h3>
                                       <p style={{ margin: 0, fontSize: '10pt', fontStyle: 'italic' }}>Alamat: {formData.alamatSekolah || 'Jl. Pendidikan No. 1 (Contoh Alamat Sekolah)'}</p>
                                   </td>
-                                  <td style={{ width: '15%', border: 'none' }}></td>
+                                  <td style={{ width: '15%', verticalAlign: 'middle', textAlign: 'center', border: 'none' }}>
+                                      {logoKananBase64 && (
+                                          <img src={logoKananBase64} alt="Logo Kanan" width="110" style={{ width: '110px', height: '110px', objectFit: 'contain', margin: '0 auto' }} />
+                                      )}
+                                  </td>
                               </tr>
                           </tbody>
                       </table>
