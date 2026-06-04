@@ -133,7 +133,8 @@ export default function RPMGenerator() {
   const [aiContent, setAiContent] = useState([]); 
   const [rubricContent, setRubricContent] = useState(null);
   const [lkpdContent, setLkpdContent] = useState(null);
-  const [instrumenContent, setInstrumenContent] = useState(null); 
+  const [instrumenContent, setInstrumenContent] = useState(null);
+  const [materiContent, setMateriContent] = useState(null);
   
   const [isEditing, setIsEditing] = useState(false); 
   const [history, setHistory] = useState([]); 
@@ -547,7 +548,7 @@ function doGet(e) {
     if (type === 'cp' && !formData.mapel) return alert("Isi Mapel dulu");
     if ((type === 'tp' || type === 'indikator') && !formData.cp) return alert("Isi CP dulu");
     if (type === 'indikator' && !formData.tp) return alert("Isi TP dulu");
-    if ((type === 'rubric' || type === 'lkpd' || type === 'instrumen') && !formData.tp) return alert("Isi TP dulu");
+    if ((type === 'rubric' || type === 'lkpd' || type === 'instrumen' || type === 'materiajar') && !formData.tp) return alert("Isi TP dulu");
 
     setLoadingStatus(label);
     
@@ -580,6 +581,15 @@ function doGet(e) {
         1. Kisi-kisi Soal (Bentuk Tabel yang memuat Indikator Soal, Bentuk Soal, dan Bobot).
         2. Lembar Soal Evaluasi (Berisi minimal 5 soal pilihan ganda dan 3 soal isian/essay yang berbobot/HOTS).
         3. Kunci Jawaban & Pedoman Penskoran (Berisi jawaban dan tabel cara menghitung nilai akhir).${tambahanKonteks}`;
+    } else if (type === 'materiajar') {
+        strictPrompt = `Buatkan Ringkasan Materi Ajar (Bahan Bacaan) LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
+        Tujuan Pembelajaran: ${formData.tp}
+        ${catatanGuru}
+        
+        INSTRUKSI OUTPUT (WAJIB HTML MURNI tanpa markdown):
+        1. Susun materi secara sistematis, menggunakan bahasa yang mudah dipahami siswa sesuai jenjangnya. ${tambahanKonteks}
+        2. Gunakan tag <h4> untuk sub-judul. Gunakan <ul> atau <ol> untuk poin-poin penting.
+        3. Berikan contoh konkret atau relevansi materi dalam kehidupan sehari-hari agar bermakna.`;
     } else if (type === 'lkpd') {
         const isFaseA = formData.kelas === 'Kelas 1' || formData.kelas === 'Kelas 2';
         const intruksiFaseA = isFaseA ? "KARENA INI UNTUK KELAS 1/2 (FASE A), BUAT DESAIN YANG SANGAT RAMAH ANAK. Gunakan banyak EMOJI HTML (🌟, 🍎, 🚗, 🐶, 🖍️, dll) sebagai pengganti gambar ilustrasi di berbagai bagian. Gunakan kalimat instruksi yang sangat pendek, sederhana, dan hindari kata rumit. Berikan ruang lebar untuk menggambar atau menebalkan huruf." : "";
@@ -615,6 +625,7 @@ function doGet(e) {
       else if (type === 'rubric') setRubricContent(cleanHtmlContent(cleanedRes));
       else if (type === 'instrumen') setInstrumenContent(cleanHtmlContent(cleanedRes));
       else if (type === 'lkpd') setLkpdContent(cleanHtmlContent(cleanedRes));
+      else if (type === 'materiajar') setMateriContent(cleanHtmlContent(cleanedRes));
     }
   };
 
@@ -671,6 +682,7 @@ function doGet(e) {
         setRubricContent(null);
         setLkpdContent(null);
         setInstrumenContent(null);
+        setMateriContent(null);
         setIsGenerated(true);
         setIsEditing(false);
 
@@ -1086,6 +1098,7 @@ const formatWaktuRiwayat = (dateStr) => {
                                       setRubricContent(null); 
                                       setLkpdContent(null); 
                                       setInstrumenContent(null);
+                                    setMateriContent(null);
                                       setIsGenerated(true); 
                                       setShowHistory(false);
                                   }}>
@@ -1265,6 +1278,7 @@ const formatWaktuRiwayat = (dateStr) => {
                 <button type="button" onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 border rounded text-sm flex gap-1 items-center ${isEditing ? 'bg-yellow-100 text-yellow-800' : 'hover:bg-gray-100 hover:text-black'}`}><Edit size={14} /> {isEditing ? 'Selesai Edit' : 'Edit Hasil'}</button>
               </div>
               <div className="flex gap-2 flex-wrap">
+                <button type="button" onClick={() => generateSimple('materiajar', `Buat ringkasan materi ${formData.materi}`, 'Materi')} disabled={loadingStatus === 'Materi'} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Materi' ? <Loader2 className="animate-spin" size={14} /> : <BookOpen size={14} />} Materi Ajar</button>
                 <button type="button" onClick={() => generateSimple('rubric', `Buat rubrik TP ${formData.tp}`, 'Rubric')} disabled={loadingStatus === 'Rubric'} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Rubric' ? <Loader2 className="animate-spin" size={14} /> : <Table size={14} />} Rubrik</button>
                 <button type="button" onClick={() => generateSimple('instrumen', `Buat instrumen TP ${formData.tp}`, 'Instrumen')} disabled={loadingStatus === 'Instrumen'} className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Instrumen' ? <Loader2 className="animate-spin" size={14} /> : <ClipboardCheck size={14} />} Instrumen</button>
                 <button type="button" onClick={() => generateSimple('lkpd', `Buat LKPD ${formData.materi} ${formData.jenjang}`, 'LKPD')} disabled={loadingStatus === 'LKPD'} className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'LKPD' ? <Loader2 className="animate-spin" size={14} /> : <FileSignature size={14} />} LKPD</button>
@@ -1444,6 +1458,7 @@ const formatWaktuRiwayat = (dateStr) => {
                   {rubricContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 1: RUBRIK PENILAIAN</h3><div dangerouslySetInnerHTML={{ __html: rubricContent }} /></div>}
                   {instrumenContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 2: INSTRUMEN EVALUASI</h3><div dangerouslySetInnerHTML={{ __html: instrumenContent }} /></div>}
                   {lkpdContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 3: LEMBAR KERJA PESERTA DIDIK (LKPD)</h3><div dangerouslySetInnerHTML={{ __html: lkpdContent }} /></div>}
+                  {materiContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 4: BAHAN BACAAN / MATERI AJAR</h3><div dangerouslySetInnerHTML={{ __html: materiContent }} /></div>}
                 </div>
               </div>
             </div>
