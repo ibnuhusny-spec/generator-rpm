@@ -732,11 +732,13 @@ function doGet(e) {
   const EditCell = ({ val, idx, path, multi }) => {
     if (!isEditing) {
       if (!val) return <div>-</div>;
-      const strVal = val.toString();
+      let strVal = val.toString();
+      
+      // --- PERBAIKAN: Paksa baris baru (enter) sebelum nomor urut jika AI menggabungnya ---
+      strVal = strVal.replace(/\s+(?=\d+\.\s)/g, '\n');
       
       // Fungsi bantuan untuk merender teks biasa atau list (dengan tabel transparan)
       const renderListOrText = (text, keyIndex = null) => {
-          // Deteksi apakah diawali angka/strip: "1. Teks..." atau "- Teks..."
           const match = text.match(/^(\d+\.|-)\s+(.*)/);
           if (match) {
               return (
@@ -771,6 +773,9 @@ function doGet(e) {
   const formatRender = (text) => {
     if (!text) return '-';
     let clean = text.replace(/[*`_]/g, '').replace(/#/g, ''); 
+    
+    // --- PERBAIKAN: Paksa baris baru (enter) sebelum nomor urut jika AI menggabungnya ---
+    clean = clean.replace(/\s+(?=\d+\.\s)/g, '\n');
     
     // Fungsi bantuan untuk merender teks biasa atau list (dengan tabel transparan)
     const renderListOrText = (txt, keyIndex = null) => {
