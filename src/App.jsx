@@ -106,6 +106,7 @@ export default function RPMGenerator() {
     namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
     jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
     jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: [],
+    sertakanDalil: false,
     tanggalRPP: new Date().toISOString().split('T')[0]
   });
 
@@ -419,6 +420,7 @@ function doGet(e) {
             namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
             jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
             jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: [],
+            sertakanDalil: false,
             tanggalRPP: new Date().toISOString().split('T')[0]
         });
         safeStorage.removeItem('rpm_form_data');
@@ -559,6 +561,7 @@ function doGet(e) {
     if (isVocational) tambahanKonteks = " PASTIKAN berfokus pada ranah vokasional, praktik industri, atau kesiapan kerja.";
 
     const catatanGuru = formData.catatanKhusus ? ` CATATAN GURU: ${formData.catatanKhusus}.` : "";
+    const instruksiDalil = formData.sertakanDalil ? "WAJIB sisipkan 1 teks dalil Al-Qur'an atau Hadits Shahih beserta terjemahannya yang relevan dengan materi ke dalam langkah kegiatan (misalnya di fase Pendahuluan atau Inti). " : "";
 
     let strictPrompt = prompt;
     if (type === 'cp' || type === 'tp' || type === 'indikator') {
@@ -637,13 +640,14 @@ function doGet(e) {
     const isVocational = formData.jenjang === 'SMK';
     let instruksiJenjang = isIslamic ? "Integrasikan nilai spiritual/islami secara natural. " : isVocational ? "Fokuskan pada hard skills dunia kerja. " : "";
     const catatanGuru = formData.catatanKhusus ? `CATATAN GURU: ${formData.catatanKhusus}.` : "";
+    const instruksiDalil = formData.sertakanDalil ? "WAJIB sisipkan 1 teks dalil Al-Qur'an atau Hadits Shahih beserta terjemahannya yang relevan dengan materi ke dalam langkah kegiatan (misalnya di fase Pendahuluan atau Inti). " : "";
 
     // === PROMPT BARU: TERINTEGRASI DEEP LEARNING FRAMEWORK ===
     const prompt = `Buatkan Rencana Pembelajaran Mendalam (Deep Learning Plan) untuk ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
     Data Utama: ${JSON.stringify({...formData, catatanKhusus: undefined})}. 
     Praktik Pedagogis (Metode): ${formData.metodePerPertemuan.join(', ')}. 
     Profil Lulusan: ${formData.dimensi.length > 0 ? formData.dimensi.join(', ') : 'Mandiri, Bernalar Kritis'}.
-    ${instruksiJenjang} ${catatanGuru} 
+    ${instruksiJenjang} ${instruksiDalil} ${catatanGuru} 
     
     INSTRUKSI SANGAT PENTING & KERANGKA WAJIB:
     1. ACUAN MUTLAK: Anda WAJIB menggunakan Capaian Pembelajaran (CP), Tujuan Pembelajaran (TP), dan Indikator dari Data Utama secara ketat.
@@ -1254,6 +1258,20 @@ const formatWaktuRiwayat = (dateStr) => {
                         </div>
                     ))}
                 </div>
+            </div>
+
+            <div className="mb-2">
+                <label className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors ${formData.sertakanDalil ? 'bg-emerald-50 border-emerald-500' : isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
+                    <input 
+                        type="checkbox" 
+                        checked={formData.sertakanDalil || false} 
+                        onChange={(e) => setFormData(prev => ({...prev, sertakanDalil: e.target.checked}))} 
+                        className="mr-3 w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500" 
+                    />
+                    <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        📖 Sertakan Dalil Al-Qur'an / Hadits (Opsional)
+                    </span>
+                </label>
             </div>
 
             <div className="mb-6">
