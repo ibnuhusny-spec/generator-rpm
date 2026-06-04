@@ -715,9 +715,26 @@ function doGet(e) {
 
   const EditCell = ({ val, idx, path, multi }) => {
     if (!isEditing) {
-      // Ubah karakter baris baru (\n) menjadi tag <br/> agar MS Word merendernya ke bawah
-      const formattedVal = val ? val.toString().replace(/\n/g, '<br/>') : '';
-      return <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: formattedVal }} />;
+      if (!val) return <div>-</div>;
+      const strVal = val.toString();
+      if (strVal.includes('\n')) {
+          const lines = strVal.split('\n').map(l => l.trim()).filter(l => l);
+          return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {lines.map((l, i) => {
+                      // Deteksi Regex: Apakah baris dimulai dengan angka (1. ) atau strip (- )
+                      const isList = /^(?:\d+\.|-)\s/.test(l);
+                      return (
+                          <div key={i} style={isList ? { paddingLeft: '1.5em', textIndent: '-1.5em' } : {}}>
+                              {l}
+                          </div>
+                      );
+                  })}
+              </div>
+          );
+      }
+      const isList = /^(?:\d+\.|-)\s/.test(strVal);
+      return <div style={isList ? { paddingLeft: '1.5em', textIndent: '-1.5em' } : {}}>{strVal}</div>;
     }
     return multi 
       ? <textarea className="w-full p-1 border bg-yellow-50 text-sm font-sans" rows={6} value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />
@@ -733,15 +750,21 @@ function doGet(e) {
         if (lines.length > 0) {
             return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {lines.map((l, i) => (
-                        // Ubah <span> menjadi <div> agar terbaca sebagai baris baru di MS Word
-                        <div key={i}>{l}</div>
-                    ))}
+                    {lines.map((l, i) => {
+                        // Deteksi Regex: Apakah baris dimulai dengan angka (1. ) atau strip (- )
+                        const isList = /^(?:\d+\.|-)\s/.test(l);
+                        return (
+                            <div key={i} style={isList ? { paddingLeft: '1.5em', textIndent: '-1.5em' } : {}}>
+                                {l}
+                            </div>
+                        );
+                    })}
                 </div>
             );
         }
     }
-    return clean;
+    const isList = /^(?:\d+\.|-)\s/.test(clean);
+    return <div style={isList ? { paddingLeft: '1.5em', textIndent: '-1.5em' } : {}}>{clean}</div>;
   };
 
   // --- EXPORT ---
