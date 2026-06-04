@@ -640,7 +640,7 @@ function doGet(e) {
     const isVocational = formData.jenjang === 'SMK';
     let instruksiJenjang = isIslamic ? "Integrasikan nilai spiritual/islami secara natural. " : isVocational ? "Fokuskan pada hard skills dunia kerja. " : "";
     const catatanGuru = formData.catatanKhusus ? `CATATAN GURU: ${formData.catatanKhusus}.` : "";
-    const instruksiDalil = formData.sertakanDalil ? "WAJIB sisipkan 1 teks dalil Al-Qur'an atau Hadits Shahih beserta terjemahannya yang relevan dengan materi ke dalam langkah kegiatan (misalnya di fase Pendahuluan atau Inti). " : "";
+    const instruksiDalil = formData.sertakanDalil ? "SANGAT PENTING: Anda WAJIB menuliskan TEKS ARAB ASLI (dengan huruf Hijaiyah) dari 1 dalil Al-Qur'an atau Hadits beserta terjemahan bahasa Indonesianya secara LENGKAP di dalam langkah kegiatan. JANGAN HANYA menulis nama surah/ayatnya saja! " : "";
 
     // === PROMPT BARU: TERINTEGRASI DEEP LEARNING FRAMEWORK ===
     const prompt = `Buatkan Rencana Pembelajaran Mendalam (Deep Learning Plan) untuk ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
