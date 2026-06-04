@@ -1139,6 +1139,9 @@ const formatWaktuRiwayat = (dateStr) => {
                   </div>
               </div>
               {/* AKHIR KODE UPLOAD LOGO GANDA */}
+
+            </div> {/* <==== INI ADALAH PENUTUP KOTAK BESAR YANG TADI TERHAPUS! */}
+
             <div className="grid md:grid-cols-4 gap-4 mb-4 mt-6">
               <div><label className={cssLabel}>Jenjang</label><select name="jenjang" value={formData.jenjang} onChange={handleJenjangChange} className={cssInput}>{JENJANG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
               <div><label className={cssLabel}>Kelas</label><select name="kelas" value={formData.kelas} onChange={handleChange} className={cssInput}>{KELAS_BY_JENJANG[formData.jenjang].map(k => <option key={k} value={k}>{k}</option>)}</select></div>
