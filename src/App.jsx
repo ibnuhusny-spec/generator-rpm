@@ -725,7 +725,7 @@ function doGet(e) {
                       // Deteksi Regex: Apakah baris dimulai dengan angka (1. ) atau strip (- )
                       const isList = /^(?:\d+\.|-)\s/.test(l);
                       return (
-                          <div key={i} style={isList ? { paddingLeft: '1.5em', textIndent: '-1.5em' } : {}}>
+                          <div key={i} style={isList ? { paddingLeft: '1.8em', textIndent: '-1.8em' } : {}}>
                               {l}
                           </div>
                       );
@@ -734,7 +734,7 @@ function doGet(e) {
           );
       }
       const isList = /^(?:\d+\.|-)\s/.test(strVal);
-      return <div style={isList ? { paddingLeft: '1.5em', textIndent: '-1.5em' } : {}}>{strVal}</div>;
+      return <div style={isList ? { paddingLeft: '1.8em', textIndent: '-1.8em' } : {}}>{strVal}</div>;
     }
     return multi 
       ? <textarea className="w-full p-1 border bg-yellow-50 text-sm font-sans" rows={6} value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />
@@ -754,7 +754,7 @@ function doGet(e) {
                         // Deteksi Regex: Apakah baris dimulai dengan angka (1. ) atau strip (- )
                         const isList = /^(?:\d+\.|-)\s/.test(l);
                         return (
-                            <div key={i} style={isList ? { paddingLeft: '1.5em', textIndent: '-1.5em' } : {}}>
+                            <div key={i} style={isList ? { paddingLeft: '1.8em', textIndent: '-1.8em' } : {}}>
                                 {l}
                             </div>
                         );
@@ -764,7 +764,7 @@ function doGet(e) {
         }
     }
     const isList = /^(?:\d+\.|-)\s/.test(clean);
-    return <div style={isList ? { paddingLeft: '1.5em', textIndent: '-1.5em' } : {}}>{clean}</div>;
+    return <div style={isList ? { paddingLeft: '1.8em', textIndent: '-1.8em' } : {}}>{clean}</div>;
   };
 
   // --- EXPORT ---
