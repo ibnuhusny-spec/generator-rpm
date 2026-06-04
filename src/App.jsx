@@ -732,14 +732,22 @@ function doGet(e) {
   const EditCell = ({ val, idx, path, multi }) => {
     if (!isEditing) {
       if (!val) return <div>-</div>;
-      let strVal = val.toString();
       
-      // --- PERBAIKAN: Paksa baris baru (enter) sebelum nomor urut jika AI menggabungnya ---
-      strVal = strVal.replace(/\s+(?=\d+\.\s)/g, '\n');
+      // 1. Tangani jika AI membuat format Array
+      let strVal = Array.isArray(val) ? val.join('\n') : val.toString();
       
-      // Fungsi bantuan untuk merender teks biasa atau list (dengan tabel transparan)
+      // 2. Ubah KOMA yang dempet dengan nomor menjadi Enter (contoh: ",2." atau ", 2.")
+      strVal = strVal.replace(/,\s*(?=\d+\.)/g, '\n');
+      
+      // 3. Ubah SPASI yang dempet dengan nomor menjadi Enter
+      strVal = strVal.replace(/\s+(?=\d+\.)/g, '\n');
+      
       const renderListOrText = (text, keyIndex = null) => {
-          const match = text.match(/^(\d+\.|-)\s+(.*)/);
+          // Regex Super Kuat: Toleransi jika AI lupa memberi spasi (contoh: "1.Guru")
+          const matchNum = text.match(/^(\d+\.)\s*(.*)/);
+          const matchStrip = text.match(/^(-\s+)(.*)/);
+          const match = matchNum || matchStrip;
+          
           if (match) {
               return (
                   <table key={keyIndex} className="no-border" style={{ width: '100%', borderCollapse: 'collapse', border: 'none', marginBottom: '4px' }}>
@@ -765,21 +773,29 @@ function doGet(e) {
       }
       return renderListOrText(strVal);
     }
+    
+    let editVal = Array.isArray(val) ? val.join('\n') : (val || '');
     return multi 
-      ? <textarea className="w-full p-1 border bg-yellow-50 text-sm font-sans" rows={6} value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />
-      : <input className="w-full p-1 border bg-yellow-50 text-sm font-sans" value={val||''} onChange={e => updateContent(idx, path, e.target.value)} />;
+      ? <textarea className="w-full p-1 border bg-yellow-50 text-sm font-sans" rows={6} value={editVal} onChange={e => updateContent(idx, path, e.target.value)} />
+      : <input className="w-full p-1 border bg-yellow-50 text-sm font-sans" value={editVal} onChange={e => updateContent(idx, path, e.target.value)} />;
   };
 
   const formatRender = (text) => {
     if (!text) return '-';
-    let clean = text.replace(/[*`_]/g, '').replace(/#/g, ''); 
     
-    // --- PERBAIKAN: Paksa baris baru (enter) sebelum nomor urut jika AI menggabungnya ---
-    clean = clean.replace(/\s+(?=\d+\.\s)/g, '\n');
+    // 1. Tangani jika text berupa Array
+    let clean = Array.isArray(text) ? text.join('\n') : text.toString();
+    clean = clean.replace(/[*`_]/g, '').replace(/#/g, ''); 
     
-    // Fungsi bantuan untuk merender teks biasa atau list (dengan tabel transparan)
+    // 2 & 3. Bersihkan koma atau spasi "nyasar" sebelum nomor urut
+    clean = clean.replace(/,\s*(?=\d+\.)/g, '\n');
+    clean = clean.replace(/\s+(?=\d+\.)/g, '\n');
+    
     const renderListOrText = (txt, keyIndex = null) => {
-        const match = txt.match(/^(\d+\.|-)\s+(.*)/);
+        const matchNum = txt.match(/^(\d+\.)\s*(.*)/);
+        const matchStrip = txt.match(/^(-\s+)(.*)/);
+        const match = matchNum || matchStrip;
+        
         if (match) {
             return (
                 <table key={keyIndex} className="no-border" style={{ width: '100%', borderCollapse: 'collapse', border: 'none', marginBottom: '4px' }}>
