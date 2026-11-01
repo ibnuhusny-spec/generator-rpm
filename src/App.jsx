@@ -252,7 +252,7 @@ const KURIKULUM_NASIONAL_TEMPLATES = [
     id: 'binggris-smp7',
     badge: 'SMP Kelas 7',
     title: 'Bahasa Inggris: Describing People & Daily Life (Fase D)',
-    icon: '🇬🇧',
+    icon: '🗣️',
     data: {
       jenjang: 'SMP Umum',
       kelas: 'Kelas 7',
@@ -497,6 +497,14 @@ function doGet(e) {
   useEffect(() => {
     safeStorage.setItem('rpm_form_data', JSON.stringify(formData));
   }, [formData]);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   useEffect(() => {
     setFormData(prev => {
@@ -1880,19 +1888,19 @@ const formatWaktuRiwayat = (dateStr) => {
             </div>
 
             {/* TEMPLATE CEPAT KURIKULUM NASIONAL (PRESETS SIAP PAKAI) */}
-            <div className={`mb-6 p-4 rounded-xl border transition-all ${
+            <div className={`mb-6 p-4 rounded-xl border-2 transition-all ${
               isDarkMode 
-                ? 'bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-blue-950/40 border-indigo-800/80 text-white' 
-                : 'bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-purple-50/90 border-indigo-200 text-gray-800'
+                ? 'bg-gradient-to-r from-gray-900 via-indigo-950/70 to-gray-900 border-indigo-700 text-white' 
+                : 'bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-purple-50/90 border-indigo-200 text-slate-900'
             }`}>
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
                 <div className="flex items-center gap-2">
                   <span className="p-1.5 bg-indigo-600 text-white rounded-lg text-sm shadow-xs font-bold">⚡</span>
                   <div>
-                    <h3 className="font-bold text-sm text-indigo-950 dark:text-indigo-200 flex items-center gap-1.5">
+                    <h3 className={`font-extrabold text-sm flex items-center gap-1.5 ${isDarkMode ? 'text-indigo-200' : 'text-indigo-950'}`}>
                       Template Cepat Kurikulum Nasional (Uji Coba 1-Klik)
                     </h3>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                    <p className={`text-xs font-medium mt-0.5 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
                       Pilih template mapel di bawah untuk langsung mengisi otomatis CP, TP, Indikator, ATP, dan Model Pembelajaran:
                     </p>
                   </div>
@@ -1907,29 +1915,35 @@ const formatWaktuRiwayat = (dateStr) => {
                       key={tpl.id}
                       type="button"
                       onClick={() => handleApplyTemplate(tpl)}
-                      className={`p-2.5 rounded-lg border text-left transition-all flex flex-col justify-between hover:shadow-md hover:scale-[1.02] cursor-pointer ${
+                      className={`p-2.5 rounded-lg border-2 text-left transition-all flex flex-col justify-between hover:scale-[1.02] cursor-pointer ${
                         isSelected
-                          ? 'bg-indigo-600 text-white border-indigo-600 ring-2 ring-indigo-400 shadow-sm'
+                          ? 'bg-indigo-600 text-white border-indigo-600 ring-2 ring-indigo-400 shadow-md'
                           : isDarkMode
-                          ? 'bg-gray-800/90 border-gray-700 hover:border-indigo-500 text-gray-200'
-                          : 'bg-white border-gray-200 hover:border-indigo-400 text-gray-800 shadow-2xs'
+                          ? 'bg-gray-800 border-gray-700 hover:border-indigo-400 text-white hover:bg-gray-750'
+                          : 'bg-white border-slate-200 hover:border-indigo-500 text-slate-900 hover:bg-indigo-50/40 shadow-xs'
                       }`}
                     >
                       <div className="flex items-center justify-between w-full mb-1.5">
-                        <span className="text-xl">{tpl.icon}</span>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        <span className="text-xl shrink-0">{tpl.icon}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
                           isSelected
-                            ? 'bg-white/20 text-white'
-                            : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300'
+                            ? 'bg-white/20 text-white border-white/30'
+                            : isDarkMode
+                            ? 'bg-gray-700 text-gray-200 border-gray-600'
+                            : 'bg-indigo-50 text-indigo-900 border-indigo-200 font-bold'
                         }`}>
                           {tpl.badge}
                         </span>
                       </div>
                       <div>
-                        <div className={`font-bold text-xs line-clamp-1 ${isSelected ? 'text-white' : 'text-indigo-950 dark:text-gray-100'}`}>
+                        <div className={`font-extrabold text-xs line-clamp-1 ${
+                          isSelected ? 'text-white' : isDarkMode ? 'text-white' : 'text-slate-900'
+                        }`}>
                           {tpl.data.mapel}
                         </div>
-                        <div className={`text-[11px] line-clamp-2 mt-0.5 leading-tight ${isSelected ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                        <div className={`text-[11px] line-clamp-2 mt-0.5 leading-tight font-medium ${
+                          isSelected ? 'text-indigo-100' : isDarkMode ? 'text-gray-300' : 'text-slate-700'
+                        }`}>
                           {tpl.data.materi}
                         </div>
                       </div>
@@ -1939,9 +1953,9 @@ const formatWaktuRiwayat = (dateStr) => {
               </div>
 
               {templateAlert && (
-                <div className="mt-3 p-2.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-800 dark:text-emerald-200 rounded-lg text-xs flex items-center gap-2 animate-fadeIn">
+                <div className="mt-3 p-2.5 bg-emerald-500/20 border border-emerald-500/50 text-emerald-900 dark:text-emerald-200 rounded-lg text-xs flex items-center gap-2 font-medium animate-fadeIn">
                   <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span className="font-medium">{templateAlert}</span>
+                  <span>{templateAlert}</span>
                 </div>
               )}
             </div>
