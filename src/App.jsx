@@ -126,9 +126,11 @@ const GRADIENT_THEMES = [
 ];
 
 const AI_MODELS = [
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Sangat Cepat & Cerdas - Rekomendasi)' },
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Stabil & Cepat)' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Penalaran Kompleks)' },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Rekomendasi Resmi Google - Cerdas & Cepat)' },
+  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (Stabil & Cepat)' },
+  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Alternatif Cepat)' },
+  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Sangat Ringan)' },
+  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Legacy)' },
   { id: 'custom', name: 'Gunakan Model Custom...' }
 ];
 
@@ -332,7 +334,7 @@ export default function RPMGenerator() {
   
   const [userApiKey, setUserApiKey] = useState('');
   const [spreadsheetId, setSpreadsheetId] = useState(''); 
-  const [selectedModel, setSelectedModel] = useState('gemini-2.0-flash');
+  const [selectedModel, setSelectedModel] = useState('gemini-3.8-flash');
   const [customModelName, setCustomModelName] = useState('');
   const [dynamicModels, setDynamicModels] = useState(AI_MODELS);
   
@@ -433,10 +435,11 @@ function doGet(e) {
     }
 
     const storedModel = safeStorage.getItem('user_gemini_model');
-    if (storedModel && storedModel !== 'gemini-1.0-pro' && storedModel !== 'gemini-2.0-flash-exp') {
+    if (storedModel && !['gemini-1.0-pro', 'gemini-2.0-flash-exp', 'gemini-2.0-flash'].includes(storedModel)) {
       setSelectedModel(storedModel);
     } else {
-      setSelectedModel('gemini-2.0-flash');
+      setSelectedModel('gemini-3.8-flash');
+      safeStorage.setItem('user_gemini_model', 'gemini-3.8-flash');
     }
     
     const storedCustom = safeStorage.getItem('user_gemini_custom_model');
@@ -761,7 +764,18 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
                   m && m.name && m.supportedGenerationMethods && 
                   m.supportedGenerationMethods.includes("generateContent")
               );
-              setAvailableModels(validModels);
+
+              // Urutkan model: model teks murni (bukan image/tts) diprioritaskan di atas
+              const sortedModels = [...validModels].sort((a, b) => {
+                  const aName = (a.name || '').toLowerCase();
+                  const bName = (b.name || '').toLowerCase();
+                  const aIsSpecial = aName.includes('image') || aName.includes('tts') || aName.includes('embed');
+                  const bIsSpecial = bName.includes('image') || bName.includes('tts') || bName.includes('embed');
+                  if (!aIsSpecial && bIsSpecial) return -1;
+                  if (aIsSpecial && !bIsSpecial) return 1;
+                  return bName.localeCompare(aName);
+              });
+              setAvailableModels(sortedModels);
 
               const newDropdownOptions = validModels.map(m => {
                   const cleanName = m.name.replace('models/', '');
@@ -1684,14 +1698,23 @@ const formatWaktuRiwayat = (dateStr) => {
                         {availableModels.map((m, index) => {
                             const cleanName = m.name ? m.name.replace('models/', '') : 'Model Tanpa Nama';
                             const isActive = getActiveModelName() === cleanName;
+                            const isAudioOrImage = cleanName.includes('image') || cleanName.includes('tts') || cleanName.includes('audio') || cleanName.includes('embed');
+                            const isRecommended = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'].includes(cleanName);
 
                             return (
-                                <div key={m.name || index} className={`flex justify-between items-center p-2 border rounded shadow-sm transition-colors ${isActive ? 'bg-emerald-50 border-emerald-500' : 'bg-white'}`}>
-                                    <span className={`font-mono text-xs ${isActive ? 'font-bold text-emerald-800' : 'text-gray-700'}`}>{cleanName}</span>
+                                <div key={m.name || index} className={`flex justify-between items-center p-2 border rounded shadow-sm transition-colors ${
+                                  isActive ? 'bg-emerald-50 border-emerald-500' : isAudioOrImage ? 'bg-gray-100 opacity-60 border-gray-200' : 'bg-white'
+                                }`}>
+                                    <div className="flex flex-col pr-2 overflow-hidden">
+                                      <span className={`font-mono text-xs truncate ${isActive ? 'font-bold text-emerald-800' : 'text-gray-700'}`}>{cleanName}</span>
+                                      {isRecommended && <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">✨ Sangat Disarankan untuk RPP</span>}
+                                      {cleanName.includes('image') && <span className="text-[10px] text-amber-700">⚠️ Model Gambar (Limit 0 pada Akun Gratis)</span>}
+                                      {cleanName.includes('tts') && <span className="text-[10px] text-amber-700">⚠️ Model Suara/Audio (Bukan untuk RPP)</span>}
+                                    </div>
                                     <button 
                                         type="button"
                                         onClick={() => selectFoundModel(m.name)} 
-                                        className={`text-xs px-3 py-1 rounded transition-colors ${isActive ? 'bg-emerald-600 text-white font-bold' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
+                                        className={`text-xs px-3 py-1 rounded transition-colors shrink-0 ${isActive ? 'bg-emerald-600 text-white font-bold' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
                                     >
                                         {isActive ? '✓ Terpilih' : 'Pilih'}
                                     </button>
