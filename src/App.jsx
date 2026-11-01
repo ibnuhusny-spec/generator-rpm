@@ -126,10 +126,11 @@ const GRADIENT_THEMES = [
 ];
 
 const AI_MODELS = [
-  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Paling Cepat, Stabil & Terbukti Sukses - Rekomendasi Utama)' },
-  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Ringan & Cepat)' },
-  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash' },
+  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Terbukti Berhasil, Cepat & Paling Stabil - Rekomendasi Utama)' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (Stabil & Cepat)' },
+  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Sering Antre/503 saat Jam Sibuk)' },
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash' },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash' },
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Legacy)' },
   { id: 'custom', name: 'Gunakan Model Custom...' }
 ];
@@ -334,7 +335,7 @@ export default function RPMGenerator() {
   
   const [userApiKey, setUserApiKey] = useState('');
   const [spreadsheetId, setSpreadsheetId] = useState(''); 
-  const [selectedModel, setSelectedModel] = useState('gemini-3.6-flash');
+  const [selectedModel, setSelectedModel] = useState('gemini-3.5-flash-lite');
   const [customModelName, setCustomModelName] = useState('');
   const [dynamicModels, setDynamicModels] = useState(AI_MODELS);
   
@@ -435,11 +436,11 @@ function doGet(e) {
     }
 
     const storedModel = safeStorage.getItem('user_gemini_model');
-    if (storedModel && !['gemini-1.0-pro', 'gemini-2.0-flash-exp', 'gemini-2.0-flash'].includes(storedModel)) {
+    if (storedModel && !['gemini-1.0-pro', 'gemini-2.0-flash-exp', 'gemini-2.0-flash', 'gemini-3.6-flash'].includes(storedModel)) {
       setSelectedModel(storedModel);
     } else {
-      setSelectedModel('gemini-3.6-flash');
-      safeStorage.setItem('user_gemini_model', 'gemini-3.6-flash');
+      setSelectedModel('gemini-3.5-flash-lite');
+      safeStorage.setItem('user_gemini_model', 'gemini-3.5-flash-lite');
     }
     
     const storedCustom = safeStorage.getItem('user_gemini_custom_model');
@@ -883,6 +884,20 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
       const data = await res.json();
       
       if (!res.ok) {
+          // Jika 503 (Server sibuk/High Demand), coba fallback otomatis ke gemini-3.5-flash-lite
+          if (res.status === 503 && modelToUse !== 'gemini-3.5-flash-lite') {
+              console.warn(`Model ${modelToUse} mengalami 503 High Demand, otomatis mencoba gemini-3.5-flash-lite...`);
+              const fallbackRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${userApiKey}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload),
+                  signal: controller.signal
+              });
+              const fallbackData = await fallbackRes.json();
+              if (fallbackRes.ok && fallbackData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  return fallbackData.candidates[0].content.parts[0].text;
+              }
+          }
           setDebugLog(JSON.stringify(data, null, 2));
           throw new Error(data.error?.message || `Gagal menghubungi model ${modelToUse}`);
       }
@@ -1313,16 +1328,79 @@ Struktur JSON: [{"topik":"","lintasDisiplin":"","siswa":"","lingkungan":"","digi
 
   const handleWord = () => {
     if (!outputRef.current) return;
-    const content = outputRef.current.innerHTML;
     const cleanMapel = (formData.mapel || 'Kurikulum_Nasional').replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
     const cleanKelas = (formData.kelas || '').replace(/\s+/g, '_');
     const fileName = `RPM_${cleanMapel}_${cleanKelas}.doc`;
+
+    // 1. Clone DOM agar manipulasi tidak mengubah tampilan UI di browser
+    const clone = outputRef.current.cloneNode(true);
+
+    // 2. Hapus elemen preview/edit yang tidak perlu di dokumen Word
+    clone.querySelectorAll('.no-print, button, input, script').forEach(el => el.remove());
+
+    // 3. Bersihkan atribut pemicu halaman kosong (min-height, max-width, margin raksasa)
+    clone.removeAttribute('style');
+    clone.querySelectorAll('*').forEach(el => {
+      el.removeAttribute('contenteditable');
+      el.removeAttribute('suppresscontenteditablewarning');
+      if (el.style) {
+        el.style.minHeight = '';
+        el.style.maxHeight = '';
+        el.style.maxWidth = '';
+        if (el.style.marginBottom === '40px') el.style.marginBottom = '10pt';
+      }
+    });
+
+    // 4. Ubah sistem page-break:
+    // JANGAN pernah pasang page-break-before pada DIV/Container konten!
+    // Hapus class page-break dari div, lalu sisipkan tag pemisah halaman mandiri (<br style="page-break-before: always">).
+    // Ini membuat teks di dalam div menjadi teks biasa yang bisa di-Enter & di-Backspace tanpa loncat halaman!
+    const breakNodes = clone.querySelectorAll('.page-break');
+    breakNodes.forEach(el => {
+      el.classList.remove('page-break');
+      el.style.pageBreakBefore = 'auto';
+      el.style.pageBreakInside = 'auto';
+      
+      const pBreak = document.createElement('p');
+      pBreak.style.cssText = 'page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;';
+      pBreak.innerHTML = '&nbsp;';
+      el.parentNode.insertBefore(pBreak, el);
+    });
+
+    // 5. Rapikan tabel agar border dan padding presisi di Word
+    clone.querySelectorAll('table').forEach(tbl => {
+      const isNoBorder = tbl.classList.contains('no-border') || tbl.classList.contains('kop-surat');
+      tbl.setAttribute('border', isNoBorder ? '0' : '1');
+      tbl.setAttribute('cellpadding', '5');
+      tbl.setAttribute('cellspacing', '0');
+      tbl.style.width = '100%';
+      tbl.style.borderCollapse = 'collapse';
+      tbl.style.marginTop = '4pt';
+      tbl.style.marginBottom = '8pt';
+      tbl.style.border = isNoBorder ? 'none' : '1px solid #000000';
+    });
+
+    clone.querySelectorAll('td, th').forEach(cell => {
+      const isNoBorder = cell.closest('.no-border') || cell.closest('.kop-surat');
+      cell.style.border = isNoBorder ? 'none' : '1px solid #000000';
+      cell.style.padding = '4pt 6pt';
+      cell.style.fontSize = '10.5pt';
+      cell.style.verticalAlign = 'top';
+    });
+
+    // Rapikan logo agar ukurannya pas di Word
+    clone.querySelectorAll('img').forEach(img => {
+      img.style.maxWidth = '90px';
+      img.style.maxHeight = '90px';
+    });
+
+    const contentHtml = clone.innerHTML;
 
     const html = `<!DOCTYPE html>
 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
 <head>
   <meta charset='utf-8'>
-  <title>${formData.mapel || 'RPM Kurikulum Nasional'}</title>
+  <title>${cleanMapel}</title>
   <!--[if gte mso 9]>
   <xml>
     <w:WordDocument>
@@ -1333,39 +1411,40 @@ Struktur JSON: [{"topik":"","lintasDisiplin":"","siswa":"","lingkungan":"","digi
   </xml>
   <![endif]-->
   <style>
-    @page Section1 {
-      size: 595.3pt 841.9pt; /* A4: 21cm x 29.7cm */
+    @page {
+      size: 21.0cm 29.7cm;
       margin: 2.0cm 2.0cm 2.0cm 2.0cm;
       mso-header-margin: 36.0pt;
       mso-footer-margin: 36.0pt;
-      mso-paper-source: 0;
-    }
-    div.Section1 {
-      page: Section1;
     }
     body {
       font-family: 'Times New Roman', Times, serif;
       font-size: 11pt;
-      line-height: 1.35;
+      line-height: 1.25;
       color: #000000;
       background-color: #ffffff;
     }
+    p, div {
+      margin-top: 0;
+      margin-bottom: 3pt;
+      line-height: 1.25;
+    }
     table {
       border-collapse: collapse;
-      width: 100%;
-      margin-top: 6pt;
-      margin-bottom: 12pt;
       mso-table-lspace: 0pt;
       mso-table-rspace: 0pt;
+      width: 100%;
+      margin-top: 4pt;
+      margin-bottom: 8pt;
     }
     td, th {
-      border: 1px solid #222222;
-      padding: 5pt 7pt;
+      border: 1px solid #000000;
+      padding: 4pt 6pt;
       vertical-align: top;
       font-size: 10.5pt;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: #f0f0f0;
       font-weight: bold;
     }
     .header-section {
@@ -1378,44 +1457,25 @@ Struktur JSON: [{"topik":"","lintasDisiplin":"","siswa":"","lingkungan":"","digi
     h1, h2, h3, h4, h5 {
       font-family: 'Times New Roman', Times, serif;
       color: #000000;
-      margin-top: 8pt;
-      margin-bottom: 4pt;
+      margin-top: 6pt;
+      margin-bottom: 3pt;
     }
-    h1 { font-size: 14pt; font-weight: bold; text-align: center; }
+    h1 { font-size: 13pt; font-weight: bold; text-align: center; }
     h2 { font-size: 12pt; font-weight: bold; }
     h3 { font-size: 11pt; font-weight: bold; }
-    p, li {
-      margin-top: 2pt;
-      margin-bottom: 3pt;
-      text-align: justify;
-    }
     ul, ol {
       margin-top: 2pt;
-      margin-bottom: 6pt;
-      padding-left: 20pt;
+      margin-bottom: 4pt;
+      padding-left: 18pt;
     }
-    .page-break {
-      page-break-before: always;
-      mso-break-type: section-break;
-      clear: both;
-    }
-    .no-print, button, input {
-      display: none !important;
-    }
-    .custom-html-content table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    .custom-html-content th, .custom-html-content td {
-      border: 1px solid #333;
-      padding: 4pt 6pt;
+    li {
+      margin-bottom: 2pt;
+      text-align: justify;
     }
   </style>
 </head>
 <body>
-  <div class="Section1">
-    ${content}
-  </div>
+  ${contentHtml}
 </body>
 </html>`;
 
