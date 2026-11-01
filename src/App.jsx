@@ -126,10 +126,10 @@ const GRADIENT_THEMES = [
 ];
 
 const AI_MODELS = [
-  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Rekomendasi Resmi Google - Cerdas & Cepat)' },
-  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (Stabil & Cepat)' },
-  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Alternatif Cepat)' },
-  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Sangat Ringan)' },
+  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Paling Cepat, Stabil & Terbukti Sukses - Rekomendasi Utama)' },
+  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Ringan & Cepat)' },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash' },
+  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash' },
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Legacy)' },
   { id: 'custom', name: 'Gunakan Model Custom...' }
 ];
@@ -334,7 +334,7 @@ export default function RPMGenerator() {
   
   const [userApiKey, setUserApiKey] = useState('');
   const [spreadsheetId, setSpreadsheetId] = useState(''); 
-  const [selectedModel, setSelectedModel] = useState('gemini-3.8-flash');
+  const [selectedModel, setSelectedModel] = useState('gemini-3.6-flash');
   const [customModelName, setCustomModelName] = useState('');
   const [dynamicModels, setDynamicModels] = useState(AI_MODELS);
   
@@ -438,8 +438,8 @@ function doGet(e) {
     if (storedModel && !['gemini-1.0-pro', 'gemini-2.0-flash-exp', 'gemini-2.0-flash'].includes(storedModel)) {
       setSelectedModel(storedModel);
     } else {
-      setSelectedModel('gemini-3.8-flash');
-      safeStorage.setItem('user_gemini_model', 'gemini-3.8-flash');
+      setSelectedModel('gemini-3.6-flash');
+      safeStorage.setItem('user_gemini_model', 'gemini-3.6-flash');
     }
     
     const storedCustom = safeStorage.getItem('user_gemini_custom_model');
@@ -810,12 +810,17 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
     const btn = document.getElementById('btn-test');
     if(btn) btn.innerHTML = "Menghubungi...";
     
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+
     try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${userApiKey}`, {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ contents: [{ parts: [{ text: "Hello" }] }] })
+            body: JSON.stringify({ contents: [{ parts: [{ text: "Hello" }] }] }),
+            signal: controller.signal
         });
+        clearTimeout(timer);
         const data = await res.json();
         
         if (!res.ok) {
@@ -823,9 +828,14 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
             throw new Error(`Gagal: ${data.error?.message || res.statusText}`);
         }
         
-        alert(`SUKSES! Terhubung ke model: ${modelToUse}`);
+        alert(`SUKSES! Terhubung lancar ke model: ${modelToUse}`);
     } catch (e) {
-        setErrorMsg(`Koneksi Gagal: ${e.message}`);
+        clearTimeout(timer);
+        if (e.name === 'AbortError') {
+            setErrorMsg(`Koneksi Timeout (12 detik): Model "${modelToUse}" sedang tidak merespons atau antre di server Google. Silakan pilih "gemini-3.6-flash" yang sudah terbukti cepat dan sukses.`);
+        } else {
+            setErrorMsg(`Koneksi Gagal: ${e.message}`);
+        }
     } finally {
         if(btn) btn.innerHTML = "Tes Koneksi AI";
     }
@@ -842,6 +852,8 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
     }
     
     const modelToUse = getActiveModelName();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 55000);
 
     try {
       const payload = {
@@ -856,8 +868,10 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${userApiKey}`, {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+      clearTimeout(timer);
       const data = await res.json();
       
       if (!res.ok) {
@@ -866,7 +880,15 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
       }
       
       return data.candidates?.[0]?.content?.parts?.[0]?.text;
-    } catch (e) { setErrorMsg(e.message); return null; }
+    } catch (e) {
+      clearTimeout(timer);
+      if (e.name === 'AbortError') {
+        setErrorMsg(`Generate Timeout (55 detik): Server Google sedang padat saat memproses model "${modelToUse}". Disarankan menggunakan model "gemini-3.6-flash".`);
+      } else {
+        setErrorMsg(e.message);
+      }
+      return null;
+    }
   };
 
   const cleanAIResponse = (text) => {
@@ -1707,7 +1729,8 @@ const formatWaktuRiwayat = (dateStr) => {
                                 }`}>
                                     <div className="flex flex-col pr-2 overflow-hidden">
                                       <span className={`font-mono text-xs truncate ${isActive ? 'font-bold text-emerald-800' : 'text-gray-700'}`}>{cleanName}</span>
-                                      {isRecommended && <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">✨ Sangat Disarankan untuk RPP</span>}
+                                      {cleanName === 'gemini-3.6-flash' && <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">🏆 Terbukti Berhasil & Paling Cepat</span>}
+                                      {isRecommended && cleanName !== 'gemini-3.6-flash' && <span className="text-[10px] text-indigo-700 font-semibold flex items-center gap-1">✨ Model Teks Alternatif</span>}
                                       {cleanName.includes('image') && <span className="text-[10px] text-amber-700">⚠️ Model Gambar (Limit 0 pada Akun Gratis)</span>}
                                       {cleanName.includes('tts') && <span className="text-[10px] text-amber-700">⚠️ Model Suara/Audio (Bukan untuk RPP)</span>}
                                     </div>
