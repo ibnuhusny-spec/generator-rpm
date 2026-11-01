@@ -342,14 +342,14 @@ const KURIKULUM_NASIONAL_TEMPLATES = [
       semester: 'Ganjil',
       mapel: 'Pendidikan Agama Islam dan Budi Pekerti',
       materi: 'Kandungan Surah Al-Ma\'un: Karakter Peduli Sesama',
-      cp: 'Peserta didik memahami pesan pokok Q.S. Al-Ma\'un, mampu membaca secara tartil, menghafal, serta membiasakan sikap menyayangi anak yatim dan memberi makan orang miskin sebagai bukti keimanan dalam kehidupan sehari-hari.',
-      tp: 'Peserta didik dapat melafalkan Q.S. Al-Ma\'un secara tartil dan merumuskan aksi nyata kepedulian sosial terhadap anak yatim dan kaum dhuafa.',
-      indikator: '1. Melafalkan ayat 1-7 Surah Al-Ma\'un dengan tajwid (ikhfa dan mad) secara fasih.\n2. Menjelaskan 3 ciri pendusta agama yang disebutkan dalam Surah Al-Ma\'un.\n3. Merancang aksi kencleng sedekah subuh atau kotak peduli kelas untuk kaum dhuafa.',
+      cp: 'Peserta didik memahami pesan pokok Q.S. Al-Ma\'un, mampu membaca secara tartil, menghafal, serta membiasakan sikap menyayangi anak yatim dan memberi makan orang miskin sebagai bukti keimanan kepada Allah ﷻ dan meneladani sunnah Rasulullah ﷺ dalam kehidupan sehari-hari.',
+      tp: 'Peserta didik dapat melafalkan Q.S. Al-Ma\'un secara tartil dan merumuskan aksi nyata kepedulian sosial terhadap anak yatim dan kaum dhuafa sesuai teladan Nabi Muhammad ﷺ.',
+      indikator: '1. Melafalkan ayat 1-7 Surah Al-Ma\'un dengan tajwid (ikhfa dan mad) secara fasih.\n2. Menjelaskan 3 ciri pendusta agama yang disebutkan dalam Surah Al-Ma\'un.\n3. Merancang aksi kencleng sedekah subuh atau kotak peduli kelas untuk kaum dhuafa karena taat kepada Allah ﷻ.',
       profilLulusan: ['Keimanan & Ketakwaan thd Tuhan YME', 'Kewargaan', 'Kolaborasi'],
       jumlahPertemuan: 2,
       durasi: '2 JP x 35 Menit',
       sertakanDalil: true,
-      catatanKhusus: 'Fokus pada pembiasaan empati dan gemar menolong teman yang membutuhkan.'
+      catatanKhusus: 'Fokus pada pembiasaan empati dan gemar menolong sesama meneladani Rasulullah ﷺ dan para sahabat ؓ.'
     },
     atp: [
       'Pertemuan 1: Melafalkan dan mengartikan kosakata kunci Q.S. Al-Ma\'un secara tartil berulang melalui teknik drill berpasangan.',
@@ -1054,18 +1054,51 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
     }
   };
 
+  // --- FORMATTER SINGKATAN ISLAMI KE SIMBOL ARAB 1-KARAKTER (UNICODE LIGATURE) ---
+  const formatIslamicHonorifics = (text) => {
+    if (!text || typeof text !== 'string') return text;
+    return text
+      // 1. Allah SWT / Allah swt -> Allah ﷻ (U+FDFB)
+      .replace(/\bAllah\s*(?:SWT|swt|S\.W\.T\.|s\.w\.t\.|\(SWT\)|\(swt\)|\(S\.W\.T\.\)|\(s\.w\.t\.\))/g, 'Allah ﷻ')
+      // 2. Nabi Muhammad / Rasulullah / Nabi SAW -> ... ﷺ (U+FDFA)
+      .replace(/\b(Nabi\s+Muhammad|Muhammad|Rasulullah|Rasul|Nabi)\s*(?:SAW|saw|S\.A\.W\.|s\.a\.w\.|\(SAW\)|\(saw\)|\(S\.A\.W\.\)|\(s\.a\.w\.\))/g, '$1 ﷺ')
+      // 3. Standalone SAW / saw / (SAW)
+      .replace(/\b(?:SAW|saw|S\.A\.W\.|s\.a\.w\.|\(SAW\)|\(saw\)|\(S\.A\.W\.\)|\(s\.a\.w\.\))\b/g, 'ﷺ')
+      // 4. Standalone SWT / swt / (SWT)
+      .replace(/\b(?:SWT|swt|S\.W\.T\.|s\.w\.t\.|\(SWT\)|\(swt\)|\(S\.W\.T\.\)|\(s\.w\.t\.\))\b/g, 'ﷻ')
+      // 5. Nabi ... AS -> ... ؑ (U+0611)
+      .replace(/\b(Nabi\s+[A-Za-z]+|Musa|Isa|Ibrahim|Ismail|Yusuf|Adam|Nuh|Sulaiman|Daud|Zakaria|Yahya|Harun|Idris|Hud|Sholeh|Luth|Ishaq|Ya'qub|Ayyub|Zulkifli|Yunus|Ilyas|Ilyasa)\s*(?:AS|as|A\.S\.|a\.s\.|\(AS\)|\(as\)|\(A\.S\.\)|\(a\.s\.\))/g, '$1 ؑ')
+      // 6. Sahabat ... RA / r.a. -> ... ؓ (U+0613)
+      .replace(/\b(Abu\s+Bakar|Umar\s+bin\s+Khattab|Umar|Utsman\s+bin\s+Affan|Utsman|Usman|Ali\s+bin\s+Abi\s+Thalib|Ali|Aisyah|Khadijah|Fathimah|Fatimah|Bilal\s+bin\s+Rabah|Bilal|Ibnu\s+Abbas|Ibnu\s+Umar|Ibnu\s+Mas'ud|Sahabat|Shahabat)\s*(?:RA|ra|R\.A\.|r\.a\.|\(RA\)|\(ra\)|\(R\.A\.\)|\(r\.a\.\))/gi, '$1 ؓ')
+      .replace(/([A-Z][a-z]+)\s+(?:RA|ra|R\.A\.|r\.a\.|\(RA\)|\(ra\)|\(R\.A\.\)|\(r\.a\.\))(?=[\s,.;:!?)]|$)/g, '$1 ؓ');
+  };
+
+  const sanitizeIslamicHonorificsDeep = (data) => {
+    if (!data) return data;
+    if (typeof data === 'string') return formatIslamicHonorifics(data);
+    if (Array.isArray(data)) return data.map(sanitizeIslamicHonorificsDeep);
+    if (typeof data === 'object') {
+      const clean = {};
+      for (const key of Object.keys(data)) {
+        clean[key] = sanitizeIslamicHonorificsDeep(data[key]);
+      }
+      return clean;
+    }
+    return data;
+  };
+
   const cleanAIResponse = (text) => {
     if (!text) return "";
     let cleaned = text.replace(/^(Tentu|Berikut|Baik|Ini|Silakan|Di bawah|Sebagai|Halo).*?(:|\n)/i, '');
-    return cleaned.trim();
-  }
+    return formatIslamicHonorifics(cleaned.trim());
+  };
 
   const cleanHtmlContent = (text) => {
     if (!text) return "";
     let cleaned = text.replace(/```html/g, '').replace(/```/g, ''); 
     cleaned = cleaned.replace(/\*\*/g, '').replace(/##/g, '').replace(/__/g, '');
-    return cleaned.trim();
-  }
+    return formatIslamicHonorifics(cleaned.trim());
+  };
 
   // --- GENERATE FUNCTIONS ---
   const generateSimple = async (type, prompt, label) => {
@@ -1084,10 +1117,11 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
 
     const catatanGuru = formData.catatanKhusus ? ` CATATAN GURU: ${formData.catatanKhusus}.` : "";
     const instruksiDalil = formData.sertakanDalil ? " WAJIB sisipkan 1 teks dalil Al-Qur'an atau Hadits Shahih beserta terjemahannya yang relevan dengan materi." : "";
+    const instruksiHonorifik = " ATURAN PENTING SIMBOL ARAB 1-KARAKTER: Untuk Allah selalu gunakan lafaz 'Allah ﷻ' (BUKAN teks panjang atau SWT). Untuk Nabi Muhammad/Rasulullah gunakan simbol 'ﷺ' (BUKAN SAW). Untuk para sahabat Nabi gunakan simbol 'ؓ' (BUKAN RA). Untuk nabi lainnya gunakan simbol 'ؑ' (BUKAN AS).";
 
     let strictPrompt = prompt;
     if (type === 'cp' || type === 'tp' || type === 'indikator') {
-        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Gunakan poin nomor urut biasa (1, 2, 3). Jangan pakai kata pengantar atau penjelasan akhir. Gunakan acuan materi dan mapel yang diberikan secara ketat.${tambahanKonteks}${instruksiDalil}${catatanGuru}`;
+        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Gunakan poin nomor urut biasa (1, 2, 3). Jangan pakai kata pengantar atau penjelasan akhir. Gunakan acuan materi dan mapel yang diberikan secara ketat.${tambahanKonteks}${instruksiDalil}${instruksiHonorifik}${catatanGuru}`;
     } else if (type === 'rubric') {
         let skenarioAktivitasRpm = "";
         if (aiContent && aiContent.length > 0) {
@@ -1231,6 +1265,7 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
     let instruksiJenjang = isIslamic ? "Integrasikan nilai spiritual/islami secara natural. " : isVocational ? "Fokuskan pada hard skills dunia kerja nyata. " : "";
     const catatanGuru = formData.catatanKhusus ? `CATATAN GURU: ${formData.catatanKhusus}.` : "";
     const instruksiDalil = formData.sertakanDalil ? "SANGAT PENTING: Anda WAJIB menuliskan TEKS ARAB ASLI (dengan huruf Hijaiyah) dari 1 dalil Al-Qur'an atau Hadits beserta terjemahan bahasa Indonesianya secara LENGKAP di dalam langkah kegiatan. JANGAN HANYA menulis nama surah/ayatnya saja! " : "";
+    const instruksiHonorifik = "WAJIB gunakan simbol Arab 1-karakter khusus: Setiap menyebut Allah WAJIB menggunakan lafaz 'Allah ﷻ' (BUKAN teks panjang / SWT). Setiap menyebut Nabi Muhammad atau Rasulullah WAJIB menggunakan simbol 'ﷺ' (BUKAN SAW). Setiap menyebut nama Sahabat Nabi WAJIB menggunakan simbol 'ؓ' (BUKAN RA). Setiap menyebut nabi terdahulu WAJIB menggunakan simbol 'ؑ' (BUKAN AS). ";
 
     const methodDescriptions = formData.metodePerPertemuan.map((m, idx) => {
       const methods = getMeetingMethods(m);
@@ -1258,7 +1293,7 @@ Data Utama:
 - Alur Tujuan Pembelajaran (ATP) per Pertemuan: ${atpDescriptions}
 - Fokus 8 Dimensi Profil Lulusan (SKL Permendikdasmen No. 10 Tahun 2025): ${profilLulusanStr}
 - Model Pembelajaran: ${methodDescriptions}
-${instruksiJenjang} ${instruksiDalil} ${catatanGuru} 
+${instruksiJenjang} ${instruksiDalil} ${instruksiHonorifik} ${catatanGuru} 
 
 INSTRUKSI SANGAT PENTING & KERANGKA WAJIB:
 1. ACUAN MUTLAK & SINKRONISASI ATP: Setiap elemen pertemuan dalam JSON WAJIB selaras dengan target Alur Tujuan Pembelajaran (ATP) pertemuan tersebut. Jangan menduplikasi materi antar pertemuan; susun perkembangan belajar yang kronologis dan bertahap.
@@ -1270,18 +1305,19 @@ INSTRUKSI SANGAT PENTING & KERANGKA WAJIB:
    - Meaningful (Bermakna): Menghubungkan materi dengan realitas kehidupan nyata peserta didik.
    - Joyful (Menggembirakan): Pembelajaran interaktif, menantang, dan menyenangkan tanpa beban intimidatif.
 4. INTEGRASI KOMBINASI MODEL PEMBELAJARAN: Jika satu pertemuan menggunakan kombinasi lebih dari 1 model, PADUKAN SINTAKS KEDUANYA secara sistematis di Kegiatan Inti.
-5. KERANGKA PEMBELAJARAN (Isi pada key JSON yang sesuai):
+5. STANDAR SIMBOL ARAB 1-KARAKTER RESMI: Setiap penyebutan Allah gunakan 'Allah ﷻ', Nabi Muhammad/Rasulullah gunakan 'ﷺ', nama Sahabat gunakan 'ؓ', dan Nabi lain gunakan 'ؑ'. Jangan gunakan teks panjang atau singkatan latin biasa.
+6. KERANGKA PEMBELAJARAN (Isi pada key JSON yang sesuai):
    - "topik": Tuliskan Sub-Topik / Pokok Bahasan Spesifik khusus untuk pertemuan ini (harus spesifik per pertemuan).
    - "profilLulusan": Dimensi Profil Lulusan fokus pada pertemuan ini beserta manifestasi perilakunya di kelas.
    - "lintasDisiplin": Hubungan materi ini dengan mata pelajaran lain secara aplikatif.
    - "lingkungan": Desain tata ruang/lingkungan belajar kelas, luar kelas, lab, atau lingkungan sekitar.
    - "digital": Pemanfaatan teknologi digital, media visual/audio, atau alat peraga interaktif.
    - "kemitraan": Kemitraan pembelajaran (orang tua, narasumber ahli, komunitas, sumber literasi autentik).
-6. PENGALAMAN BELAJAR (WAJIB DAFTAR NOMOR 1, 2, 3 KE BAWAH):
+7. PENGALAMAN BELAJAR (WAJIB DAFTAR NOMOR 1, 2, 3 KE BAWAH):
    - "memahami": Kegiatan Pendahuluan (Salam, doa, apersepsi bermakna, menghubungkan materi awal).
    - "mengaplikasi": Kegiatan Inti (Penerapan langkah-langkah model pembelajaran yang dipilih untuk menuntaskan ATP pertemuan ini, serta mempraktikkan dimensi Profil Lulusan terpilih).
    - "refleksi": Kegiatan Penutup (Refleksi diri peserta didik, kesimpulan bersama, umpan balik).
-7. ASESMEN:
+8. ASESMEN:
    - "awal": Asesmen awal pembelajaran / diagnostik non-tes atau tes singkat.
    - "proses": Asesmen formatif proses (observasi diskusi, unjuk kerja, lembar ceklist dimensi profil lulusan).
    - "akhir": Asesmen sumatif / refleksi ketercapaian tujuan di akhir pertemuan.
@@ -1311,6 +1347,9 @@ Struktur JSON: [{"topik":"","profilLulusan":"","lintasDisiplin":"","siswa":"","l
               : 'Penalaran Kritis, Kolaborasi, Kemandirian';
           }
         });
+
+        // Terapkan simbol Arab 1-karakter pada seluruh konten JSON
+        json = sanitizeIslamicHonorificsDeep(json);
 
         setAiContent(json.slice(0, count));
         setRubricContent(null);
@@ -1352,13 +1391,14 @@ Struktur JSON: [{"topik":"","profilLulusan":"","lintasDisiplin":"","siswa":"","l
 
   // --- EDIT CELL ---
   const updateContent = (i, path, val) => {
+    const safeVal = typeof val === 'string' ? formatIslamicHonorifics(val) : val;
     setAiContent(prev => {
       const arr = [...prev];
       const d = { ...arr[i] };
       if (path.includes('.')) {
         const [a, b] = path.split('.');
-        d[a] = { ...d[a], [b]: val };
-      } else { d[path] = val; }
+        d[a] = { ...d[a], [b]: safeVal };
+      } else { d[path] = safeVal; }
       arr[i] = d;
 
       // Update riwayat lokal terkini
@@ -1380,6 +1420,7 @@ Struktur JSON: [{"topik":"","profilLulusan":"","lintasDisiplin":"","siswa":"","l
       
       // 1. Tangani jika AI membuat format Array
       let strVal = Array.isArray(val) ? val.join('\n') : val.toString();
+      strVal = formatIslamicHonorifics(strVal);
       
       // 2. Ubah KOMA yang dempet dengan nomor menjadi Enter (contoh: ",2." atau ", 2.")
       strVal = strVal.replace(/,\s*(?=\d+\.)/g, '\n');
@@ -1430,6 +1471,7 @@ Struktur JSON: [{"topik":"","profilLulusan":"","lintasDisiplin":"","siswa":"","l
     
     // 1. Tangani jika text berupa Array
     let clean = Array.isArray(text) ? text.join('\n') : text.toString();
+    clean = formatIslamicHonorifics(clean);
     clean = clean.replace(/[*`_]/g, '').replace(/#/g, ''); 
     
     // 2 & 3. Bersihkan koma atau spasi "nyasar" sebelum nomor urut
