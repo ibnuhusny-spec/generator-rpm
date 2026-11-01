@@ -3,7 +3,8 @@ import {
   BookOpen, RefreshCcw, Sparkles, Loader2, Moon, Sun, History, 
   Printer, FileDown, Edit, X, Trash2, Table, FileSignature, Key, 
   AlertTriangle, Cpu, Activity, Terminal, Menu, Check, Info, HelpCircle,
-  Cloud, RefreshCw, Database, Settings, ClipboardCheck
+  Cloud, RefreshCw, Database, Settings, ClipboardCheck, Copy, Download,
+  Upload, CheckCircle2, Bookmark
 } from 'lucide-react';
 
 // --- UTILITIES AMAN ---
@@ -131,6 +132,178 @@ const AI_MODELS = [
   { id: 'custom', name: 'Gunakan Model Custom...' }
 ];
 
+// --- TEMPLATE CONTOH KURIKULUM NASIONAL (PRESETS SIAP PAKAI) ---
+const KURIKULUM_NASIONAL_TEMPLATES = [
+  {
+    id: 'b-indo-sd4',
+    badge: 'SD Kelas 4',
+    title: 'Bahasa Indonesia: Menulis Teks Deskripsi (Fase B)',
+    icon: '📝',
+    data: {
+      jenjang: 'SD Umum',
+      kelas: 'Kelas 4',
+      semester: 'Ganjil',
+      mapel: 'Bahasa Indonesia',
+      materi: 'Menulis Teks Deskripsi Objek di Sekitar Sekolah',
+      cp: 'Peserta didik mampu memahami ide pokok dan ide pendukung pada teks informatif, serta terampil menulis teks deskripsi sederhana dengan rangkaian kalimat yang terstruktur menggunakan kosakata spesifik dan kaidah ejaan yang tepat.',
+      tp: 'Peserta didik dapat mengidentifikasi ciri-ciri objek di lingkungan sekitar serta menyusun draf paragraf teks deskripsi secara runtut dan bermakna.',
+      indikator: '1. Mengidentifikasi minimal 4 ciri fisik objek hasil pengamatan langsung di sekolah.\n2. Menyusun kerangka dan draf paragraf deskripsi dengan kosakata baku.\n3. Menyunting draf bersama teman dan mempublikasikan hasil karya deskripsi.',
+      jumlahPertemuan: 2,
+      durasi: '2 JP x 35 Menit',
+      sertakanDalil: false,
+      catatanKhusus: 'Gunakan benda/sudut nyata di taman sekolah sebagai objek pengamatan langsung.'
+    },
+    atp: [
+      'Pertemuan 1: Mengamati objek di lingkungan sekitar sekolah dan mencatat detail sensorik (warna, bentuk, aroma, tekstur) ke dalam lembar observasi.',
+      'Pertemuan 2: Mengembangkan catatan observasi menjadi teks deskripsi utuh 2 paragraf serta melakukan peer-review (umpan balik teman).'
+    ],
+    metode: [
+      ['Problem Based Learning (PBL)', 'Ceramah Interaktif & Bervariasi'],
+      ['Project Based Learning (PjBL)', 'Diskusi Kelompok Terbimbing']
+    ]
+  },
+  {
+    id: 'matematika-sd4',
+    badge: 'SD Kelas 4',
+    title: 'Matematika: Konsep Pecahan Senilai Konkret (Fase B)',
+    icon: '🍕',
+    data: {
+      jenjang: 'SD Umum',
+      kelas: 'Kelas 4',
+      semester: 'Ganjil',
+      mapel: 'Matematika',
+      materi: 'Pecahan Senilai Menggunakan Benda Konkret dan Visual',
+      cp: 'Peserta didik menunjukkan pemahaman dan intuisi bilangan (number sense) pada bilangan cacah sampai 10.000, serta dapat mengenal, membandingkan, dan menyajikan pecahan senilai menggunakan representasi visual dan benda konkret.',
+      tp: 'Peserta didik mampu menemukan hubungan kesetaraan pecahan senilai menggunakan alat peraga kertas lipat dan gambar konkret.',
+      indikator: '1. Menunjukkan pecahan 1/2, 2/4, dan 4/8 melalui aktivitas melipat dan mengarsir kertas origami.\n2. Menyimpulkan konsep pecahan senilai bahwa mengalikan/membagi pembilang dan penyebut dengan angka yang sama menghasilkan nilai yang setara.\n3. Menyelesaikan tantangan pemecahan masalah pecahan senilai dalam kehidupan sehari-hari.',
+      jumlahPertemuan: 2,
+      durasi: '2 JP x 35 Menit',
+      sertakanDalil: false,
+      catatanKhusus: 'Sediakan kertas origami warna-warni dan gunting aman untuk setiap kelompok.'
+    },
+    atp: [
+      'Pertemuan 1: Mengeksplorasi pembagian bidang kertas origami secara adil untuk menemukan bentuk-bentuk pecahan yang bernilai sama.',
+      'Pertemuan 2: Menggeneralisasi pola perkalian silang/faktor persekutuan pecahan senilai dan mengerjakan latihan kolaboratif.'
+    ],
+    metode: [
+      ['Discovery Learning', 'Demonstrasi & Pemodelan'],
+      ['Problem Based Learning (PBL)', 'Tanya Jawab & Drill']
+    ]
+  },
+  {
+    id: 'ipas-sd5',
+    badge: 'SD Kelas 5',
+    title: 'IPAS: Ekosistem & Jaring-jaring Makanan (Fase C)',
+    icon: '🌱',
+    data: {
+      jenjang: 'SD Umum',
+      kelas: 'Kelas 5',
+      semester: 'Ganjil',
+      mapel: 'IPAS (Ilmu Pengetahuan Alam dan Sosial)',
+      materi: 'Harmoni Ekosistem: Rantai dan Jaring-jaring Makanan',
+      cp: 'Peserta didik menganalisis hubungan antar makhluk hidup pada suatu ekosistem dalam bentuk rantai dan jaring-jaring makanan, serta mendeskripsikan peran dan dampaknya terhadap keseimbangan ekosistem lingkungan sekitar.',
+      tp: 'Peserta didik mampu menganalisis peran produsen, konsumen, dan dekomposer dalam jaring-jaring makanan dan merancang diagram interaksinya.',
+      indikator: '1. Mengklasifikasikan peran organisme (produsen, konsumen tingkat 1/2/3, pengurai) dalam ekosistem sawah/kebun.\n2. Merangkai bagan jaring-jaring makanan yang melibatkan minimal 6 organisme secara logis.\n3. Memprediksi dampak ketidakseimbangan jika salah satu mata rantai mengalami perburuan atau kepunahan.',
+      jumlahPertemuan: 2,
+      durasi: '2 JP x 35 Menit',
+      sertakanDalil: false,
+      catatanKhusus: 'Integrasikan penanaman kesadaran ekologis dan pelestarian flora-fauna lokal.'
+    },
+    atp: [
+      'Pertemuan 1: Mengamati kartu-kartu organisme dan menyusun rantai makanan sederhana berbasis peran energi makan-dimakan.',
+      'Pertemuan 2: Menggabungkan beberapa rantai makanan menjadi jaring-jaring makanan kompleks dan memecahkan studi kasus kepunahan serangga.'
+    ],
+    metode: [
+      ['Inquiry Based Learning', 'Simulasi & Games'],
+      ['Problem Based Learning (PBL)', 'Diskusi Kelompok Terbimbing']
+    ]
+  },
+  {
+    id: 'pai-sdit5',
+    badge: 'SDIT/SD Kelas 5',
+    title: 'PAI & BP: Q.S. Al-Ma\'un & Kepedulian Sosial (Fase C)',
+    icon: '🕌',
+    data: {
+      jenjang: 'SDIT',
+      kelas: 'Kelas 5',
+      semester: 'Ganjil',
+      mapel: 'Pendidikan Agama Islam dan Budi Pekerti',
+      materi: 'Kandungan Surah Al-Ma\'un: Karakter Peduli Sesama',
+      cp: 'Peserta didik memahami pesan pokok Q.S. Al-Ma\'un, mampu membaca secara tartil, menghafal, serta membiasakan sikap menyayangi anak yatim dan memberi makan orang miskin sebagai bukti keimanan dalam kehidupan sehari-hari.',
+      tp: 'Peserta didik dapat melafalkan Q.S. Al-Ma\'un secara tartil dan merumuskan aksi nyata kepedulian sosial terhadap anak yatim dan kaum dhuafa.',
+      indikator: '1. Melafalkan ayat 1-7 Surah Al-Ma\'un dengan tajwid (ikhfa dan mad) secara fasih.\n2. Menjelaskan 3 ciri pendusta agama yang disebutkan dalam Surah Al-Ma\'un.\n3. Merancang aksi kencleng sedekah subuh atau kotak peduli kelas untuk kaum dhuafa.',
+      jumlahPertemuan: 2,
+      durasi: '2 JP x 35 Menit',
+      sertakanDalil: true,
+      catatanKhusus: 'Fokus pada pembiasaan empati dan gemar menolong teman yang membutuhkan.'
+    },
+    atp: [
+      'Pertemuan 1: Melafalkan dan mengartikan kosakata kunci Q.S. Al-Ma\'un secara tartil berulang melalui teknik drill berpasangan.',
+      'Pertemuan 2: Menganalisis pesan moral ayat tentang larangan bersikap riya dan merancang proyek kepedulian kelas.'
+    ],
+    metode: [
+      ['Cooperative Learning (Jigsaw / TGT)', 'Ceramah Interaktif & Bervariasi'],
+      ['Problem Based Learning (PBL)', 'Reflektif & Aksi Nyata']
+    ]
+  },
+  {
+    id: 'binggris-smp7',
+    badge: 'SMP Kelas 7',
+    title: 'Bahasa Inggris: Describing People & Daily Life (Fase D)',
+    icon: '🇬🇧',
+    data: {
+      jenjang: 'SMP Umum',
+      kelas: 'Kelas 7',
+      semester: 'Ganjil',
+      mapel: 'Bahasa Inggris',
+      materi: 'Describing People (Appearance & Personality Traits)',
+      cp: 'Peserta didik menggunakan bahasa Inggris untuk berinteraksi dan bertukar ide, opini, dan informasi mengenai ciri-ciri fisik seseorang dan aktivitas sehari-hari menggunakan kosakata dan struktur kalimat sederhana yang tepat.',
+      tp: 'Peserta didik mampu mendeskripsikan ciri-ciri fisik dan kepribadian seseorang secara lisan dan tulisan dalam kalimat deskriptif komunikatif.',
+      indikator: '1. Mengidentifikasi kosakata adjectives penampilan (tall, wavy hair, friendly, cheerful).\n2. Menggunakan pola simple present tense "has/have" dan "is/am/are" dalam kalimat deskriptif.\n3. Melakukan speaking role-play tebak identitas teman dengan percaya diri.',
+      jumlahPertemuan: 2,
+      durasi: '2 JP x 40 Menit',
+      sertakanDalil: false,
+      catatanKhusus: 'Mendorong peserta didik aktif berbahasa Inggris tanpa takut salah tata bahasa (fluency first).'
+    },
+    atp: [
+      'Pertemuan 1: Menguasai kosakata kata sifat penampilan fisik dan berlatih mendeskripsikan foto figur terkenal secara lisan.',
+      'Pertemuan 2: Menulis kartu biodata deskriptif teman sebangku dan memainkan role-play tebak tokoh rahasia (Guess Who).'
+    ],
+    metode: [
+      ['Task-Based Language Teaching (TBLT)', 'Demonstrasi & Pemodelan'],
+      ['Role Playing / Bermain Peran', 'Tanya Jawab & Drill']
+    ]
+  },
+  {
+    id: 'informatika-sma10',
+    badge: 'SMA Kelas 10',
+    title: 'Informatika: Berpikir Komputasional & Algoritma (Fase E)',
+    icon: '💻',
+    data: {
+      jenjang: 'SMA Umum',
+      kelas: 'Kelas 10',
+      semester: 'Ganjil',
+      mapel: 'Informatika',
+      materi: 'Berpikir Komputasional (Dekomposisi Masalah & Flowchart Algoritma)',
+      cp: 'Peserta didik mampu menerapkan strategi algoritmik standar untuk menghasilkan solusi persoalan dengan data diskrit dan memecahkan permasalahan nyata dengan prinsip dekomposisi, pengenalan pola, abstraksi, dan algoritma.',
+      tp: 'Peserta didik mampu merumuskan dekomposisi masalah kontekstual dan merancang algoritma solusi dalam bentuk flowchart terstruktur.',
+      indikator: '1. Menguraikan masalah kompleks menjadi sub-masalah sederhana menggunakan teknik dekomposisi.\n2. Merancang diagram alur (flowchart) dengan simbol-simbol standar ISO yang tepat.\n3. Menguji alur logika flowchart menggunakan tabel penelusuran (dry-run trace table).',
+      jumlahPertemuan: 2,
+      durasi: '2 JP x 45 Menit',
+      sertakanDalil: false,
+      catatanKhusus: 'Gunakan studi kasus nyata seperti sistem antrean kasir swalayan atau sistem seleksi beasiswa.'
+    },
+    atp: [
+      'Pertemuan 1: Membedah studi kasus optimasi antrean melalui 4 pilar computational thinking dengan diskusi kelompok.',
+      'Pertemuan 2: Mentransformasikan dekomposisi menjadi diagram flowchart terstruktur dan melakukan penelusuran logika (dry run).'
+    ],
+    metode: [
+      ['Problem Based Learning (PBL)', 'Ceramah Interaktif & Bervariasi'],
+      ['Project Based Learning (PjBL)', 'Praktik Terbimbing (Hands-on)']
+    ]
+  }
+];
+
 export default function RPMGenerator() {
   const APP_NAME_P1 = "RencanaKu";
   const APP_NAME_P2 = "Pro";
@@ -186,6 +359,9 @@ export default function RPMGenerator() {
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_THEMES[0]);
 
   const [copied, setCopied] = useState(false);
+  const [copiedDoc, setCopiedDoc] = useState(false);
+  const [templateAlert, setTemplateAlert] = useState(null);
+  const fileInputRef = useRef(null);
 
   const appsScriptCode = `const SHEET_NAME = 'Riwayat';
 
@@ -1092,18 +1268,231 @@ Struktur JSON: [{"topik":"","lintasDisiplin":"","siswa":"","lingkungan":"","digi
   };
 
   const handleWord = () => {
-    const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Doc</title>
-    <style>
-      body { font-family: 'Times New Roman', serif; font-size: 11pt; }
-      table { border-collapse: collapse; width: 100%; }
-      td, th { border: 1px solid black; padding: 5px; vertical-align: top; }
-      .header-section { background-color: #f0f0f0; font-weight: bold; }
-      .no-border td, .no-border th { border: none !important; }
-      .custom-html-content h1, .custom-html-content h2, .custom-html-content h3 { font-size: 13pt; font-weight: bold; }
-      .custom-html-content h4, .custom-html-content h5 { font-size: 11pt; font-weight: bold; }
-    </style></head><body>${outputRef.current.innerHTML}</body></html>`;
-    const url = URL.createObjectURL(new Blob(['\ufeff', html], { type: 'application/msword' }));
-    const a = document.createElement('a'); a.href = url; a.download = `RPM_${formData.mapel}.doc`; a.click();
+    if (!outputRef.current) return;
+    const content = outputRef.current.innerHTML;
+    const cleanMapel = (formData.mapel || 'Kurikulum_Nasional').replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, '_');
+    const cleanKelas = (formData.kelas || '').replace(/\s+/g, '_');
+    const fileName = `RPM_${cleanMapel}_${cleanKelas}.doc`;
+
+    const html = `<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset='utf-8'>
+  <title>${formData.mapel || 'RPM Kurikulum Nasional'}</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    @page Section1 {
+      size: 595.3pt 841.9pt; /* A4: 21cm x 29.7cm */
+      margin: 2.0cm 2.0cm 2.0cm 2.0cm;
+      mso-header-margin: 36.0pt;
+      mso-footer-margin: 36.0pt;
+      mso-paper-source: 0;
+    }
+    div.Section1 {
+      page: Section1;
+    }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 11pt;
+      line-height: 1.35;
+      color: #000000;
+      background-color: #ffffff;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 6pt;
+      margin-bottom: 12pt;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    td, th {
+      border: 1px solid #222222;
+      padding: 5pt 7pt;
+      vertical-align: top;
+      font-size: 10.5pt;
+    }
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .header-section {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    .no-border, .no-border td, .no-border th, table.no-border, table.no-border td {
+      border: none !important;
+    }
+    h1, h2, h3, h4, h5 {
+      font-family: 'Times New Roman', Times, serif;
+      color: #000000;
+      margin-top: 8pt;
+      margin-bottom: 4pt;
+    }
+    h1 { font-size: 14pt; font-weight: bold; text-align: center; }
+    h2 { font-size: 12pt; font-weight: bold; }
+    h3 { font-size: 11pt; font-weight: bold; }
+    p, li {
+      margin-top: 2pt;
+      margin-bottom: 3pt;
+      text-align: justify;
+    }
+    ul, ol {
+      margin-top: 2pt;
+      margin-bottom: 6pt;
+      padding-left: 20pt;
+    }
+    .page-break {
+      page-break-before: always;
+      mso-break-type: section-break;
+      clear: both;
+    }
+    .no-print, button, input {
+      display: none !important;
+    }
+    .custom-html-content table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .custom-html-content th, .custom-html-content td {
+      border: 1px solid #333;
+      padding: 4pt 6pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="Section1">
+    ${content}
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  const handleCopyDocument = async () => {
+    if (!outputRef.current) return;
+    try {
+      const htmlText = outputRef.current.innerHTML;
+      const plainText = outputRef.current.innerText;
+
+      if (navigator.clipboard && window.ClipboardItem) {
+        const blobHtml = new Blob([htmlText], { type: 'text/html' });
+        const blobText = new Blob([plainText], { type: 'text/plain' });
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': blobHtml,
+            'text/plain': blobText,
+          })
+        ]);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(plainText);
+      } else {
+        const range = document.createRange();
+        range.selectNode(outputRef.current);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+      }
+
+      setCopiedDoc(true);
+      setTimeout(() => setCopiedDoc(false), 2500);
+    } catch (err) {
+      alert('Gagal menyalin: ' + (err?.message || 'Izin clipboard ditolak'));
+    }
+  };
+
+  const handleApplyTemplate = (tpl) => {
+    if (!tpl) return;
+    setFormData(prev => ({
+      ...prev,
+      ...tpl.data,
+      atpPerPertemuan: [...tpl.atp],
+      metodePerPertemuan: tpl.metode.map(m => [...m])
+    }));
+    setTemplateAlert(`Template "${tpl.title}" berhasil dimuat! Form telah terisi lengkap.`);
+    setTimeout(() => setTemplateAlert(null), 4000);
+  };
+
+  const handleExportHistoryJson = () => {
+    if (!history || history.length === 0) {
+      alert('Belum ada riwayat dokumen untuk di-backup.');
+      return;
+    }
+    const dataStr = JSON.stringify(history, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Backup_Riwayat_RPM_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  const handleImportHistoryJson = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target.result);
+        if (!Array.isArray(parsed)) {
+          alert('Format file backup tidak valid. File harus berisi array riwayat JSON.');
+          return;
+        }
+
+        const existingIds = new Set(history.map(h => String(h.id)));
+        const newItems = parsed.filter(item => item && item.id && !existingIds.has(String(item.id)));
+
+        if (newItems.length === 0 && parsed.length > 0) {
+          alert(`Semua ${parsed.length} dokumen dalam file backup sudah ada di riwayat lokal.`);
+          return;
+        }
+
+        const merged = [...newItems, ...history];
+        setHistory(merged);
+        safeStorage.setItem('rpm_history', JSON.stringify(merged));
+        alert(`Berhasil memulihkan ${newItems.length} dokumen RPP baru ke dalam riwayat!`);
+      } catch (err) {
+        alert('Gagal membaca file JSON: ' + err.message);
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleClearAllHistory = () => {
+    if (history.length === 0) return;
+    if (window.confirm('Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat RPP lokal? Tindakan ini tidak dapat dibatalkan.')) {
+      setHistory([]);
+      safeStorage.removeItem('rpm_history');
+      alert('Seluruh riwayat lokal telah dibersihkan.');
+    }
   };
   
 const formatWaktuRiwayat = (dateStr) => {
@@ -1331,28 +1720,68 @@ const formatWaktuRiwayat = (dateStr) => {
         </div>
       )}
 
-      {/* HISTORY WITH CLOUD SYNC */}
+      {/* HISTORY WITH CLOUD SYNC & BACKUP/RESTORE */}
       {showHistory && (
           <div className="fixed inset-0 z-50 flex justify-end">
               <div className="absolute inset-0 bg-black/50" onClick={()=>setShowHistory(false)}></div>
-              <div className={`relative w-80 h-full shadow-xl flex flex-col ${isDarkMode?'bg-gray-900 text-white':'bg-white text-gray-800'}`}>
+              <div className={`relative w-80 sm:w-96 h-full shadow-2xl flex flex-col ${isDarkMode?'bg-gray-900 text-white':'bg-white text-gray-800'}`}>
                   <div className="p-4 border-b flex justify-between items-center">
-                      <h2 className="font-bold flex items-center gap-2">
-                          <Cloud className="text-blue-500" size={18}/> Riwayat Cloud
+                      <h2 className="font-bold flex items-center gap-2 text-base">
+                          <History className="text-blue-500" size={18}/> Riwayat RPM
                       </h2>
-                      <div className="flex gap-3 items-center">
-                          <button type="button" onClick={() => loadCloudHistory()} className={`text-blue-500 hover:text-blue-700 ${isSyncing ? 'animate-spin' : ''}`} title="Sinkronisasi Ulang">
+                      <div className="flex gap-2 items-center">
+                          <button type="button" onClick={() => loadCloudHistory()} className={`p-1 text-blue-500 hover:text-blue-700 ${isSyncing ? 'animate-spin' : ''}`} title="Sinkronisasi Ulang Cloud">
                               <RefreshCw size={16}/>
                           </button>
-                          <button type="button" onClick={()=>setShowHistory(false)} className="text-gray-500 hover:text-red-500"><X size={18}/></button>
+                          <button type="button" onClick={()=>setShowHistory(false)} className="text-gray-500 hover:text-red-500 p-1"><X size={18}/></button>
                       </div>
                   </div>
+
+                  {/* ACTION BAR: BACKUP & RESTORE */}
+                  <div className={`p-2.5 border-b text-xs flex gap-2 items-center justify-between ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-slate-50 border-gray-200'}`}>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleExportHistoryJson}
+                        className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 rounded border border-indigo-200 dark:border-indigo-800 flex items-center gap-1 font-medium transition-colors"
+                        title="Unduh seluruh riwayat sebagai file cadangan JSON"
+                      >
+                        <Download size={12} /> Backup JSON
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 rounded border border-emerald-200 dark:border-emerald-800 flex items-center gap-1 font-medium transition-colors"
+                        title="Pulihkan riwayat dari file cadangan JSON"
+                      >
+                        <Upload size={12} /> Pulihkan
+                      </button>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept=".json"
+                        className="hidden"
+                        onChange={handleImportHistoryJson}
+                      />
+                    </div>
+                    {history.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleClearAllHistory}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 px-2 py-1 rounded text-[11px] transition-colors"
+                        title="Hapus semua riwayat lokal"
+                      >
+                        Hapus Semua
+                      </button>
+                    )}
+                  </div>
+
                   <div className="flex-1 overflow-y-auto p-4 space-y-2">
                       {history.length === 0 ? (
                           <div className="text-center text-sm text-gray-500 mt-10">Belum ada riwayat RPP yang tersimpan.</div>
                       ) : (
                           history.map(h => (
-                              <div key={h.id} className="p-3 border rounded cursor-pointer hover:border-indigo-500 hover:bg-indigo-50/50 transition-colors" 
+                              <div key={h.id} className="p-3 border rounded-lg cursor-pointer hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-colors" 
                                   onClick={()=>{
                                       setFormData(h.formData); 
                                       setAiContent(h.aiContent); 
@@ -1363,14 +1792,14 @@ const formatWaktuRiwayat = (dateStr) => {
                                       setIsGenerated(true); 
                                       setShowHistory(false);
                                   }}>
-                                  <div className="font-bold text-sm text-indigo-700">{h.title}</div>
+                                  <div className="font-bold text-sm text-indigo-700 dark:text-indigo-400">{h.title}</div>
                                   <div className="text-xs opacity-60 mt-1 flex items-center gap-1"><Cloud size={10}/> {formatWaktuRiwayat(h.date)}</div>
                                   <button type="button" onClick={(e)=>{
                                       e.stopPropagation();
                                       if(window.confirm('Hapus dari riwayat lokal? (Data di Google Sheets tidak terhapus)')) {
                                           setHistory(x=>x.filter(i=>i.id!==h.id))
                                       }
-                                  }} className="text-red-500 text-[10px] mt-2 px-2 py-1 bg-red-50 rounded">Hapus Lokal</button>
+                                  }} className="text-red-500 text-[10px] mt-2 px-2 py-1 bg-red-50 dark:bg-red-950/40 rounded hover:bg-red-100">Hapus Lokal</button>
                               </div>
                           ))
                       )}
@@ -1402,6 +1831,73 @@ const formatWaktuRiwayat = (dateStr) => {
                     </span>
                 </h2>
                 <button type="button" onClick={clearForm} className="text-xs text-red-500 hover:bg-red-50 px-2 py-1 rounded flex items-center gap-1"><Trash2 size={12}/> Bersihkan Form</button>
+            </div>
+
+            {/* TEMPLATE CEPAT KURIKULUM NASIONAL (PRESETS SIAP PAKAI) */}
+            <div className={`mb-6 p-4 rounded-xl border transition-all ${
+              isDarkMode 
+                ? 'bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-blue-950/40 border-indigo-800/80 text-white' 
+                : 'bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-purple-50/90 border-indigo-200 text-gray-800'
+            }`}>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-indigo-600 text-white rounded-lg text-sm shadow-xs font-bold">⚡</span>
+                  <div>
+                    <h3 className="font-bold text-sm text-indigo-950 dark:text-indigo-200 flex items-center gap-1.5">
+                      Template Cepat Kurikulum Nasional (Uji Coba 1-Klik)
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                      Pilih template mapel di bawah untuk langsung mengisi otomatis CP, TP, Indikator, ATP, dan Model Pembelajaran:
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                {KURIKULUM_NASIONAL_TEMPLATES.map(tpl => {
+                  const isSelected = formData.mapel === tpl.data.mapel && formData.kelas === tpl.data.kelas;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => handleApplyTemplate(tpl)}
+                      className={`p-2.5 rounded-lg border text-left transition-all flex flex-col justify-between hover:shadow-md hover:scale-[1.02] cursor-pointer ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white border-indigo-600 ring-2 ring-indigo-400 shadow-sm'
+                          : isDarkMode
+                          ? 'bg-gray-800/90 border-gray-700 hover:border-indigo-500 text-gray-200'
+                          : 'bg-white border-gray-200 hover:border-indigo-400 text-gray-800 shadow-2xs'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full mb-1.5">
+                        <span className="text-xl">{tpl.icon}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          isSelected
+                            ? 'bg-white/20 text-white'
+                            : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300'
+                        }`}>
+                          {tpl.badge}
+                        </span>
+                      </div>
+                      <div>
+                        <div className={`font-bold text-xs line-clamp-1 ${isSelected ? 'text-white' : 'text-indigo-950 dark:text-gray-100'}`}>
+                          {tpl.data.mapel}
+                        </div>
+                        <div className={`text-[11px] line-clamp-2 mt-0.5 leading-tight ${isSelected ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {tpl.data.materi}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {templateAlert && (
+                <div className="mt-3 p-2.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-800 dark:text-emerald-200 rounded-lg text-xs flex items-center gap-2 animate-fadeIn">
+                  <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="font-medium">{templateAlert}</span>
+                </div>
+              )}
             </div>
             
             <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -1631,8 +2127,9 @@ const formatWaktuRiwayat = (dateStr) => {
                 <button type="button" onClick={() => generateSimple('rubric', `Buat rubrik TP ${formData.tp}`, 'Rubric')} disabled={loadingStatus === 'Rubric'} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Rubric' ? <Loader2 className="animate-spin" size={14} /> : <Table size={14} />} Rubrik</button>
                 <button type="button" onClick={() => generateSimple('instrumen', `Buat instrumen TP ${formData.tp}`, 'Instrumen')} disabled={loadingStatus === 'Instrumen'} className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'Instrumen' ? <Loader2 className="animate-spin" size={14} /> : <ClipboardCheck size={14} />} Instrumen</button>
                 <button type="button" onClick={() => generateSimple('lkpd', `Buat LKPD ${formData.materi} ${formData.jenjang}`, 'LKPD')} disabled={loadingStatus === 'LKPD'} className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm flex gap-1 items-center transition-colors">{loadingStatus === 'LKPD' ? <Loader2 className="animate-spin" size={14} /> : <FileSignature size={14} />} LKPD</button>
-                <button type="button" onClick={handleWord} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><FileDown size={14} /> Word</button>
-                <button type="button" onClick={handlePrint} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex gap-1 items-center transition-colors"><Printer size={14} /> PDF/Cetak</button>
+                <button type="button" onClick={handleCopyDocument} className={`px-3 py-1.5 rounded text-sm flex gap-1 items-center transition-colors ${copiedDoc ? 'bg-emerald-600 text-white font-medium' : 'bg-slate-700 hover:bg-slate-800 text-white'}`} title="Salin seluruh isi dokumen RPM ke clipboard">{copiedDoc ? <Check size={14} /> : <Copy size={14} />} {copiedDoc ? 'Tersalin!' : 'Salin Teks'}</button>
+                <button type="button" onClick={handleWord} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex gap-1 items-center transition-colors" title="Unduh format dokumen Microsoft Word (.doc)"><FileDown size={14} /> Word</button>
+                <button type="button" onClick={handlePrint} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex gap-1 items-center transition-colors" title="Cetak atau simpan sebagai PDF"><Printer size={14} /> PDF/Cetak</button>
               </div>
             </div>
 
