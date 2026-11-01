@@ -117,6 +117,20 @@ const getFaseByKelas = (kelas) => {
   return 'Fase Umum';
 };
 
+// --- PAYUNG HUKUM & REGULASI RESMI CP KURIKULUM NASIONAL ---
+const getCpLegalBasis = (mapel, jenjang) => {
+  const isMadrasah = ['MI', 'MTs', 'MA', 'RA'].includes(jenjang);
+  const isAgama = /agama|pai|akidah|fikih|hadis|ski|budi pekerti/i.test(mapel || '');
+
+  if (isMadrasah) {
+    return "Keputusan Direktur Jenderal Pendidikan Islam Nomor 9941 Tahun 2025 (Turunan KMA No. 450/2024 jo KMA No. 1503/2025 - Rumpun PAI & Bahasa Arab)";
+  }
+  if (isAgama) {
+    return "Keputusan Kepala BKPDM Nomor 020 Tahun 2026 (Kemendikdasmen - Menekankan dimensi cinta kasih, moderasi beragama, dan deep learning)";
+  }
+  return "Keputusan Kepala BSKAP Nomor 046/H/KR/2025 (memperbarui No. 032/H/KR/2024) jo Permendikbudristek No. 12 Tahun 2024";
+};
+
 const GRADIENT_THEMES = [
   { id: 'royal', class: 'from-indigo-600 via-purple-600 to-violet-800' },
   { id: 'ocean', class: 'from-blue-600 via-cyan-600 to-teal-700' },
@@ -1086,12 +1100,13 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
       ? formData.atpPerPertemuan.map((atp, idx) => `Pertemuan ${idx + 1}: ${atp || `Kelanjutan alur materi ${formData.materi}`}`).join('; ')
       : 'Disusun bertahap dari pemahaman konsep awal hingga pengaplikasian mendalam';
 
-    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING (KURIKULUM NASIONAL DENGAN ATP) ===
+    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING (KURIKULUM NASIONAL DENGAN ATP & REGULASI RESMI) ===
     const prompt = `Buatkan Rencana Pembelajaran Mendalam (RPM) Kurikulum Nasional untuk ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
 Data Utama:
 - Jenjang & Kelas: ${formData.jenjang} - ${formData.kelas} (${getFaseByKelas(formData.kelas)})
 - Mata Pelajaran: ${formData.mapel}
 - Materi Pokok: ${formData.materi}
+- Payung Hukum & Acuan Regulasi Resmi CP: ${getCpLegalBasis(formData.mapel, formData.jenjang)}
 - Capaian Pembelajaran (CP): ${formData.cp}
 - Tujuan Pembelajaran (TP): ${formData.tp}
 - Indikator (IKTP): ${formData.indikator}
@@ -2082,7 +2097,25 @@ const formatWaktuRiwayat = (dateStr) => {
               <div><label className={cssLabel}>Mapel</label><input name="mapel" value={formData.mapel} onChange={handleChange} className={cssInput} required /></div>
             </div>
             <div className="space-y-4 mb-4">
-              <div><label className={cssLabel}>Capaian Pembelajaran <button type="button" onClick={() => generateSimple('cp', `Carikan Capaian Pembelajaran (CP) Kurikulum Nasional untuk mata pelajaran ${formData.mapel}, jenjang ${formData.jenjang}, ${formData.kelas}`, 'CP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'CP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Cari CP'}</button></label><textarea name="cp" value={formData.cp} onChange={handleChange} rows={2} className={cssInput} /></div>
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                  <label className={cssLabel}>
+                    Capaian Pembelajaran (CP)
+                    <button 
+                      type="button" 
+                      onClick={() => generateSimple('cp', `Carikan Capaian Pembelajaran (CP) Kurikulum Nasional resmi untuk mata pelajaran ${formData.mapel}, jenjang ${formData.jenjang}, ${formData.kelas} (${getFaseByKelas(formData.kelas)}) secara presisi berdasarkan payung hukum resmi: ${getCpLegalBasis(formData.mapel, formData.jenjang)}. Tuliskan CP resmi elemen dan per fasenya secara lengkap.`, 'CP')} 
+                      disabled={loadingStatus} 
+                      className="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-medium px-2 py-0.5 rounded ml-2 cursor-pointer transition-colors"
+                    >
+                      {loadingStatus === 'CP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Cari CP Resmi'}
+                    </button>
+                  </label>
+                  <span className="text-[11px] text-indigo-900 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800 line-clamp-1" title={getCpLegalBasis(formData.mapel, formData.jenjang)}>
+                    📜 Acuan: {getCpLegalBasis(formData.mapel, formData.jenjang)}
+                  </span>
+                </div>
+                <textarea name="cp" value={formData.cp} onChange={handleChange} rows={3} className={cssInput} placeholder="Teks Capaian Pembelajaran resmi..." />
+              </div>
               <div><label className={cssLabel}>Materi</label><textarea name="materi" value={formData.materi} onChange={handleChange} rows={2} className={cssInput} /></div>
               <div><label className={cssLabel}>Tujuan Pembelajaran <button type="button" onClick={() => generateSimple('tp', `Buat TP dari CP ${formData.cp} materi ${formData.materi}`, 'TP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'TP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat TP'}</button></label><textarea name="tp" value={formData.tp} onChange={handleChange} rows={2} className={cssInput} /></div>
               
@@ -2314,6 +2347,12 @@ const formatWaktuRiwayat = (dateStr) => {
                                   <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Sub-Topik Pertemuan {i + 1}</td>
                                   <td colSpan="3">
                                       <EditCell val={rpm.topik || formData.materi} idx={i} path="topik" />
+                                  </td>
+                              </tr>
+                              <tr>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Regulasi Acuan CP</td>
+                                  <td colSpan="3" style={{ fontSize: '9.5pt', fontStyle: 'italic' }}>
+                                      {getCpLegalBasis(formData.mapel, formData.jenjang)}
                                   </td>
                               </tr>
                           </tbody>
