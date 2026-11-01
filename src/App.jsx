@@ -105,6 +105,17 @@ const getMeetingMethods = (val) => {
   return ['Problem Based Learning (PBL)'];
 };
 
+// Helper pendeteksi Fase resmi Kurikulum Nasional berdasarkan Kelas
+const getFaseByKelas = (kelas) => {
+  if (['Kelas 1', 'Kelas 2'].includes(kelas)) return 'Fase A';
+  if (['Kelas 3', 'Kelas 4'].includes(kelas)) return 'Fase B';
+  if (['Kelas 5', 'Kelas 6'].includes(kelas)) return 'Fase C';
+  if (['Kelas 7', 'Kelas 8', 'Kelas 9'].includes(kelas)) return 'Fase D';
+  if (['Kelas 10'].includes(kelas)) return 'Fase E';
+  if (['Kelas 11', 'Kelas 12'].includes(kelas)) return 'Fase F';
+  return 'Fase Umum';
+};
+
 const GRADIENT_THEMES = [
   { id: 'royal', class: 'from-indigo-600 via-purple-600 to-violet-800' },
   { id: 'ocean', class: 'from-blue-600 via-cyan-600 to-teal-700' },
@@ -132,7 +143,9 @@ export default function RPMGenerator() {
     pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
     namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
     jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
-    jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: [['Problem Based Learning (PBL)']],
+    jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', 
+    metodePerPertemuan: [['Problem Based Learning (PBL)']],
+    atpPerPertemuan: [''],
     sertakanDalil: false,
     tanggalRPP: new Date().toISOString().split('T')[0]
   });
@@ -270,6 +283,9 @@ function doGet(e) {
         } else {
           parsed.metodePerPertemuan = parsed.metodePerPertemuan.map(m => getMeetingMethods(m));
         }
+        if (!parsed.atpPerPertemuan || !Array.isArray(parsed.atpPerPertemuan)) {
+          parsed.atpPerPertemuan = [''];
+        }
         if (!parsed.indikator) parsed.indikator = ''; 
         if (!parsed.pemda) parsed.pemda = '';
         if (!parsed.alamatSekolah) parsed.alamatSekolah = '';
@@ -313,7 +329,15 @@ function doGet(e) {
       } else if (currentMethods.length > count) {
         currentMethods.length = count;
       }
-      return { ...prev, metodePerPertemuan: currentMethods };
+
+      const currentAtp = Array.isArray(prev.atpPerPertemuan) ? [...prev.atpPerPertemuan] : [];
+      if (currentAtp.length < count) {
+        while (currentAtp.length < count) currentAtp.push('');
+      } else if (currentAtp.length > count) {
+        currentAtp.length = count;
+      }
+
+      return { ...prev, metodePerPertemuan: currentMethods, atpPerPertemuan: currentAtp };
     });
   }, [formData.jumlahPertemuan]);
 
@@ -473,13 +497,65 @@ function doGet(e) {
     }));
   };
 
+  const handleAtpChange = (index, value) => {
+    setFormData(prev => {
+      const updated = [...prev.atpPerPertemuan];
+      updated[index] = value;
+      return { ...prev, atpPerPertemuan: updated };
+    });
+  };
+
+  const handleGenerateATP = async () => {
+    if (!formData.tp) return alert("Isi Tujuan Pembelajaran (TP) terlebih dahulu.");
+    setLoadingStatus('ATP');
+    setErrorMsg(null);
+
+    const prompt = `Pecahkan Tujuan Pembelajaran (TP) dan Indikator berikut menjadi ${formData.jumlahPertemuan} butir Alur Tujuan Pembelajaran (ATP) kronologis per pertemuan.
+Data Kurikulum Nasional:
+- Mata Pelajaran: ${formData.mapel}
+- Kelas: ${formData.kelas} (${getFaseByKelas(formData.kelas)})
+- Materi: ${formData.materi}
+- Tujuan Pembelajaran (TP): ${formData.tp}
+- Indikator (IKTP): ${formData.indikator}
+
+INSTRUKSI KHUSUS:
+1. Bagi target pembelajaran secara bertahap dan logis dari Pertemuan 1 hingga Pertemuan ${formData.jumlahPertemuan}.
+2. Format WAJIB: JSON Array of Strings dengan panjang tepat ${formData.jumlahPertemuan} elemen.
+Contoh untuk 2 pertemuan: ["Pertemuan 1: Mengidentifikasi...", "Pertemuan 2: Menganalisis dan menyimpulkan..."]
+HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
+
+    const res = await callAI(prompt, true);
+    setLoadingStatus('');
+
+    if (res) {
+      try {
+        let jsonStr = res.replace(/```json/g, '').replace(/```/g, '').trim();
+        const firstB = jsonStr.indexOf('[');
+        const lastB = jsonStr.lastIndexOf(']');
+        if (firstB !== -1 && lastB !== -1) jsonStr = jsonStr.substring(firstB, lastB + 1);
+        const parsed = JSON.parse(jsonStr);
+        if (Array.isArray(parsed)) {
+          const count = Math.max(1, parseInt(formData.jumlahPertemuan) || 1);
+          const sliced = parsed.slice(0, count);
+          while (sliced.length < count) sliced.push(`Pertemuan ${sliced.length + 1}: Penguatan materi ${formData.materi}`);
+          setFormData(prev => ({ ...prev, atpPerPertemuan: sliced }));
+        }
+      } catch (err) {
+        console.error("Gagal parse ATP:", err);
+        setErrorMsg("Gagal menyusun ATP otomatis. Coba sekali lagi.");
+      }
+    }
+  };
+
   const clearForm = () => {
     if(window.confirm("Apakah Anda yakin ingin menghapus semua isian form?")) {
         setFormData({
             pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
             namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
             jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
-            jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: [['Problem Based Learning (PBL)']],
+            jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', 
+            metodePerPertemuan: [['Problem Based Learning (PBL)']],
+            atpPerPertemuan: [''],
             sertakanDalil: false,
             tanggalRPP: new Date().toISOString().split('T')[0]
         });
@@ -638,53 +714,93 @@ function doGet(e) {
     if (type === 'cp' || type === 'tp' || type === 'indikator') {
         strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Gunakan poin nomor urut biasa (1, 2, 3). Jangan pakai kata pengantar atau penjelasan akhir. Gunakan acuan materi dan mapel yang diberikan secara ketat.${tambahanKonteks}${instruksiDalil}${catatanGuru}`;
     } else if (type === 'rubric') {
-        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. Langsung kode HTML saja. Jadikan Tujuan Pembelajaran (TP) dan Indikator yang saya berikan sebagai ACUAN UTAMA.
+        let skenarioAktivitasRpm = "";
+        if (aiContent && aiContent.length > 0) {
+          skenarioAktivitasRpm = "\n\nAKTIVITAS RPM YANG DINILAI: " + aiContent.map((r, idx) => `Pertemuan ${idx+1}: ${r.pengalaman?.mengaplikasi || '-'}`).join(' | ');
+        }
+
+        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. Langsung kode HTML saja.
+        Jadikan Tujuan Pembelajaran (TP): ${formData.tp} dan Indikator (IKTP): ${formData.indikator} sebagai ACUAN UTAMA.
+        ${skenarioAktivitasRpm}
+        
         STRUKTUR TABEL WAJIB:
-        1. Susun rubrik ketercapaian Tujuan Pembelajaran secara komprehensif (Aspek Pemahaman Konsep, Keterampilan/Praktik, serta Sikap & Kemandirian Belajar) dengan kriteria bertingkat deskriptif (Baru Berkembang, Layak, Cakap, Mahir).
-        2. Gunakan indikator yang terukur.
-        3. Tambahkan tabel khusus untuk Tindak Lanjut (Remedial & Pengayaan).${tambahanKonteks}${instruksiDalil}${catatanGuru}`;
+        1. Susun rubrik penilaian ketercapaian Tujuan Pembelajaran secara komprehensif:
+           - Aspek 1: Pemahaman Konsep (Kognitif)
+           - Aspek 2: Keterampilan / Unjuk Kerja / Praktik (Psikomotorik selaras dengan aktivitas nyata RPM)
+           - Aspek 3: Sikap & Kemandirian Belajar (Karakter, kolaborasi, dan ketelitian)
+        2. Kriteria penilaian wajib bertingkat deskriptif: Baru Berkembang, Layak, Cakap, Mahir.
+        3. Gunakan indikator yang terukur dan aplikatif.
+        4. Tambahkan tabel khusus untuk Program Tindak Lanjut (Remedial & Pengayaan).${tambahanKonteks}${instruksiDalil}${catatanGuru}`;
     } else if (type === 'instrumen') {
-        strictPrompt = `Buatkan Dokumen Instrumen Penilaian LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas}. 
+        let submateriPertemuan = "";
+        if (aiContent && aiContent.length > 0) {
+          submateriPertemuan = "\nCakupan Sub-Topik per Pertemuan: " + aiContent.map((r, idx) => `Pertemuan ${idx+1}: ${r.topik || ''}`).join(', ');
+        }
+
+        strictPrompt = `Buatkan Dokumen Instrumen Penilaian LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${getFaseByKelas(formData.kelas)}), Jenjang: ${formData.jenjang}. 
         Tujuan Pembelajaran: ${formData.tp}
+        Indikator Pembelajaran (IKTP): ${formData.indikator}
+        ${submateriPertemuan}
         ${catatanGuru}
         
         INSTRUKSI OUTPUT (WAJIB HTML MURNI tanpa markdown):
-        Jadikan Tujuan Pembelajaran di atas sebagai acuan MUTLAK dalam membuat soal.
+        Jadikan Tujuan Pembelajaran dan IKTP di atas sebagai acuan MUTLAK dalam membuat soal.
         Gunakan tag HTML <h4> untuk judul-judul bagian agar ukuran teksnya tidak terlalu besar (Jangan gunakan <h1> atau <h2>).
         Buatkan 3 Bagian Utama yang menarik dan rapi menggunakan tag HTML (<h4>, <table>, <ul>, dll):
-        1. Kisi-kisi Soal (Bentuk Tabel yang memuat Indikator Soal, Bentuk Soal, dan Bobot).
-        2. Lembar Soal Evaluasi (Berisi minimal 5 soal pilihan ganda dan 3 soal isian/essay yang berbobot/HOTS).
-        3. Kunci Jawaban & Pedoman Penskoran (Berisi jawaban dan tabel cara menghitung nilai akhir).${tambahanKonteks}${instruksiDalil}`;
+        1. Kisi-kisi Soal (Bentuk Tabel memuat: No, Indikator Soal, Materi/Submateri, Level Kognitif, Bentuk Soal, Bobot).
+        2. Lembar Soal Evaluasi (Berisi minimal 5 soal pilihan ganda berbobot/HOTS dengan opsi A, B, C, D dan 3 soal essay/uraian aplikatif).
+        3. Kunci Jawaban & Pedoman Penskoran (Berisi jawaban, pembahasan singkat, dan rubrik pedoman konversi nilai akhir 0-100).${tambahanKonteks}${instruksiDalil}`;
     } else if (type === 'materiajar') {
-        strictPrompt = `Buatkan Ringkasan Materi Ajar (Bahan Bacaan) LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
+        let submateriPertemuan = "";
+        if (aiContent && aiContent.length > 0) {
+          submateriPertemuan = "\nSub-Topik Pembelajaran: " + aiContent.map((r, idx) => `Pertemuan ${idx+1}: ${r.topik || ''}`).join(', ');
+        }
+
+        strictPrompt = `Buatkan Ringkasan Bahan Bacaan / Materi Ajar Guru & Siswa LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${getFaseByKelas(formData.kelas)}), Jenjang: ${formData.jenjang}.
         Tujuan Pembelajaran: ${formData.tp}
+        ${submateriPertemuan}
         ${catatanGuru}
         
         INSTRUKSI OUTPUT (WAJIB HTML MURNI tanpa markdown):
-        1. Susun materi secara sistematis, menggunakan bahasa yang mudah dipahami siswa sesuai jenjangnya. ${tambahanKonteks}${instruksiDalil}
-        2. Gunakan tag <h4> untuk sub-judul. Gunakan <ul> atau <ol> untuk poin-poin penting.
-        3. Berikan contoh konkret atau relevansi materi dalam kehidupan sehari-hari agar bermakna (meaningful).`;
+        1. Susun materi secara sistematis terbagi per sub-topik pertemuan, menggunakan bahasa komunikatif dan mudah dipahami sesuai usia perkembangan siswa. ${tambahanKonteks}${instruksiDalil}
+        2. Gunakan tag <h4> untuk sub-judul pertemuan. Gunakan <ul> atau <ol> untuk poin-poin penting dan ilustrasi konsep.
+        3. Berikan contoh konkret atau studi kasus kontekstual dalam kehidupan sehari-hari agar bermakna (meaningful learning).`;
     } else if (type === 'lkpd') {
         const isFaseA = formData.kelas === 'Kelas 1' || formData.kelas === 'Kelas 2';
-        const intruksiFaseA = isFaseA ? "KARENA INI UNTUK KELAS 1/2, BUAT DESAIN YANG SANGAT RAMAH ANAK. Gunakan banyak EMOJI HTML (🌟, 🍎, 🚗, 🐶, 🖍️, dll) sebagai pengganti gambar ilustrasi di berbagai bagian. Gunakan kalimat instruksi yang sangat pendek, sederhana, dan hindari kata rumit. Berikan ruang lebar untuk menggambar atau menebalkan huruf." : "";
+        const intruksiFaseA = isFaseA ? "KARENA INI UNTUK KELAS 1/2 (FASE A), BUAT DESAIN YANG SANGAT RAMAH ANAK. Gunakan banyak EMOJI HTML (🌟, 🍎, 🚗, 🐶, 🖍️, dll) sebagai pengganti gambar ilustrasi di berbagai bagian. Gunakan kalimat instruksi yang sangat pendek, sederhana, dan hindari kata rumit. Berikan ruang lebar untuk menggambar atau menebalkan huruf." : "";
 
-        strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP, KREATIF, dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
+        // SINKRONISASI AKTIVITAS DARI RPM:
+        let skenarioAktivitasRpm = "";
+        if (aiContent && aiContent.length > 0) {
+          skenarioAktivitasRpm = "\n\nACUAN AKTIVITAS DARI RPM YANG SUDAH DIRANCANG GURU (WAJIB DISELEKSI & DIMASUKKAN SEBAGAI AKTIVITAS LKPD):\n" +
+            aiContent.map((r, idx) => 
+              `--- PERTEMUAN ${idx + 1} (${r.topik || formData.materi}) ---\n` +
+              `Model Pembelajaran: ${getMeetingMethods(formData.metodePerPertemuan[idx]).join(' + ')}\n` +
+              `Langkah Kegiatan Inti: ${r.pengalaman?.mengaplikasi || '-'}\n`
+            ).join('\n');
+        }
+
+        strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP, KREATIF, dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${getFaseByKelas(formData.kelas)}), Jenjang: ${formData.jenjang}.
         
         Data Tujuan Pembelajaran (TP): ${formData.tp}
+        ${formData.indikator ? `Indikator (IKTP): ${formData.indikator}` : ''}
+        ${skenarioAktivitasRpm}
         ${catatanGuru}
         
-        Instruksi Output:
-        1. Format WAJIB: HTML Murni (tanpa Markdown). Gunakan atribut style seperlunya agar terlihat rapi.
-        2. Gaya Bahasa: Menarik, komunikatif, dan memotivasi siswa. ${intruksiFaseA} ${tambahanKonteks} ${instruksiDalil}
-        3. Struktur Wajib:
+        Instruksi Sinkronisasi SANGAT PENTING:
+        1. LKPD ini HARUS SELARAS 100% dengan aktivitas Kegiatan Inti di RPM di atas. Jika pada RPM tertulis eksperimen atau diskusi kelompok, buatkan lembar kerja yang menuntun eksperimen dan diskusi tersebut.
+        2. Jika terdapat lebih dari 1 pertemuan, susun LKPD secara terstruktur memuat bagian per pertemuan (LKPD Aktivitas 1, LKPD Aktivitas 2, dst).
+        3. Format WAJIB: HTML Murni (tanpa Markdown). Gunakan atribut style seperlunya agar terlihat rapi.
+        4. Gaya Bahasa: Menarik, komunikatif, dan memotivasi siswa. ${intruksiFaseA} ${tambahanKonteks} ${instruksiDalil}
+        5. Struktur Wajib:
            - Judul Kegiatan LKPD (Tag <h3>, Center)
            - Identitas Siswa (Kotak atau baris titik-titik Nama, Kelas, Kelompok/No. Absen)
            - Pojok Eksplorasi (Kotak putus-putus untuk Sumber/QR Code/Petunjuk Alat)
            ${isIslamic ? '- Mufradat / Kata Hikmah / Nilai Karakter Hari Ini' : ''}
            - Pemanasan / Gamifikasi / Teka-teki pemantik rasa ingin tahu
-           - Langkah Kegiatan / Petunjuk Belajar (Aktivitas terarah)
-           - Lembar Jawab/Diskusi: Pertanyaan pemantik dan area pengerjaan siswa dengan garis atau tabel.
-           - Jurnal Refleksi Diri Anak (Opsi centang ekspresi emotikon belajar).`;
+           - Petunjuk Kerja & Langkah Eksplorasi Nyata (Mengacu pada sintaks kegiatan inti RPM)
+           - Lembar Jawab & Diskusi Siswa (Kolom isian, tabel pengamatan, atau garis titik-titik <hr>)
+           - Jurnal Refleksi Diri Anak (Opsi centang emotikon pemahaman).`;
     }
 
     const res = await callAI(strictPrompt);
@@ -731,28 +847,39 @@ function doGet(e) {
       return `Pertemuan ${idx + 1}: ${methods.join(' dipadukan dengan ')}`;
     }).join('; ');
 
-    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING (KURIKULUM NASIONAL) ===
+    const atpDescriptions = (formData.atpPerPertemuan && formData.atpPerPertemuan.length > 0)
+      ? formData.atpPerPertemuan.map((atp, idx) => `Pertemuan ${idx + 1}: ${atp || `Kelanjutan alur materi ${formData.materi}`}`).join('; ')
+      : 'Disusun bertahap dari pemahaman konsep awal hingga pengaplikasian mendalam';
+
+    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING (KURIKULUM NASIONAL DENGAN ATP) ===
     const prompt = `Buatkan Rencana Pembelajaran Mendalam (RPM) Kurikulum Nasional untuk ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
-Data Utama: ${JSON.stringify({...formData, catatanKhusus: undefined, metodePerPertemuan: undefined})}. 
-Model Pembelajaran: ${methodDescriptions}. 
+Data Utama:
+- Jenjang & Kelas: ${formData.jenjang} - ${formData.kelas} (${getFaseByKelas(formData.kelas)})
+- Mata Pelajaran: ${formData.mapel}
+- Materi Pokok: ${formData.materi}
+- Capaian Pembelajaran (CP): ${formData.cp}
+- Tujuan Pembelajaran (TP): ${formData.tp}
+- Indikator (IKTP): ${formData.indikator}
+- Alur Tujuan Pembelajaran (ATP) per Pertemuan: ${atpDescriptions}
+- Model Pembelajaran: ${methodDescriptions}
 ${instruksiJenjang} ${instruksiDalil} ${catatanGuru} 
 
 INSTRUKSI SANGAT PENTING & KERANGKA WAJIB:
-1. ACUAN MUTLAK: Anda WAJIB menggunakan Capaian Pembelajaran (CP), Tujuan Pembelajaran (TP), dan Indikator dari Data Utama secara ketat dan selaras.
+1. ACUAN MUTLAK & SINKRONISASI ATP: Setiap elemen pertemuan dalam JSON WAJIB selaras dengan target Alur Tujuan Pembelajaran (ATP) pertemuan tersebut. Jangan menduplikasi materi antar pertemuan; susun perkembangan belajar yang kronologis dan bertahap.
 2. PRINSIP PEMBELAJARAN MENDALAM (DEEP LEARNING): Seluruh skenario kegiatan pembelajaran WAJIB mencerminkan:
    - Mindful (Berkesadaran): Siswa hadir secara utuh, sadar tujuan belajar, dan fokus.
    - Meaningful (Bermakna): Menghubungkan materi dengan realitas kehidupan nyata peserta didik.
    - Joyful (Menggembirakan): Pembelajaran interaktif, menantang, dan menyenangkan tanpa beban intimidatif.
-3. INTEGRASI KOMBINASI MODEL PEMBELAJARAN: Jika satu pertemuan menggunakan kombinasi lebih dari 1 model (misalnya Problem Based Learning dan Cooperative Learning), PADUKAN SINTAKS KEDUANYA secara sistematis di Kegiatan Inti (misal: orientasi masalah nyata dilanjutkan investigasi tim kooperatif).
+3. INTEGRASI KOMBINASI MODEL PEMBELAJARAN: Jika satu pertemuan menggunakan kombinasi lebih dari 1 model, PADUKAN SINTAKS KEDUANYA secara sistematis di Kegiatan Inti.
 4. KERANGKA PEMBELAJARAN (Isi pada key JSON yang sesuai):
-   - "topik": Tuliskan Sub-Topik / Pokok Bahasan Spesifik khusus untuk pertemuan ini (harus spesifik per pertemuan, bukan hanya judul bab umum).
+   - "topik": Tuliskan Sub-Topik / Pokok Bahasan Spesifik khusus untuk pertemuan ini (harus spesifik per pertemuan).
    - "lintasDisiplin": Hubungan materi ini dengan mata pelajaran lain secara aplikatif.
    - "lingkungan": Desain tata ruang/lingkungan belajar kelas, luar kelas, lab, atau lingkungan sekitar.
    - "digital": Pemanfaatan teknologi digital, media visual/audio, atau alat peraga interaktif.
    - "kemitraan": Kemitraan pembelajaran (orang tua, narasumber ahli, komunitas, sumber literasi autentik).
 5. PENGALAMAN BELAJAR (WAJIB DAFTAR NOMOR 1, 2, 3 KE BAWAH):
    - "memahami": Kegiatan Pendahuluan (Salam, doa, apersepsi bermakna, menghubungkan materi awal).
-   - "mengaplikasi": Kegiatan Inti (Penerapan langkah-langkah model pembelajaran yang dipilih, investigasi, kerja tim, penciptaan karya/solusi).
+   - "mengaplikasi": Kegiatan Inti (Penerapan langkah-langkah model pembelajaran yang dipilih untuk menuntaskan ATP pertemuan ini).
    - "refleksi": Kegiatan Penutup (Refleksi diri peserta didik, kesimpulan bersama, umpan balik).
 6. ASESMEN:
    - "awal": Asesmen awal pembelajaran / diagnostik non-tes atau tes singkat.
@@ -1334,7 +1461,7 @@ const formatWaktuRiwayat = (dateStr) => {
 
             <div className="grid md:grid-cols-4 gap-4 mb-4 mt-6">
               <div><label className={cssLabel}>Jenjang</label><select name="jenjang" value={formData.jenjang} onChange={handleJenjangChange} className={cssInput}>{JENJANG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
-              <div><label className={cssLabel}>Kelas</label><select name="kelas" value={formData.kelas} onChange={handleChange} className={cssInput}>{KELAS_BY_JENJANG[formData.jenjang].map(k => <option key={k} value={k}>{k}</option>)}</select></div>
+              <div><label className={cssLabel}>Kelas & Fase</label><select name="kelas" value={formData.kelas} onChange={handleChange} className={cssInput}>{KELAS_BY_JENJANG[formData.jenjang].map(k => <option key={k} value={k}>{k} ({getFaseByKelas(k)})</option>)}</select></div>
               <div><label className={cssLabel}>Semester</label><select name="semester" value={formData.semester} onChange={handleChange} className={cssInput}><option value="Ganjil">Ganjil</option><option value="Genap">Genap</option></select></div>
               <div><label className={cssLabel}>Mapel</label><input name="mapel" value={formData.mapel} onChange={handleChange} className={cssInput} required /></div>
             </div>
@@ -1344,6 +1471,45 @@ const formatWaktuRiwayat = (dateStr) => {
               <div><label className={cssLabel}>Tujuan Pembelajaran <button type="button" onClick={() => generateSimple('tp', `Buat TP dari CP ${formData.cp} materi ${formData.materi}`, 'TP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'TP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat TP'}</button></label><textarea name="tp" value={formData.tp} onChange={handleChange} rows={2} className={cssInput} /></div>
               
               <div><label className={cssLabel}>Indikator Pembelajaran (IKTP/KD) <button type="button" onClick={() => generateSimple('indikator', `Buat minimal 3 Indikator Ketercapaian Tujuan Pembelajaran (IKTP) dari TP: ${formData.tp}, materi: ${formData.materi}`, 'Indikator')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'Indikator' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat Indikator'}</button></label><textarea name="indikator" value={formData.indikator} onChange={handleChange} rows={2} className={cssInput} placeholder="Siswa mampu menyebutkan..., Siswa mampu mempraktikkan..." /></div>
+
+              {/* 🗺️ ALUR TUJUAN PEMBELAJARAN (ATP) */}
+              <div className="bg-sky-50/80 p-4 rounded-xl border border-sky-200 shadow-2xs">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-2 pb-2 border-b border-sky-200">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-sky-950 flex items-center gap-1.5">
+                      <span>🗺️</span> Alur Tujuan Pembelajaran (ATP) per Pertemuan
+                    </span>
+                    <p className="text-[11px] text-sky-700">Peta urutan target capaian TP dari pertemuan ke pertemuan</p>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={handleGenerateATP}
+                    disabled={loadingStatus === 'ATP'}
+                    className="text-xs bg-sky-600 hover:bg-sky-700 text-white font-medium px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer self-start sm:self-auto"
+                  >
+                    {loadingStatus === 'ATP' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles size={13} />} 
+                    <span>Susun Alur (ATP) Otomatis</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 mt-2">
+                  {formData.atpPerPertemuan.map((atp, idx) => (
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 bg-white p-2.5 rounded-lg border border-sky-200">
+                      <span className="text-[11px] font-bold text-sky-900 shrink-0 sm:w-28 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                        Pertemuan {idx + 1}:
+                      </span>
+                      <input 
+                        type="text" 
+                        value={atp} 
+                        onChange={(e) => handleAtpChange(idx, e.target.value)} 
+                        placeholder={`Target spesifik ATP Pertemuan ${idx + 1} (Klik Susun ATP Otomatis atau ketik di sini)...`}
+                        className="w-full text-xs p-1.5 border border-sky-100 rounded outline-none focus:border-sky-500 bg-sky-50/20 text-gray-800"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
             
             <div className="bg-indigo-50/80 p-4 rounded-xl mb-4 border border-indigo-200 text-gray-800 shadow-sm">
@@ -1518,8 +1684,8 @@ const formatWaktuRiwayat = (dateStr) => {
                               <tr>
                                   <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Satuan Pendidikan</td>
                                   <td>{formData.namaSatuan}</td>
-                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Jenjang/Kls/Smt</td>
-                                  <td>{formData.jenjang} / {formData.kelas} / {formData.semester}</td>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Jenjang/Fase/Kls/Smt</td>
+                                  <td>{formData.jenjang} / {getFaseByKelas(formData.kelas)} / {formData.kelas} / {formData.semester}</td>
                               </tr>
                               <tr>
                                   <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Materi Pokok</td>
@@ -1557,6 +1723,16 @@ const formatWaktuRiwayat = (dateStr) => {
                                       <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.indikator)}</td>
                                   </tr>
                               )}
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black', fontWeight: 'bold', color: '#1e3a8a' }}>Alur Tujuan (ATP Pert. {i + 1})</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>
+                                      {formData.atpPerPertemuan?.[i] ? (
+                                          formatRender(formData.atpPerPertemuan[i])
+                                      ) : (
+                                          <span>Target ketercapaian materi: {rpm.topik || formData.materi}</span>
+                                      )}
+                                  </td>
+                              </tr>
                               <tr>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Koneksi Lintas Disiplin</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.lintasDisiplin} idx={i} path="lintasDisiplin" multi /></td>
