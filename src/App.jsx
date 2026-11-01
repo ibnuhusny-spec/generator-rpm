@@ -131,6 +131,99 @@ const getCpLegalBasis = (mapel, jenjang) => {
   return "Keputusan Kepala BSKAP Nomor 046/H/KR/2025 (memperbarui No. 032/H/KR/2024) jo Permendikbudristek No. 12 Tahun 2024";
 };
 
+// --- 8 DIMENSI PROFIL LULUSAN (PERMENDIKDASMEN NO. 10 TAHUN 2025 TENTANG SKL) ---
+const PROFIL_LULUSAN_OPTIONS = [
+  {
+    id: 'iman_taqwa',
+    label: 'Keimanan & Ketakwaan thd Tuhan YME',
+    singkat: 'Iman & Taqwa',
+    icon: '🙏',
+    desc: 'Akhlak mulia, rasa syukur, integritas moral, pengamalan nilai-nilai ajaran agama.'
+  },
+  {
+    id: 'kewargaan',
+    label: 'Kewargaan',
+    singkat: 'Kewargaan',
+    icon: '🇮🇩',
+    desc: 'Cinta tanah air, kepedulian sosial, ketaatan hukum & norma, komitmen kebhinekaan global.'
+  },
+  {
+    id: 'penalaran_kritis',
+    label: 'Penalaran Kritis',
+    singkat: 'Penalaran Kritis',
+    icon: '🧠',
+    desc: 'Berpikir logis, analitis, evaluatif, memproses informasi secara objektif & pemecahan masalah.'
+  },
+  {
+    id: 'kreativitas',
+    label: 'Kreativitas',
+    singkat: 'Kreativitas',
+    icon: '💡',
+    desc: 'Gagasan orisinal, inovasi, fleksibilitas berpikir, penciptaan karya solusi kontekstual.'
+  },
+  {
+    id: 'kolaborasi',
+    label: 'Kolaborasi',
+    singkat: 'Kolaborasi',
+    icon: '🤝',
+    desc: 'Gotong royong, kerja sama sinergis, pembagian peran aktif, empati timbal balik.'
+  },
+  {
+    id: 'kemandirian',
+    label: 'Kemandirian',
+    singkat: 'Kemandirian',
+    icon: '🎯',
+    desc: 'Inisiatif belajar, regulasi diri, ketangguhan/daya juang, bertanggung jawab atas proses belajar.'
+  },
+  {
+    id: 'kesehatan',
+    label: 'Kesehatan',
+    singkat: 'Kesehatan',
+    icon: '🏃',
+    desc: 'Kebugaran fisik, kesehatan mental, well-being lahir batin, pola hidup bersih & seimbang.'
+  },
+  {
+    id: 'komunikasi',
+    label: 'Komunikasi',
+    singkat: 'Komunikasi',
+    icon: '🗣️',
+    desc: 'Artikulasi lisan/tulisan efektif, santun, dialogis, intrapersonal & antarpribadi empatik.'
+  }
+];
+
+const getRecommendedProfilLulusan = (mapel, materi) => {
+  const text = `${mapel || ''} ${materi || ''}`.toLowerCase();
+  const recs = [];
+
+  if (/agama|pai|akidah|fikih|hadis|ski|akhlak|moral|spiritual|ibadah|doa|syukur/i.test(text)) {
+    recs.push('Keimanan & Ketakwaan thd Tuhan YME', 'Kewargaan');
+  }
+  if (/matematik|hitung|pecahan|angka|sains|ipa|fisika|kimia|biologi|algoritma|komputasi|analisis|logika/i.test(text)) {
+    recs.push('Penalaran Kritis');
+  }
+  if (/proyek|karya|desain|kreasi|menulis|puisi|gambar|lukis|inovasi|eksplorasi/i.test(text)) {
+    recs.push('Kreativitas');
+  }
+  if (/kelompok|diskusi|gotong royong|tim|sosial|jigsaw|tps|kerjasama/i.test(text)) {
+    recs.push('Kolaborasi');
+  }
+  if (/bahasa|bicara|pidato|presentasi|teks|komunikasi|dialog|listening|speaking|reading|writing|wawancara/i.test(text)) {
+    recs.push('Komunikasi');
+  }
+  if (/pjok|olahraga|jasmani|senam|kebugaran|gizi|makan sehat|psikis|mental|kebersihan/i.test(text)) {
+    recs.push('Kesehatan');
+  }
+  if (/ppkn|pancasila|hukum|norma|warga|demokrasi|bhineka|toleransi|lingkungan|ekosistem/i.test(text)) {
+    recs.push('Kewargaan');
+  }
+
+  if (!recs.includes('Penalaran Kritis') && recs.length < 3) recs.push('Penalaran Kritis');
+  if (!recs.includes('Kolaborasi') && recs.length < 3) recs.push('Kolaborasi');
+  if (!recs.includes('Kemandirian') && recs.length < 3) recs.push('Kemandirian');
+
+  return Array.from(new Set(recs)).slice(0, 3);
+};
+
 const GRADIENT_THEMES = [
   { id: 'royal', class: 'from-indigo-600 via-purple-600 to-violet-800' },
   { id: 'ocean', class: 'from-blue-600 via-cyan-600 to-teal-700' },
@@ -165,6 +258,7 @@ const KURIKULUM_NASIONAL_TEMPLATES = [
       cp: 'Peserta didik mampu memahami ide pokok dan ide pendukung pada teks informatif, serta terampil menulis teks deskripsi sederhana dengan rangkaian kalimat yang terstruktur menggunakan kosakata spesifik dan kaidah ejaan yang tepat.',
       tp: 'Peserta didik dapat mengidentifikasi ciri-ciri objek di lingkungan sekitar serta menyusun draf paragraf teks deskripsi secara runtut dan bermakna.',
       indikator: '1. Mengidentifikasi minimal 4 ciri fisik objek hasil pengamatan langsung di sekolah.\n2. Menyusun kerangka dan draf paragraf deskripsi dengan kosakata baku.\n3. Menyunting draf bersama teman dan mempublikasikan hasil karya deskripsi.',
+      profilLulusan: ['Komunikasi', 'Penalaran Kritis', 'Kreativitas'],
       jumlahPertemuan: 2,
       durasi: '2 JP x 35 Menit',
       sertakanDalil: false,
@@ -193,6 +287,7 @@ const KURIKULUM_NASIONAL_TEMPLATES = [
       cp: 'Peserta didik menunjukkan pemahaman dan intuisi bilangan (number sense) pada bilangan cacah sampai 10.000, serta dapat mengenal, membandingkan, dan menyajikan pecahan senilai menggunakan representasi visual dan benda konkret.',
       tp: 'Peserta didik mampu menemukan hubungan kesetaraan pecahan senilai menggunakan alat peraga kertas lipat dan gambar konkret.',
       indikator: '1. Menunjukkan pecahan 1/2, 2/4, dan 4/8 melalui aktivitas melipat dan mengarsir kertas origami.\n2. Menyimpulkan konsep pecahan senilai bahwa mengalikan/membagi pembilang dan penyebut dengan angka yang sama menghasilkan nilai yang setara.\n3. Menyelesaikan tantangan pemecahan masalah pecahan senilai dalam kehidupan sehari-hari.',
+      profilLulusan: ['Penalaran Kritis', 'Kemandirian', 'Kolaborasi'],
       jumlahPertemuan: 2,
       durasi: '2 JP x 35 Menit',
       sertakanDalil: false,
@@ -221,6 +316,7 @@ const KURIKULUM_NASIONAL_TEMPLATES = [
       cp: 'Peserta didik menganalisis hubungan antar makhluk hidup pada suatu ekosistem dalam bentuk rantai dan jaring-jaring makanan, serta mendeskripsikan peran dan dampaknya terhadap keseimbangan ekosistem lingkungan sekitar.',
       tp: 'Peserta didik mampu menganalisis peran produsen, konsumen, dan dekomposer dalam jaring-jaring makanan dan merancang diagram interaksinya.',
       indikator: '1. Mengklasifikasikan peran organisme (produsen, konsumen tingkat 1/2/3, pengurai) dalam ekosistem sawah/kebun.\n2. Merangkai bagan jaring-jaring makanan yang melibatkan minimal 6 organisme secara logis.\n3. Memprediksi dampak ketidakseimbangan jika salah satu mata rantai mengalami perburuan atau kepunahan.',
+      profilLulusan: ['Penalaran Kritis', 'Kolaborasi', 'Kewargaan'],
       jumlahPertemuan: 2,
       durasi: '2 JP x 35 Menit',
       sertakanDalil: false,
@@ -249,6 +345,7 @@ const KURIKULUM_NASIONAL_TEMPLATES = [
       cp: 'Peserta didik memahami pesan pokok Q.S. Al-Ma\'un, mampu membaca secara tartil, menghafal, serta membiasakan sikap menyayangi anak yatim dan memberi makan orang miskin sebagai bukti keimanan dalam kehidupan sehari-hari.',
       tp: 'Peserta didik dapat melafalkan Q.S. Al-Ma\'un secara tartil dan merumuskan aksi nyata kepedulian sosial terhadap anak yatim dan kaum dhuafa.',
       indikator: '1. Melafalkan ayat 1-7 Surah Al-Ma\'un dengan tajwid (ikhfa dan mad) secara fasih.\n2. Menjelaskan 3 ciri pendusta agama yang disebutkan dalam Surah Al-Ma\'un.\n3. Merancang aksi kencleng sedekah subuh atau kotak peduli kelas untuk kaum dhuafa.',
+      profilLulusan: ['Keimanan & Ketakwaan thd Tuhan YME', 'Kewargaan', 'Kolaborasi'],
       jumlahPertemuan: 2,
       durasi: '2 JP x 35 Menit',
       sertakanDalil: true,
@@ -277,6 +374,7 @@ const KURIKULUM_NASIONAL_TEMPLATES = [
       cp: 'Peserta didik menggunakan bahasa Inggris untuk berinteraksi dan bertukar ide, opini, dan informasi mengenai ciri-ciri fisik seseorang dan aktivitas sehari-hari menggunakan kosakata dan struktur kalimat sederhana yang tepat.',
       tp: 'Peserta didik mampu mendeskripsikan ciri-ciri fisik dan kepribadian seseorang secara lisan dan tulisan dalam kalimat deskriptif komunikatif.',
       indikator: '1. Mengidentifikasi kosakata adjectives penampilan (tall, wavy hair, friendly, cheerful).\n2. Menggunakan pola simple present tense "has/have" dan "is/am/are" dalam kalimat deskriptif.\n3. Melakukan speaking role-play tebak identitas teman dengan percaya diri.',
+      profilLulusan: ['Komunikasi', 'Kolaborasi', 'Kreativitas'],
       jumlahPertemuan: 2,
       durasi: '2 JP x 40 Menit',
       sertakanDalil: false,
@@ -305,6 +403,7 @@ const KURIKULUM_NASIONAL_TEMPLATES = [
       cp: 'Peserta didik mampu menerapkan strategi algoritmik standar untuk menghasilkan solusi persoalan dengan data diskrit dan memecahkan permasalahan nyata dengan prinsip dekomposisi, pengenalan pola, abstraksi, dan algoritma.',
       tp: 'Peserta didik mampu merumuskan dekomposisi masalah kontekstual dan merancang algoritma solusi dalam bentuk flowchart terstruktur.',
       indikator: '1. Menguraikan masalah kompleks menjadi sub-masalah sederhana menggunakan teknik dekomposisi.\n2. Merancang diagram alur (flowchart) dengan simbol-simbol standar ISO yang tepat.\n3. Menguji alur logika flowchart menggunakan tabel penelusuran (dry-run trace table).',
+      profilLulusan: ['Penalaran Kritis', 'Kreativitas', 'Kemandirian'],
       jumlahPertemuan: 2,
       durasi: '2 JP x 45 Menit',
       sertakanDalil: false,
@@ -333,6 +432,7 @@ export default function RPMGenerator() {
     pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
     namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
     jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
+    profilLulusan: [],
     jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', 
     metodePerPertemuan: [['Problem Based Learning (PBL)']],
     atpPerPertemuan: [''],
@@ -487,6 +587,9 @@ function doGet(e) {
         if (!parsed.semester) parsed.semester = 'Ganjil';
         if (!parsed.tanggalRPP) parsed.tanggalRPP = new Date().toISOString().split('T')[0];
         delete parsed.dimensi;
+        if (!parsed.profilLulusan || !Array.isArray(parsed.profilLulusan)) {
+          parsed.profilLulusan = [];
+        }
         setFormData(prev => ({...prev, ...parsed}));
       } catch { safeStorage.removeItem('rpm_form_data'); }
     }
@@ -707,6 +810,28 @@ function doGet(e) {
     });
   };
 
+  const toggleProfilLulusan = (dimensiName) => {
+    setFormData(prev => {
+      const current = Array.isArray(prev.profilLulusan) ? prev.profilLulusan : [];
+      const exists = current.includes(dimensiName);
+      let updated;
+      if (exists) {
+        updated = current.filter(d => d !== dimensiName);
+      } else {
+        updated = [...current, dimensiName];
+      }
+      return { ...prev, profilLulusan: updated };
+    });
+  };
+
+  const handleRecommendProfilLulusan = () => {
+    const recommended = getRecommendedProfilLulusan(formData.mapel, formData.materi);
+    setFormData(prev => ({
+      ...prev,
+      profilLulusan: recommended
+    }));
+  };
+
   const handleGenerateATP = async () => {
     if (!formData.tp) return alert("Isi Tujuan Pembelajaran (TP) terlebih dahulu.");
     setLoadingStatus('ATP');
@@ -755,6 +880,7 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
             pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
             namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
             jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
+            profilLulusan: [],
             jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', 
             metodePerPertemuan: [['Problem Based Learning (PBL)']],
             atpPerPertemuan: [''],
@@ -968,17 +1094,27 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
           skenarioAktivitasRpm = "\n\nAKTIVITAS RPM YANG DINILAI: " + aiContent.map((r, idx) => `Pertemuan ${idx+1}: ${r.pengalaman?.mengaplikasi || '-'}`).join(' | ');
         }
 
+        const dimensiTerpilih = (formData.profilLulusan && formData.profilLulusan.length > 0)
+          ? formData.profilLulusan.join(', ')
+          : 'Penalaran Kritis, Kolaborasi, Kemandirian';
+
         strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. Langsung kode HTML saja.
         Jadikan Tujuan Pembelajaran (TP): ${formData.tp} dan Indikator (IKTP): ${formData.indikator} sebagai ACUAN UTAMA.
         ${skenarioAktivitasRpm}
         
+        INTEGRASI 8 DIMENSI PROFIL LULUSAN (Permendikdasmen No. 10 Tahun 2025):
+        Fokus Dimensi Karakter: ${dimensiTerpilih}.
+        
         STRUKTUR TABEL WAJIB:
-        1. Susun rubrik penilaian ketercapaian Tujuan Pembelajaran secara komprehensif:
+        1. Susun rubrik penilaian ketercapaian Tujuan Pembelajaran & Profil Lulusan secara komprehensif:
            - Aspek 1: Pemahaman Konsep (Kognitif)
            - Aspek 2: Keterampilan / Unjuk Kerja / Praktik (Psikomotorik selaras dengan aktivitas nyata RPM)
-           - Aspek 3: Sikap & Kemandirian Belajar (Karakter, kolaborasi, dan ketelitian)
-        2. Kriteria penilaian wajib bertingkat deskriptif: Baru Berkembang, Layak, Cakap, Mahir.
-        3. Gunakan indikator yang terukur dan aplikatif.
+           - Aspek 3: Sikap & Dimensi Profil Lulusan (${dimensiTerpilih})
+        2. Kriteria penilaian wajib menggunakan 3 jenjang perkembangan resmi SKL Permendikdasmen 10/2025:
+           - Kolom 1: Berkembang (Mulai menunjukkan penguasaan dasar namun masih perlu pendampingan guru)
+           - Kolom 2: Cakap (STANDAR MINIMAL KELULUSAN - Mampu mandiri, konsisten, dan tepat sasaran)
+           - Kolom 3: Mahir (MELAMPAUI STANDAR - Mampu berinisiatif, membimbing rekan, dan berpikir inovatif)
+        3. Gunakan indikator deskriptif yang terukur dan aplikatif untuk setiap jenjang.
         4. Tambahkan tabel khusus untuk Program Tindak Lanjut (Remedial & Pengayaan).${tambahanKonteks}${instruksiDalil}${catatanGuru}`;
     } else if (type === 'instrumen') {
         let submateriPertemuan = "";
@@ -986,9 +1122,14 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
           submateriPertemuan = "\nCakupan Sub-Topik per Pertemuan: " + aiContent.map((r, idx) => `Pertemuan ${idx+1}: ${r.topik || ''}`).join(', ');
         }
 
+        const dimensiTerpilih = (formData.profilLulusan && formData.profilLulusan.length > 0)
+          ? formData.profilLulusan.join(', ')
+          : 'Penalaran Kritis, Kolaborasi, Kemandirian';
+
         strictPrompt = `Buatkan Dokumen Instrumen Penilaian LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${getFaseByKelas(formData.kelas)}), Jenjang: ${formData.jenjang}. 
         Tujuan Pembelajaran: ${formData.tp}
         Indikator Pembelajaran (IKTP): ${formData.indikator}
+        Fokus 8 Dimensi Profil Lulusan (Permendikdasmen No. 10/2025): ${dimensiTerpilih}
         ${submateriPertemuan}
         ${catatanGuru}
         
@@ -997,8 +1138,8 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
         Gunakan tag HTML <h4> untuk judul-judul bagian agar ukuran teksnya tidak terlalu besar (Jangan gunakan <h1> atau <h2>).
         Buatkan 3 Bagian Utama yang menarik dan rapi menggunakan tag HTML (<h4>, <table>, <ul>, dll):
         1. Kisi-kisi Soal (Bentuk Tabel memuat: No, Indikator Soal, Materi/Submateri, Level Kognitif, Bentuk Soal, Bobot).
-        2. Lembar Soal Evaluasi (Berisi minimal 5 soal pilihan ganda berbobot/HOTS dengan opsi A, B, C, D dan 3 soal essay/uraian aplikatif).
-        3. Kunci Jawaban & Pedoman Penskoran (Berisi jawaban, pembahasan singkat, dan rubrik pedoman konversi nilai akhir 0-100).${tambahanKonteks}${instruksiDalil}`;
+        2. Lembar Soal Evaluasi (Berisi minimal 5 soal pilihan ganda berbobot/HOTS dengan opsi A, B, C, D dan 3 soal essay/uraian aplikatif yang melatih nalar kritis).
+        3. Lembar Observasi Sikap & Profil Lulusan (${dimensiTerpilih}) beserta rubrik pedoman penskoran (0-100).${tambahanKonteks}${instruksiDalil}`;
     } else if (type === 'materiajar') {
         let submateriPertemuan = "";
         if (aiContent && aiContent.length > 0) {
@@ -1100,7 +1241,11 @@ HANYA kirimkan JSON Array murni tanpa teks pengantar!`;
       ? formData.atpPerPertemuan.map((atp, idx) => `Pertemuan ${idx + 1}: ${atp || `Kelanjutan alur materi ${formData.materi}`}`).join('; ')
       : 'Disusun bertahap dari pemahaman konsep awal hingga pengaplikasian mendalam';
 
-    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING (KURIKULUM NASIONAL DENGAN ATP & REGULASI RESMI) ===
+    const profilLulusanStr = (formData.profilLulusan && formData.profilLulusan.length > 0)
+      ? formData.profilLulusan.join(', ')
+      : 'Penalaran Kritis, Kolaborasi, Kemandirian (Otomatis diselaraskan dengan materi)';
+
+    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING (KURIKULUM NASIONAL DENGAN ATP, 8 DIMENSI PROFIL LULUSAN & REGULASI RESMI) ===
     const prompt = `Buatkan Rencana Pembelajaran Mendalam (RPM) Kurikulum Nasional untuk ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
 Data Utama:
 - Jenjang & Kelas: ${formData.jenjang} - ${formData.kelas} (${getFaseByKelas(formData.kelas)})
@@ -1111,32 +1256,37 @@ Data Utama:
 - Tujuan Pembelajaran (TP): ${formData.tp}
 - Indikator (IKTP): ${formData.indikator}
 - Alur Tujuan Pembelajaran (ATP) per Pertemuan: ${atpDescriptions}
+- Fokus 8 Dimensi Profil Lulusan (SKL Permendikdasmen No. 10 Tahun 2025): ${profilLulusanStr}
 - Model Pembelajaran: ${methodDescriptions}
 ${instruksiJenjang} ${instruksiDalil} ${catatanGuru} 
 
 INSTRUKSI SANGAT PENTING & KERANGKA WAJIB:
 1. ACUAN MUTLAK & SINKRONISASI ATP: Setiap elemen pertemuan dalam JSON WAJIB selaras dengan target Alur Tujuan Pembelajaran (ATP) pertemuan tersebut. Jangan menduplikasi materi antar pertemuan; susun perkembangan belajar yang kronologis dan bertahap.
-2. PRINSIP PEMBELAJARAN MENDALAM (DEEP LEARNING): Seluruh skenario kegiatan pembelajaran WAJIB mencerminkan:
+2. INTEGRASI 8 DIMENSI PROFIL LULUSAN (Permendikdasmen No. 10/2025):
+   - Tuliskan pada key "profilLulusan": sebutkan 2-3 dimensi fokus (dari: ${profilLulusanStr}) dan jelaskan manifestasi ketercapaian perilakunya di kelas.
+   - Integrasikan dimensi tersebut secara eksplisit ke dalam langkah Kegiatan Inti ("mengaplikasi") dan Asesmen Proses ("proses")!
+3. PRINSIP PEMBELAJARAN MENDALAM (DEEP LEARNING): Seluruh skenario kegiatan pembelajaran WAJIB mencerminkan:
    - Mindful (Berkesadaran): Siswa hadir secara utuh, sadar tujuan belajar, dan fokus.
    - Meaningful (Bermakna): Menghubungkan materi dengan realitas kehidupan nyata peserta didik.
    - Joyful (Menggembirakan): Pembelajaran interaktif, menantang, dan menyenangkan tanpa beban intimidatif.
-3. INTEGRASI KOMBINASI MODEL PEMBELAJARAN: Jika satu pertemuan menggunakan kombinasi lebih dari 1 model, PADUKAN SINTAKS KEDUANYA secara sistematis di Kegiatan Inti.
-4. KERANGKA PEMBELAJARAN (Isi pada key JSON yang sesuai):
+4. INTEGRASI KOMBINASI MODEL PEMBELAJARAN: Jika satu pertemuan menggunakan kombinasi lebih dari 1 model, PADUKAN SINTAKS KEDUANYA secara sistematis di Kegiatan Inti.
+5. KERANGKA PEMBELAJARAN (Isi pada key JSON yang sesuai):
    - "topik": Tuliskan Sub-Topik / Pokok Bahasan Spesifik khusus untuk pertemuan ini (harus spesifik per pertemuan).
+   - "profilLulusan": Dimensi Profil Lulusan fokus pada pertemuan ini beserta manifestasi perilakunya di kelas.
    - "lintasDisiplin": Hubungan materi ini dengan mata pelajaran lain secara aplikatif.
    - "lingkungan": Desain tata ruang/lingkungan belajar kelas, luar kelas, lab, atau lingkungan sekitar.
    - "digital": Pemanfaatan teknologi digital, media visual/audio, atau alat peraga interaktif.
    - "kemitraan": Kemitraan pembelajaran (orang tua, narasumber ahli, komunitas, sumber literasi autentik).
-5. PENGALAMAN BELAJAR (WAJIB DAFTAR NOMOR 1, 2, 3 KE BAWAH):
+6. PENGALAMAN BELAJAR (WAJIB DAFTAR NOMOR 1, 2, 3 KE BAWAH):
    - "memahami": Kegiatan Pendahuluan (Salam, doa, apersepsi bermakna, menghubungkan materi awal).
-   - "mengaplikasi": Kegiatan Inti (Penerapan langkah-langkah model pembelajaran yang dipilih untuk menuntaskan ATP pertemuan ini).
+   - "mengaplikasi": Kegiatan Inti (Penerapan langkah-langkah model pembelajaran yang dipilih untuk menuntaskan ATP pertemuan ini, serta mempraktikkan dimensi Profil Lulusan terpilih).
    - "refleksi": Kegiatan Penutup (Refleksi diri peserta didik, kesimpulan bersama, umpan balik).
-6. ASESMEN:
+7. ASESMEN:
    - "awal": Asesmen awal pembelajaran / diagnostik non-tes atau tes singkat.
-   - "proses": Asesmen formatif proses (observasi diskusi, unjuk kerja, lembar ceklist).
+   - "proses": Asesmen formatif proses (observasi diskusi, unjuk kerja, lembar ceklist dimensi profil lulusan).
    - "akhir": Asesmen sumatif / refleksi ketercapaian tujuan di akhir pertemuan.
 
-Struktur JSON: [{"topik":"","lintasDisiplin":"","siswa":"","lingkungan":"","digital":"","kemitraan":"","pengalaman":{"memahami":"(List 1, 2, 3...)","mengaplikasi":"(List 1, 2, 3...)","refleksi":"(List 1, 2, 3...)"},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
+Struktur JSON: [{"topik":"","profilLulusan":"","lintasDisiplin":"","siswa":"","lingkungan":"","digital":"","kemitraan":"","pengalaman":{"memahami":"(List 1, 2, 3...)","mengaplikasi":"(List 1, 2, 3...)","refleksi":"(List 1, 2, 3...)"},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
     
     const res = await callAI(prompt, true);
     if (res) {
@@ -1153,6 +1303,15 @@ Struktur JSON: [{"topik":"","lintasDisiplin":"","siswa":"","lingkungan":"","digi
         const count = Math.max(1, parseInt(formData.jumlahPertemuan) || 1);
         while (json.length < count) json.push(JSON.parse(JSON.stringify(json[json.length - 1])));
         
+        // Pastikan setiap item memiliki nilai profilLulusan
+        json.forEach(item => {
+          if (!item.profilLulusan) {
+            item.profilLulusan = (formData.profilLulusan && formData.profilLulusan.length > 0)
+              ? formData.profilLulusan.join(', ')
+              : 'Penalaran Kritis, Kolaborasi, Kemandirian';
+          }
+        });
+
         setAiContent(json.slice(0, count));
         setRubricContent(null);
         setLkpdContent(null);
@@ -2121,6 +2280,98 @@ const formatWaktuRiwayat = (dateStr) => {
               
               <div><label className={cssLabel}>Indikator Pembelajaran (IKTP/KD) <button type="button" onClick={() => generateSimple('indikator', `Buat minimal 3 Indikator Ketercapaian Tujuan Pembelajaran (IKTP) dari TP: ${formData.tp}, materi: ${formData.materi}`, 'Indikator')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'Indikator' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat Indikator'}</button></label><textarea name="indikator" value={formData.indikator} onChange={handleChange} rows={2} className={cssInput} placeholder="Siswa mampu menyebutkan..., Siswa mampu mempraktikkan..." /></div>
 
+              {/* 🌱 8 DIMENSI PROFIL LULUSAN (PERMENDIKDASMEN NO. 10 TAHUN 2025) */}
+              <div className="bg-emerald-50/80 p-4 rounded-xl border border-emerald-200 shadow-2xs">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-2.5 pb-2 border-b border-emerald-200">
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                        <span>🌱</span> 8 Dimensi Profil Lulusan
+                      </span>
+                      <span className="text-[10px] bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+                        Permendikdasmen No. 10/2025 (SKL)
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-emerald-800 mt-0.5 font-medium">
+                      Pilih 1–3 dimensi karakter fokus untuk materi ini (terintegrasi ke langkah kegiatan & rubrik):
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                    <button 
+                      type="button" 
+                      onClick={handleRecommendProfilLulusan}
+                      className="text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                      title="Pilihkan otomatis 2-3 dimensi yang paling relevan dengan mapel dan materi ini"
+                    >
+                      <Sparkles size={13} />
+                      <span>Rekomendasi Cerdas</span>
+                    </button>
+                    {formData.profilLulusan && formData.profilLulusan.length > 0 && (
+                      <button 
+                        type="button" 
+                        onClick={() => setFormData(prev => ({ ...prev, profilLulusan: [] }))}
+                        className="text-xs text-emerald-800 hover:text-red-600 bg-white px-2 py-1.5 rounded border border-emerald-200 hover:border-red-300 transition-colors cursor-pointer"
+                        title="Kosongkan pilihan"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                  {PROFIL_LULUSAN_OPTIONS.map(opt => {
+                    const isSelected = formData.profilLulusan?.includes(opt.label);
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => toggleProfilLulusan(opt.label)}
+                        className={`flex flex-col p-2.5 rounded-lg border text-left transition-all cursor-pointer relative ${
+                          isSelected 
+                            ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white border-emerald-700 shadow-sm ring-2 ring-emerald-400' 
+                            : 'bg-white hover:bg-emerald-50/70 text-gray-800 border-emerald-200 shadow-2xs'
+                        }`}
+                        title={opt.desc}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <span className="text-base">{opt.icon}</span>
+                          {isSelected && (
+                            <span className="bg-white/20 rounded-full p-0.5 text-white">
+                              <Check size={12} strokeWidth={3} />
+                            </span>
+                          )}
+                        </div>
+                        <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                          {opt.label}
+                        </span>
+                        <span className={`text-[10px] mt-1 line-clamp-2 leading-tight ${isSelected ? 'text-emerald-100' : 'text-slate-600'}`}>
+                          {opt.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-emerald-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px]">
+                  <div className="text-emerald-950 font-medium">
+                    {formData.profilLulusan && formData.profilLulusan.length > 0 ? (
+                      <span>
+                        <strong className="text-emerald-900">Dimensi Terpilih ({formData.profilLulusan.length}):</strong>{' '}
+                        <span className="text-emerald-800">{formData.profilLulusan.join(' • ')}</span>
+                      </span>
+                    ) : (
+                      <span className="text-emerald-800 italic">
+                        💡 Belum ada dimensi yang dipilih (AI akan otomatis memilihkan dimensi terbaik saat generate).
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-100/70 px-2 py-0.5 rounded self-start sm:self-auto">
+                    Kriteria SKL: Berkembang • Cakap (Minimal) • Mahir
+                  </span>
+                </div>
+              </div>
+
               {/* 🗺️ ALUR TUJUAN PEMBELAJARAN (ATP) */}
               <div className="bg-sky-50/80 p-4 rounded-xl border border-sky-200 shadow-2xs">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-2 pb-2 border-b border-sky-200">
@@ -2387,6 +2638,20 @@ const formatWaktuRiwayat = (dateStr) => {
                                       ) : (
                                           <span>Target ketercapaian materi: {rpm.topik || formData.materi}</span>
                                       )}
+                                  </td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>
+                                      <strong>Dimensi Profil Lulusan</strong><br/>
+                                      <span style={{ fontSize: '8.5pt', color: '#4b5563' }}>(Permendikdasmen No. 10/2025)</span>
+                                  </td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>
+                                      <EditCell 
+                                          val={rpm.profilLulusan || (formData.profilLulusan && formData.profilLulusan.length > 0 ? formData.profilLulusan.join(', ') : 'Penalaran Kritis, Kolaborasi, Kemandirian')} 
+                                          idx={i} 
+                                          path="profilLulusan" 
+                                          multi 
+                                      />
                                   </td>
                               </tr>
                               <tr>
