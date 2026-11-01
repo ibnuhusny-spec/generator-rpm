@@ -25,6 +25,7 @@ export default function Login({ onLoginSuccess }) {
         if (onLoginSuccess) onLoginSuccess(data.session);
       }
     } catch (err) {
+      console.error(err);
       setErrorMessage('Terjadi kesalahan jaringan atau server. Coba lagi.');
     } finally {
       setLoading(false);

@@ -9,13 +9,13 @@ import {
 // --- UTILITIES AMAN ---
 const safeStorage = {
   getItem: (key) => {
-    try { return localStorage.getItem(key); } catch (e) { return null; }
+    try { return localStorage.getItem(key); } catch { return null; }
   },
   setItem: (key, value) => {
-    try { localStorage.setItem(key, value); } catch (e) { }
+    try { localStorage.setItem(key, value); } catch (err) { void err; }
   },
   removeItem: (key) => {
-    try { localStorage.removeItem(key); } catch (e) {}
+    try { localStorage.removeItem(key); } catch (err) { void err; }
   }
 };
 
@@ -45,36 +45,64 @@ const KELAS_BY_JENJANG = {
 };
 
 const PEDAGOGI_OPTIONS = [
-  'Inkuiri-Discovery Learning', 'Project Based Learning (PjBL)', 'Problem Based Learning (PBL)',
-  'Game Based Learning', 'Station Learning', 'Flipped Classroom', 'Cooperative Learning',
-  'Differentiated Instruction', 'Culturally Responsive Teaching', 'Social Emotional Learning', 'Ceramah Interaktif'
+  'Ceramah Interaktif / Bervariasi',
+  'Tanya Jawab & Latihan Terbimbing (Drill)',
+  'Problem Based Learning (PBL)',
+  'Project Based Learning (PjBL)',
+  'Inquiry-Discovery Learning',
+  'Cooperative Learning (Jigsaw/STAD/TPS)',
+  'Demonstrasi & Praktik Langsung',
+  'Role Playing / Bermain Peran & Simulasi',
+  'Differentiated Instruction (Berdiferensiasi)',
+  'Teaching at the Right Level (TaRL)',
+  'Culturally Responsive Teaching (CRT)',
+  'Contextual Teaching and Learning (CTL)',
+  'Mind Mapping / Peta Konsep Kreatif',
+  'Peer Teaching / Tutor Sebaya',
+  'Studi Kasus (Case Study)',
+  'Karyawisata / Observasi Lapangan',
+  'Experiential Learning',
+  'Design Thinking',
+  'STEM / STEAM Learning',
+  'Game Based Learning & Gamifikasi',
+  'Flipped Classroom',
+  'Station Learning (Rotasi Pos)',
+  'Social Emotional Learning (SEL/PSE)',
+  'Diskusi Interaktif & Sokratik'
 ];
 
 const PEDAGOGI_INFO = {
-  'Inkuiri-Discovery Learning': 'Siswa mencari dan menemukan jawaban secara mandiri melalui observasi/eksperimen.',
-  'Project Based Learning (PjBL)': 'Menghasilkan produk nyata (karya, maket, video) melalui tugas berbasis proyek.',
-  'Problem Based Learning (PBL)': 'Memecahkan masalah dunia nyata untuk melatih berpikir kritis dan solusi kreatif.',
-  'Game Based Learning': 'Menggunakan elemen permainan agar proses belajar menjadi interaktif dan menyenangkan.',
-  'Station Learning': 'Siswa berpindah antar pos/stasiun di kelas yang memiliki aktivitas berbeda-beda.',
-  'Flipped Classroom': 'Materi dipelajari di rumah, sedangkan waktu kelas fokus untuk diskusi dan praktik.',
-  'Cooperative Learning': 'Belajar berkelompok secara terstruktur untuk mencapai tujuan bersama.',
-  'Differentiated Instruction': 'Menyesuaikan metode dan materi berdasarkan gaya belajar unik tiap siswa.',
-  'Culturally Responsive Teaching': 'Mengaitkan materi pelajaran dengan latar belakang budaya siswa.',
-  'Social Emotional Learning': 'Fokus pada keterampilan mengelola emosi, empati, dan keputusan bertanggung jawab.',
-  'Ceramah Interaktif': 'Penyampaian materi satu arah namun tetap melibatkan tanya jawab dengan siswa.'
+  'Ceramah Interaktif / Bervariasi': 'Penyampaian materi oleh guru diselingi pertanyaan pemantik, media visual, dan interaksi aktif dua arah.',
+  'Tanya Jawab & Latihan Terbimbing (Drill)': 'Penguatan pemahaman konsep melalui tanya jawab intensif dan latihan soal bertahap.',
+  'Problem Based Learning (PBL)': 'Memecahkan masalah kontekstual nyata untuk melatih nalar kritis dan pemecahan masalah.',
+  'Project Based Learning (PjBL)': 'Menghasilkan karya/produk nyata secara mendalam melalui investigasi terstruktur.',
+  'Inquiry-Discovery Learning': 'Menyelidiki fenomena dan menemukan konsep secara mandiri melalui observasi/eksperimen.',
+  'Cooperative Learning (Jigsaw/STAD/TPS)': 'Bekerja sama dalam tim kecil terstruktur untuk saling melengkapi dan berbagi peran.',
+  'Demonstrasi & Praktik Langsung': 'Pemodelan langkah kerja diikuti praktik terbimbing dan mandiri oleh siswa.',
+  'Role Playing / Bermain Peran & Simulasi': 'Memerankan situasi sosial/konseptual untuk mengasah empati, pemahaman peran, dan komunikasi.',
+  'Differentiated Instruction (Berdiferensiasi)': 'Menyesuaikan konten, proses, atau produk belajar dengan profil dan kesiapan siswa.',
+  'Teaching at the Right Level (TaRL)': 'Pendekatan pembelajaran berjenjang yang disesuaikan dengan tingkat kemampuan awal siswa.',
+  'Culturally Responsive Teaching (CRT)': 'Mengaitkan materi pelajaran dengan konteks budaya lokal dan kearifan lingkungan.',
+  'Contextual Teaching and Learning (CTL)': 'Menghubungkan konsep pelajaran dengan situasi kehidupan nyata siswa sehari-hari.',
+  'Mind Mapping / Peta Konsep Kreatif': 'Mengorganisasi ide pokok dan alur materi secara visual grafis agar mudah dipahami.',
+  'Peer Teaching / Tutor Sebaya': 'Siswa saling mengajar dan berbagi pemahaman dalam kelompok kecil.',
+  'Studi Kasus (Case Study)': 'Menganalisis skenario kasus nyata secara mendalam untuk merumuskan simpulan solusi.',
+  'Karyawisata / Observasi Lapangan': 'Belajar langsung di luar kelas mengamati objek autentik di lingkungan sekitar.',
+  'Experiential Learning': 'Belajar melalui siklus pengalaman langsung, refleksi terarah, dan konseptualisasi.',
+  'Design Thinking': 'Pendekatan empati, perumusan ide kreatif, pembuatan prototipe, dan uji solusi.',
+  'STEM / STEAM Learning': 'Integrasi Sains, Teknologi, Rekayasa, Seni, dan Matematika dalam proyek terpadu.',
+  'Game Based Learning & Gamifikasi': 'Memanfaatkan mekanika permainan untuk pembelajaran yang menggembirakan (joyful).',
+  'Flipped Classroom': 'Eksplorasi konsep di rumah dan pendalaman aplikasi interaktif di kelas.',
+  'Station Learning (Rotasi Pos)': 'Siswa bergilir berpindah antar pos aktivitas dengan tugas dan media beragam.',
+  'Social Emotional Learning (SEL/PSE)': 'Mengasah kesadaran diri, manajemen emosi, empati, dan keterampilan berelasi.',
+  'Diskusi Interaktif & Sokratik': 'Dialog mendalam melalui pertanyaan pemantik bertingkat untuk membangun wawasan.'
 };
 
-const DIMENSI_OPTIONS = ['Keimanan & Ketakwaan', 'Kewargaan', 'Penalaran Kritis', 'Kreativitas', 'Kolaborasi', 'Kemandirian', 'Kesehatan', 'Komunikasi'];
-
-const DIMENSI_INFO = {
-  'Keimanan & Ketakwaan': 'Berakhlak mulia terhadap Tuhan, sesama, alam, dan negara.',
-  'Kewargaan': 'Mengenal budaya, menghargai keberagaman, dan cinta tanah air.',
-  'Penalaran Kritis': 'Mampu memproses informasi, menganalisis, dan mengevaluasi.',
-  'Kreativitas': 'Mampu memodifikasi dan menghasilkan karya orisinal yang bermakna.',
-  'Kolaborasi': 'Kemampuan bekerja sama, peduli, dan berbagi dengan orang lain.',
-  'Kemandirian': 'Sadar atas diri sendiri, situasi, dan mampu meregulasi diri.',
-  'Kesehatan': 'Kesadaran menjaga kesehatan fisik dan mental secara mandiri.',
-  'Komunikasi': 'Kemampuan berinteraksi dan bertukar ide secara efektif.'
+// Helper normalisasi metode pembelajaran per pertemuan (bisa gabungan/array)
+const getMeetingMethods = (val) => {
+  if (Array.isArray(val) && val.length > 0) return val;
+  if (typeof val === 'string' && val.trim()) return [val];
+  return ['Problem Based Learning (PBL)'];
 };
 
 const GRADIENT_THEMES = [
@@ -86,10 +114,9 @@ const GRADIENT_THEMES = [
 ];
 
 const AI_MODELS = [
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Standar)' },
-  { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Exp)' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Cerdas)' },
-  { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro (Legacy)' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Sangat Cepat & Cerdas - Rekomendasi)' },
+  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Stabil & Cepat)' },
+  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Penalaran Kompleks)' },
   { id: 'custom', name: 'Gunakan Model Custom...' }
 ];
 
@@ -105,7 +132,7 @@ export default function RPMGenerator() {
     pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
     namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
     jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
-    jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: [],
+    jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: [['Problem Based Learning (PBL)']],
     sertakanDalil: false,
     tanggalRPP: new Date().toISOString().split('T')[0]
   });
@@ -119,7 +146,7 @@ export default function RPMGenerator() {
   
   const [userApiKey, setUserApiKey] = useState('');
   const [spreadsheetId, setSpreadsheetId] = useState(''); 
-  const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
+  const [selectedModel, setSelectedModel] = useState('gemini-2.0-flash');
   const [customModelName, setCustomModelName] = useState('');
   const [dynamicModels, setDynamicModels] = useState(AI_MODELS);
   
@@ -199,20 +226,14 @@ function doGet(e) {
     const fadeTimer = setTimeout(() => { setFadeSplash(true); }, 3000);
     const hideTimer = setTimeout(() => { setShowSplash(false); }, 3500);
 
-    // Muat logo kustom dari penyimpanan lokal jika ada
+    // Muat logo kustom dari penyimpanan lokal secara independen
     const savedLogo = safeStorage.getItem('user_custom_logo');
-    if (savedLogo) {
-        setLogoBase64(savedLogo);
-    } else {
-        // Fallback default opsional jika tidak ada logo
-        setLogoBase64(null);
-      const savedLogoKanan = safeStorage.getItem('user_custom_logo_kanan');
-    if (savedLogoKanan) setLogoKananBase64(savedLogoKanan);
-    else setLogoKananBase64(null);
-    }
+    setLogoBase64(savedLogo || null);
+
+    const savedLogoKanan = safeStorage.getItem('user_custom_logo_kanan');
+    setLogoKananBase64(savedLogoKanan || null);
 
     const storedKey = safeStorage.getItem('user_gemini_api_key');
-    // ... (lanjutan kode Anda di bawahnya tidak perlu diubah)
     if (storedKey) setUserApiKey(storedKey);
     else setShowApiKeyInput(true);
 
@@ -223,7 +244,11 @@ function doGet(e) {
     }
 
     const storedModel = safeStorage.getItem('user_gemini_model');
-    if (storedModel) setSelectedModel(storedModel);
+    if (storedModel && storedModel !== 'gemini-1.0-pro' && storedModel !== 'gemini-2.0-flash-exp') {
+      setSelectedModel(storedModel);
+    } else {
+      setSelectedModel('gemini-2.0-flash');
+    }
     
     const storedCustom = safeStorage.getItem('user_gemini_custom_model');
     if (storedCustom) setCustomModelName(storedCustom);
@@ -233,28 +258,42 @@ function doGet(e) {
       try {
         const parsed = JSON.parse(savedHistory);
         if (Array.isArray(parsed)) setHistory(parsed);
-      } catch (e) { safeStorage.removeItem('rpm_history'); }
+      } catch { safeStorage.removeItem('rpm_history'); }
     }
 
     const savedFormData = safeStorage.getItem('rpm_form_data');
     if (savedFormData) {
       try {
         const parsed = JSON.parse(savedFormData);
-        if (!parsed.metodePerPertemuan) parsed.metodePerPertemuan = ['Inkuiri-Discovery Learning'];
-        if (!parsed.dimensi) parsed.dimensi = [];
+        if (!parsed.metodePerPertemuan) {
+          parsed.metodePerPertemuan = [['Problem Based Learning (PBL)']];
+        } else {
+          parsed.metodePerPertemuan = parsed.metodePerPertemuan.map(m => getMeetingMethods(m));
+        }
         if (!parsed.indikator) parsed.indikator = ''; 
         if (!parsed.pemda) parsed.pemda = '';
         if (!parsed.alamatSekolah) parsed.alamatSekolah = '';
         if (!parsed.tempatTtd) parsed.tempatTtd = '';
         if (!parsed.semester) parsed.semester = 'Ganjil';
         if (!parsed.tanggalRPP) parsed.tanggalRPP = new Date().toISOString().split('T')[0];
-        if (parsed.gunakanLogoQA === undefined) parsed.gunakanLogoQA = false;
+        delete parsed.dimensi;
         setFormData(prev => ({...prev, ...parsed}));
-      } catch (e) { safeStorage.removeItem('rpm_form_data'); }
+      } catch { safeStorage.removeItem('rpm_form_data'); }
     }
 
     return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
   }, []);
+
+  // Helper simpan attachment & pembaruan riwayat aktif
+  const updateActiveHistory = (field, val) => {
+    setHistory(prev => {
+      if (!prev || prev.length === 0) return prev;
+      const updated = [...prev];
+      updated[0] = { ...updated[0], [field]: val };
+      safeStorage.setItem('rpm_history', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   useEffect(() => {
     if (history.length > 0) safeStorage.setItem('rpm_history', JSON.stringify(history));
@@ -269,8 +308,8 @@ function doGet(e) {
       const count = Math.max(1, parseInt(prev.jumlahPertemuan) || 1);
       const currentMethods = [...prev.metodePerPertemuan];
       if (currentMethods.length < count) {
-        const last = currentMethods[currentMethods.length - 1] || PEDAGOGI_OPTIONS[0];
-        while (currentMethods.length < count) currentMethods.push(last);
+        const last = currentMethods[currentMethods.length - 1] || ['Problem Based Learning (PBL)'];
+        while (currentMethods.length < count) currentMethods.push(Array.isArray(last) ? [...last] : [last]);
       } else if (currentMethods.length > count) {
         currentMethods.length = count;
       }
@@ -366,18 +405,37 @@ function doGet(e) {
   };
 
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  const handleMethodChange = (i, v) => setFormData(prev => { const m = [...prev.metodePerPertemuan]; m[i] = v; return { ...prev, metodePerPertemuan: m }; });
-  const handleCheckboxChange = (v) => setFormData(prev => { const c = prev.dimensi; return { ...prev, dimensi: c.includes(v) ? c.filter(i => i !== v) : [...c, v] }; });
+  
+  const addMethodToMeeting = (meetingIdx, methodName) => {
+    setFormData(prev => {
+      const updated = [...prev.metodePerPertemuan];
+      const currentList = getMeetingMethods(updated[meetingIdx]);
+      if (!currentList.includes(methodName)) {
+        updated[meetingIdx] = [...currentList, methodName];
+      }
+      return { ...prev, metodePerPertemuan: updated };
+    });
+  };
+
+  const removeMethodFromMeeting = (meetingIdx, methodName) => {
+    setFormData(prev => {
+      const updated = [...prev.metodePerPertemuan];
+      const currentList = getMeetingMethods(updated[meetingIdx]);
+      const filtered = currentList.filter(m => m !== methodName);
+      updated[meetingIdx] = filtered.length > 0 ? filtered : ['Problem Based Learning (PBL)'];
+      return { ...prev, metodePerPertemuan: updated };
+    });
+  };
+
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validasi ukuran opsional (contoh: maks 2MB)
       if (file.size > 2000000) return alert("Ukuran logo terlalu besar. Maksimal 2MB.");
       
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoBase64(reader.result);
-        safeStorage.setItem('user_custom_logo', reader.result); // Simpan permanen di perangkat guru
+        safeStorage.setItem('user_custom_logo', reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -387,6 +445,7 @@ function doGet(e) {
     setLogoBase64(null);
     safeStorage.removeItem('user_custom_logo');
   };
+
   const handleLogoKananUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -404,6 +463,7 @@ function doGet(e) {
     setLogoKananBase64(null);
     safeStorage.removeItem('user_custom_logo_kanan');
   };
+
   const handleJenjangChange = (e) => {
     const newJenjang = e.target.value;
     setFormData(prev => ({ 
@@ -419,7 +479,7 @@ function doGet(e) {
             pemda: '', namaSatuan: '', alamatSekolah: '', tempatTtd: '',
             namaGuru: '', nipGuru: '', namaKepsek: '', nipKepsek: '',
             jenjang: 'SD Umum', kelas: 'Kelas 1', semester: 'Ganjil', mapel: '', cp: '', tp: '', indikator: '', materi: '', catatanKhusus: '',
-            jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: ['Inkuiri-Discovery Learning'], dimensi: [],
+            jumlahPertemuan: 1, durasi: '2 JP x 35 Menit', metodePerPertemuan: [['Problem Based Learning (PBL)']],
             sertakanDalil: false,
             tanggalRPP: new Date().toISOString().split('T')[0]
         });
@@ -505,7 +565,7 @@ function doGet(e) {
     }
   };
 
-  const callAI = async (prompt) => {
+  const callAI = async (prompt, isJson = false) => {
     setErrorMsg(null);
     setDebugLog(null);
     if (!userApiKey) { 
@@ -518,8 +578,19 @@ function doGet(e) {
     const modelToUse = getActiveModelName();
 
     try {
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }]
+      };
+      if (isJson) {
+        payload.generationConfig = {
+          responseMimeType: "application/json"
+        };
+      }
+
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${userApiKey}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       
@@ -557,21 +628,21 @@ function doGet(e) {
     const isIslamic = ['SDIT', 'MI', 'SMPIT', 'MTs', 'SMAIT', 'MA'].includes(formData.jenjang);
     const isVocational = formData.jenjang === 'SMK';
     let tambahanKonteks = "";
-    if (isIslamic) tambahanKonteks = " PASTIKAN menyisipkan nilai-nilai keislaman, akhlak, atau hikmah spiritual yang relevan.";
-    if (isVocational) tambahanKonteks = " PASTIKAN berfokus pada ranah vokasional, praktik industri, atau kesiapan kerja.";
+    if (isIslamic) tambahanKonteks = " PASTIKAN menyisipkan nilai-nilai keislaman, adab, atau hikmah spiritual yang relevan.";
+    if (isVocational) tambahanKonteks = " PASTIKAN berfokus pada ranah vokasional, standar industri, atau kesiapan kerja nyata.";
 
     const catatanGuru = formData.catatanKhusus ? ` CATATAN GURU: ${formData.catatanKhusus}.` : "";
-    const instruksiDalil = formData.sertakanDalil ? "WAJIB sisipkan 1 teks dalil Al-Qur'an atau Hadits Shahih beserta terjemahannya yang relevan dengan materi ke dalam langkah kegiatan (misalnya di fase Pendahuluan atau Inti). " : "";
+    const instruksiDalil = formData.sertakanDalil ? " WAJIB sisipkan 1 teks dalil Al-Qur'an atau Hadits Shahih beserta terjemahannya yang relevan dengan materi." : "";
 
     let strictPrompt = prompt;
     if (type === 'cp' || type === 'tp' || type === 'indikator') {
-        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Gunakan poin nomor urut biasa (1, 2, 3). Jangan pakai kata pengantar atau penjelasan akhir. Gunakan acuan materi dan mapel yang diberikan secara ketat.${tambahanKonteks}${catatanGuru}`;
+        strictPrompt += `. INSTRUKSI KHUSUS: HANYA berikan daftarnya saja. Gunakan poin nomor urut biasa (1, 2, 3). Jangan pakai kata pengantar atau penjelasan akhir. Gunakan acuan materi dan mapel yang diberikan secara ketat.${tambahanKonteks}${instruksiDalil}${catatanGuru}`;
     } else if (type === 'rubric') {
-        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. Langsung kode HTML saja. Jadikan Tujuan Pembelajaran (TP) yang saya berikan sebagai ACUAN UTAMA.
+        strictPrompt += `. INSTRUKSI KHUSUS: Buatkan DALAM FORMAT HTML TABLE (<table>) yang lengkap dengan border. Langsung kode HTML saja. Jadikan Tujuan Pembelajaran (TP) dan Indikator yang saya berikan sebagai ACUAN UTAMA.
         STRUKTUR TABEL WAJIB:
-        1. Bagi 3 aspek: Kognitif (Pemahaman), Psikomotorik (Keterampilan Praktik), dan Afektif (Sikap/Profil Pelajar).
+        1. Susun rubrik ketercapaian Tujuan Pembelajaran secara komprehensif (Aspek Pemahaman Konsep, Keterampilan/Praktik, serta Sikap & Kemandirian Belajar) dengan kriteria bertingkat deskriptif (Baru Berkembang, Layak, Cakap, Mahir).
         2. Gunakan indikator yang terukur.
-        3. Tambahkan tabel khusus untuk Tindak Lanjut (Remedial & Pengayaan).${tambahanKonteks}${catatanGuru}`;
+        3. Tambahkan tabel khusus untuk Tindak Lanjut (Remedial & Pengayaan).${tambahanKonteks}${instruksiDalil}${catatanGuru}`;
     } else if (type === 'instrumen') {
         strictPrompt = `Buatkan Dokumen Instrumen Penilaian LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas}. 
         Tujuan Pembelajaran: ${formData.tp}
@@ -583,19 +654,19 @@ function doGet(e) {
         Buatkan 3 Bagian Utama yang menarik dan rapi menggunakan tag HTML (<h4>, <table>, <ul>, dll):
         1. Kisi-kisi Soal (Bentuk Tabel yang memuat Indikator Soal, Bentuk Soal, dan Bobot).
         2. Lembar Soal Evaluasi (Berisi minimal 5 soal pilihan ganda dan 3 soal isian/essay yang berbobot/HOTS).
-        3. Kunci Jawaban & Pedoman Penskoran (Berisi jawaban dan tabel cara menghitung nilai akhir).${tambahanKonteks}`;
+        3. Kunci Jawaban & Pedoman Penskoran (Berisi jawaban dan tabel cara menghitung nilai akhir).${tambahanKonteks}${instruksiDalil}`;
     } else if (type === 'materiajar') {
         strictPrompt = `Buatkan Ringkasan Materi Ajar (Bahan Bacaan) LENGKAP untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
         Tujuan Pembelajaran: ${formData.tp}
         ${catatanGuru}
         
         INSTRUKSI OUTPUT (WAJIB HTML MURNI tanpa markdown):
-        1. Susun materi secara sistematis, menggunakan bahasa yang mudah dipahami siswa sesuai jenjangnya. ${tambahanKonteks}
+        1. Susun materi secara sistematis, menggunakan bahasa yang mudah dipahami siswa sesuai jenjangnya. ${tambahanKonteks}${instruksiDalil}
         2. Gunakan tag <h4> untuk sub-judul. Gunakan <ul> atau <ol> untuk poin-poin penting.
-        3. Berikan contoh konkret atau relevansi materi dalam kehidupan sehari-hari agar bermakna.`;
+        3. Berikan contoh konkret atau relevansi materi dalam kehidupan sehari-hari agar bermakna (meaningful).`;
     } else if (type === 'lkpd') {
         const isFaseA = formData.kelas === 'Kelas 1' || formData.kelas === 'Kelas 2';
-        const intruksiFaseA = isFaseA ? "KARENA INI UNTUK KELAS 1/2 (FASE A), BUAT DESAIN YANG SANGAT RAMAH ANAK. Gunakan banyak EMOJI HTML (🌟, 🍎, 🚗, 🐶, 🖍️, dll) sebagai pengganti gambar ilustrasi di berbagai bagian. Gunakan kalimat instruksi yang sangat pendek, sederhana, dan hindari kata rumit. Berikan ruang lebar untuk menggambar atau menebalkan huruf." : "";
+        const intruksiFaseA = isFaseA ? "KARENA INI UNTUK KELAS 1/2, BUAT DESAIN YANG SANGAT RAMAH ANAK. Gunakan banyak EMOJI HTML (🌟, 🍎, 🚗, 🐶, 🖍️, dll) sebagai pengganti gambar ilustrasi di berbagai bagian. Gunakan kalimat instruksi yang sangat pendek, sederhana, dan hindari kata rumit. Berikan ruang lebar untuk menggambar atau menebalkan huruf." : "";
 
         strictPrompt = `Buatkan Dokumen Lembar Kerja Peserta Didik (LKPD) yang LENGKAP, KREATIF, dan SIAP CETAK untuk materi: ${formData.materi}, Kelas: ${formData.kelas} (${formData.jenjang}).
         
@@ -603,17 +674,17 @@ function doGet(e) {
         ${catatanGuru}
         
         Instruksi Output:
-        1. Format WAJIB: HTML Murni (tanpa Markdown). Gunakan atribut style seperlunya agar terlihat rapi (jangan panggil CSS eksternal).
-        2. Gaya Bahasa: Menarik untuk siswa. ${intruksiFaseA} ${tambahanKonteks}
+        1. Format WAJIB: HTML Murni (tanpa Markdown). Gunakan atribut style seperlunya agar terlihat rapi.
+        2. Gaya Bahasa: Menarik, komunikatif, dan memotivasi siswa. ${intruksiFaseA} ${tambahanKonteks} ${instruksiDalil}
         3. Struktur Wajib:
-           - Judul Kegiatan (Tag <h3>, Center)
-           - Identitas Siswa (Kotak atau baris titik-titik Nama, Kelas)
-           - Pojok Eksplorasi (Kotak putus-putus untuk QR Code)
-           ${isIslamic ? '- Mufradat/Kata Hikmah Hari Ini' : ''}
-           - Pemanasan/Gamifikasi (Teka-teki ringan/permainan awal)
-           - Langkah Kegiatan / Petunjuk Belajar
-           - Lembar Jawab/Diskusi: Sediakan soal-soal latihan (3-5 soal) dan area kosong dengan garis titik-titik <hr> untuk siswa menulis jawaban.
-           - Jurnal Refleksi Anak (Sediakan opsi centang seperti [ Senang 😊 ] [ Biasa 😐 ] [ Sedih 😢 ]).`;
+           - Judul Kegiatan LKPD (Tag <h3>, Center)
+           - Identitas Siswa (Kotak atau baris titik-titik Nama, Kelas, Kelompok/No. Absen)
+           - Pojok Eksplorasi (Kotak putus-putus untuk Sumber/QR Code/Petunjuk Alat)
+           ${isIslamic ? '- Mufradat / Kata Hikmah / Nilai Karakter Hari Ini' : ''}
+           - Pemanasan / Gamifikasi / Teka-teki pemantik rasa ingin tahu
+           - Langkah Kegiatan / Petunjuk Belajar (Aktivitas terarah)
+           - Lembar Jawab/Diskusi: Pertanyaan pemantik dan area pengerjaan siswa dengan garis atau tabel.
+           - Jurnal Refleksi Diri Anak (Opsi centang ekspresi emotikon belajar).`;
     }
 
     const res = await callAI(strictPrompt);
@@ -625,10 +696,23 @@ function doGet(e) {
       if (type === 'cp') setFormData(p => ({ ...p, cp: cleanedRes }));
       else if (type === 'tp') setFormData(p => ({ ...p, tp: cleanedRes }));
       else if (type === 'indikator') setFormData(p => ({ ...p, indikator: cleanedRes }));
-      else if (type === 'rubric') setRubricContent(cleanHtmlContent(cleanedRes));
-      else if (type === 'instrumen') setInstrumenContent(cleanHtmlContent(cleanedRes));
-      else if (type === 'lkpd') setLkpdContent(cleanHtmlContent(cleanedRes));
-      else if (type === 'materiajar') setMateriContent(cleanHtmlContent(cleanedRes));
+      else if (type === 'rubric') {
+        const cleaned = cleanHtmlContent(cleanedRes);
+        setRubricContent(cleaned);
+        updateActiveHistory('rubricContent', cleaned);
+      } else if (type === 'instrumen') {
+        const cleaned = cleanHtmlContent(cleanedRes);
+        setInstrumenContent(cleaned);
+        updateActiveHistory('instrumenContent', cleaned);
+      } else if (type === 'lkpd') {
+        const cleaned = cleanHtmlContent(cleanedRes);
+        setLkpdContent(cleaned);
+        updateActiveHistory('lkpdContent', cleaned);
+      } else if (type === 'materiajar') {
+        const cleaned = cleanHtmlContent(cleanedRes);
+        setMateriContent(cleaned);
+        updateActiveHistory('materiContent', cleaned);
+      }
     }
   };
 
@@ -638,36 +722,46 @@ function doGet(e) {
 
     const isIslamic = ['SDIT', 'MI', 'SMPIT', 'MTs', 'SMAIT', 'MA'].includes(formData.jenjang);
     const isVocational = formData.jenjang === 'SMK';
-    let instruksiJenjang = isIslamic ? "Integrasikan nilai spiritual/islami secara natural. " : isVocational ? "Fokuskan pada hard skills dunia kerja. " : "";
+    let instruksiJenjang = isIslamic ? "Integrasikan nilai spiritual/islami secara natural. " : isVocational ? "Fokuskan pada hard skills dunia kerja nyata. " : "";
     const catatanGuru = formData.catatanKhusus ? `CATATAN GURU: ${formData.catatanKhusus}.` : "";
     const instruksiDalil = formData.sertakanDalil ? "SANGAT PENTING: Anda WAJIB menuliskan TEKS ARAB ASLI (dengan huruf Hijaiyah) dari 1 dalil Al-Qur'an atau Hadits beserta terjemahan bahasa Indonesianya secara LENGKAP di dalam langkah kegiatan. JANGAN HANYA menulis nama surah/ayatnya saja! " : "";
 
-    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING FRAMEWORK ===
-    const prompt = `Buatkan Rencana Pembelajaran Mendalam (Deep Learning Plan) untuk ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
-    Data Utama: ${JSON.stringify({...formData, catatanKhusus: undefined})}. 
-    Praktik Pedagogis (Metode): ${formData.metodePerPertemuan.join(', ')}. 
-    Profil Lulusan: ${formData.dimensi.length > 0 ? formData.dimensi.join(', ') : 'Mandiri, Bernalar Kritis'}.
-    ${instruksiJenjang} ${instruksiDalil} ${catatanGuru} 
+    const methodDescriptions = formData.metodePerPertemuan.map((m, idx) => {
+      const methods = getMeetingMethods(m);
+      return `Pertemuan ${idx + 1}: ${methods.join(' dipadukan dengan ')}`;
+    }).join('; ');
+
+    // === PROMPT BARU: TERINTEGRASI DEEP LEARNING (KURIKULUM NASIONAL) ===
+    const prompt = `Buatkan Rencana Pembelajaran Mendalam (RPM) Kurikulum Nasional untuk ${formData.jumlahPertemuan} pertemuan. Format WAJIB: JSON Array. 
+Data Utama: ${JSON.stringify({...formData, catatanKhusus: undefined, metodePerPertemuan: undefined})}. 
+Model Pembelajaran: ${methodDescriptions}. 
+${instruksiJenjang} ${instruksiDalil} ${catatanGuru} 
+
+INSTRUKSI SANGAT PENTING & KERANGKA WAJIB:
+1. ACUAN MUTLAK: Anda WAJIB menggunakan Capaian Pembelajaran (CP), Tujuan Pembelajaran (TP), dan Indikator dari Data Utama secara ketat dan selaras.
+2. PRINSIP PEMBELAJARAN MENDALAM (DEEP LEARNING): Seluruh skenario kegiatan pembelajaran WAJIB mencerminkan:
+   - Mindful (Berkesadaran): Siswa hadir secara utuh, sadar tujuan belajar, dan fokus.
+   - Meaningful (Bermakna): Menghubungkan materi dengan realitas kehidupan nyata peserta didik.
+   - Joyful (Menggembirakan): Pembelajaran interaktif, menantang, dan menyenangkan tanpa beban intimidatif.
+3. INTEGRASI KOMBINASI MODEL PEMBELAJARAN: Jika satu pertemuan menggunakan kombinasi lebih dari 1 model (misalnya Problem Based Learning dan Cooperative Learning), PADUKAN SINTAKS KEDUANYA secara sistematis di Kegiatan Inti (misal: orientasi masalah nyata dilanjutkan investigasi tim kooperatif).
+4. KERANGKA PEMBELAJARAN (Isi pada key JSON yang sesuai):
+   - "topik": Tuliskan Sub-Topik / Pokok Bahasan Spesifik khusus untuk pertemuan ini (harus spesifik per pertemuan, bukan hanya judul bab umum).
+   - "lintasDisiplin": Hubungan materi ini dengan mata pelajaran lain secara aplikatif.
+   - "lingkungan": Desain tata ruang/lingkungan belajar kelas, luar kelas, lab, atau lingkungan sekitar.
+   - "digital": Pemanfaatan teknologi digital, media visual/audio, atau alat peraga interaktif.
+   - "kemitraan": Kemitraan pembelajaran (orang tua, narasumber ahli, komunitas, sumber literasi autentik).
+5. PENGALAMAN BELAJAR (WAJIB DAFTAR NOMOR 1, 2, 3 KE BAWAH):
+   - "memahami": Kegiatan Pendahuluan (Salam, doa, apersepsi bermakna, menghubungkan materi awal).
+   - "mengaplikasi": Kegiatan Inti (Penerapan langkah-langkah model pembelajaran yang dipilih, investigasi, kerja tim, penciptaan karya/solusi).
+   - "refleksi": Kegiatan Penutup (Refleksi diri peserta didik, kesimpulan bersama, umpan balik).
+6. ASESMEN:
+   - "awal": Asesmen awal pembelajaran / diagnostik non-tes atau tes singkat.
+   - "proses": Asesmen formatif proses (observasi diskusi, unjuk kerja, lembar ceklist).
+   - "akhir": Asesmen sumatif / refleksi ketercapaian tujuan di akhir pertemuan.
+
+Struktur JSON: [{"topik":"","lintasDisiplin":"","siswa":"","lingkungan":"","digital":"","kemitraan":"","pengalaman":{"memahami":"(List 1, 2, 3...)","mengaplikasi":"(List 1, 2, 3...)","refleksi":"(List 1, 2, 3...)"},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
     
-    INSTRUKSI SANGAT PENTING & KERANGKA WAJIB:
-    1. ACUAN MUTLAK: Anda WAJIB menggunakan Capaian Pembelajaran (CP), Tujuan Pembelajaran (TP), dan Indikator dari Data Utama secara ketat.
-    2. PRINSIP PEMBELAJARAN: Seluruh skenario aktivitas WAJIB dirancang dengan prinsip:
-       - Bermakna (Relevan dengan dunia nyata siswa).
-       - Berkesadaran (Mindful, mendorong siswa fokus pada saat ini).
-       - Menggembirakan (Interaktif, menyenangkan, tidak membosankan).
-    3. INTEGRASI PROFIL LULUSAN: Sisipkan pembentukan karakter "Profil Lulusan" yang diminta ke dalam langkah-langkah kegiatan secara natural dan eksplisit.
-    4. KERANGKA PEMBELAJARAN (Isi pada key JSON yang sesuai):
-       - "lingkungan": Jelaskan desain Lingkungan Pembelajaran kelas/luar kelas yang mendukung.
-       - "digital": Jelaskan Pemanfaatan Digital/teknologi yang digunakan.
-       - "kemitraan": Jelaskan bentuk Kemitraan Pembelajaran (pelibatan orang tua, ahli, atau komunitas).
-    5. PENGALAMAN BELAJAR (PENTING: JANGAN GUNAKAN PARAGRAF! WAJIB DAFTAR ANGKA 1, 2, 3 KE BAWAH):
-       - "memahami": Ini adalah fase Pendahuluan. Langkah 1 wajib salam, doa, apersepsi bermakna. Siswa membangun pemahaman konsep awal.
-       - "mengaplikasi": Ini adalah fase Inti. Terapkan 'Praktik Pedagogis' di sini. Siswa mempraktikkan, menciptakan, atau mengeksplorasi.
-       - "refleksi": Ini adalah fase Penutup. Siswa melakukan refleksi mendalam atas apa yang dipelajari dan dirasakan.
-    
-    Struktur JSON: [{"siswa":"","lintasDisiplin":"","topik":"","kemitraan":"","lingkungan":"","digital":"","pengalaman":{"memahami":"(Tulis list 1, 2, 3...)","mengaplikasi":"(Tulis list 1, 2, 3...)","refleksi":"(Tulis list 1, 2, 3...)"},"asesmen":{"awal":"","proses":"","akhir":""}}]`;
-    
-    const res = await callAI(prompt);
+    const res = await callAI(prompt, true);
     if (res) {
       try {
         let jsonStr = res.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -701,14 +795,19 @@ function doGet(e) {
             kelas: formData.kelas,
             tanggal: recordDate,
             formData: {...formData}, 
-            aiContent: json 
+            aiContent: json,
+            rubricContent: null,
+            lkpdContent: null,
+            instrumenContent: null,
+            materiContent: null
         };
 
         // Simpan ke State Lokal & Cloud
         setHistory(p => [newRecord, ...p]);
         saveToCloud(newRecord);
 
-      } catch (e) { 
+      } catch (err) { 
+        console.error("Gagal parse JSON:", err);
         setErrorMsg("Format AI tidak valid. Klik tombol Generate RPM sekali lagi."); 
       }
     }
@@ -725,6 +824,16 @@ function doGet(e) {
         d[a] = { ...d[a], [b]: val };
       } else { d[path] = val; }
       arr[i] = d;
+
+      // Update riwayat lokal terkini
+      setHistory(hPrev => {
+        if (!hPrev || hPrev.length === 0) return hPrev;
+        const updated = [...hPrev];
+        updated[0] = { ...updated[0], aiContent: arr };
+        safeStorage.setItem('rpm_history', JSON.stringify(updated));
+        return updated;
+      });
+
       return arr;
     });
   };
@@ -878,7 +987,7 @@ const formatWaktuRiwayat = (dateStr) => {
         day: '2-digit', month: 'short', year: 'numeric', 
         hour: '2-digit', minute: '2-digit' 
       });
-    } catch(e) { return dateStr; }
+    } catch { return dateStr; }
   };
   
   // --- STYLES ---
@@ -909,7 +1018,7 @@ const formatWaktuRiwayat = (dateStr) => {
                     <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight drop-shadow-xl font-sans mb-2">
                         <span className="text-white">{APP_NAME_P1}</span> <span className="text-amber-300">{APP_NAME_P2}</span>
                     </h1>
-                    <p className="text-sm md:text-base font-semibold text-emerald-100 tracking-wider">Asisten Cerdas Perencanaan Pembelajaran</p>
+                    <p className="text-sm md:text-base font-semibold text-emerald-100 tracking-wider">Perencanaan Pembelajaran Mendalam • Kurikulum Nasional</p>
                 </div>
                 
                 <div className="mt-8 flex gap-3">
@@ -935,9 +1044,9 @@ const formatWaktuRiwayat = (dateStr) => {
             </div>
             <div>
                 <h1 className="text-xl font-bold font-sans">
-                    <span>{APP_NAME_P1}</span> <span className="text-yellow-500">{APP_NAME_P2}</span> <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded ml-1">v8.0 Max</span>
+                    <span>{APP_NAME_P1}</span> <span className="text-yellow-500">{APP_NAME_P2}</span> <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded ml-1">v8.2 Max</span>
                 </h1>
-                <p className="text-xs opacity-70">Deep Learning Plan • Dev: Ibnu Husny</p>
+                <p className="text-xs opacity-70">Deep Learning Plan • Kurikulum Nasional</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -1120,10 +1229,10 @@ const formatWaktuRiwayat = (dateStr) => {
                                   onClick={()=>{
                                       setFormData(h.formData); 
                                       setAiContent(h.aiContent); 
-                                      setRubricContent(null); 
-                                      setLkpdContent(null); 
-                                      setInstrumenContent(null);
-                                    setMateriContent(null);
+                                      setRubricContent(h.rubricContent || null); 
+                                      setLkpdContent(h.lkpdContent || null); 
+                                      setInstrumenContent(h.instrumenContent || null);
+                                      setMateriContent(h.materiContent || null);
                                       setIsGenerated(true); 
                                       setShowHistory(false);
                                   }}>
@@ -1230,55 +1339,90 @@ const formatWaktuRiwayat = (dateStr) => {
               <div><label className={cssLabel}>Mapel</label><input name="mapel" value={formData.mapel} onChange={handleChange} className={cssInput} required /></div>
             </div>
             <div className="space-y-4 mb-4">
-              <div><label className={cssLabel}>Capaian Pembelajaran <button type="button" onClick={() => generateSimple('cp', `Carikan CP Kurikulum Merdeka ${formData.mapel} ${formData.jenjang} ${formData.kelas}`, 'CP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'CP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Cari CP'}</button></label><textarea name="cp" value={formData.cp} onChange={handleChange} rows={2} className={cssInput} /></div>
+              <div><label className={cssLabel}>Capaian Pembelajaran <button type="button" onClick={() => generateSimple('cp', `Carikan Capaian Pembelajaran (CP) Kurikulum Nasional untuk mata pelajaran ${formData.mapel}, jenjang ${formData.jenjang}, ${formData.kelas}`, 'CP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'CP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Cari CP'}</button></label><textarea name="cp" value={formData.cp} onChange={handleChange} rows={2} className={cssInput} /></div>
               <div><label className={cssLabel}>Materi</label><textarea name="materi" value={formData.materi} onChange={handleChange} rows={2} className={cssInput} /></div>
               <div><label className={cssLabel}>Tujuan Pembelajaran <button type="button" onClick={() => generateSimple('tp', `Buat TP dari CP ${formData.cp} materi ${formData.materi}`, 'TP')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'TP' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat TP'}</button></label><textarea name="tp" value={formData.tp} onChange={handleChange} rows={2} className={cssInput} /></div>
               
               <div><label className={cssLabel}>Indikator Pembelajaran (IKTP/KD) <button type="button" onClick={() => generateSimple('indikator', `Buat minimal 3 Indikator Ketercapaian Tujuan Pembelajaran (IKTP) dari TP: ${formData.tp}, materi: ${formData.materi}`, 'Indikator')} disabled={loadingStatus} className="text-xs bg-indigo-100 text-indigo-700 px-2 rounded ml-2">{loadingStatus === 'Indikator' ? <Loader2 className="inline h-3 w-3 animate-spin"/> : '✨ Buat Indikator'}</button></label><textarea name="indikator" value={formData.indikator} onChange={handleChange} rows={2} className={cssInput} placeholder="Siswa mampu menyebutkan..., Siswa mampu mempraktikkan..." /></div>
             </div>
             
-            <div className="bg-indigo-50 p-4 rounded mb-4 border border-indigo-100 text-gray-800">
-              <div className="grid grid-cols-2 gap-4 mb-2">
-                <div><label className="text-sm font-medium">Jml Pertemuan</label><input type="number" name="jumlahPertemuan" min="1" max="20" value={formData.jumlahPertemuan} onChange={handleChange} className="w-full p-2 border rounded" /></div>
-                <div><label className="text-sm font-medium">Alokasi Waktu (JP)</label><input name="durasi" value={formData.durasi} onChange={handleChange} className="w-full p-2 border rounded" placeholder="Contoh: 2 JP x 35 Menit" /></div>
+            <div className="bg-indigo-50/80 p-4 rounded-xl mb-4 border border-indigo-200 text-gray-800 shadow-sm">
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div><label className="text-sm font-semibold text-indigo-900">Jml Pertemuan</label><input type="number" name="jumlahPertemuan" min="1" max="20" value={formData.jumlahPertemuan} onChange={handleChange} className="w-full p-2 border rounded-lg bg-white mt-1 shadow-sm" /></div>
+                <div><label className="text-sm font-semibold text-indigo-900">Alokasi Waktu (JP)</label><input name="durasi" value={formData.durasi} onChange={handleChange} className="w-full p-2 border rounded-lg bg-white mt-1 shadow-sm" placeholder="Contoh: 2 JP x 35 Menit" /></div>
               </div>
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                {formData.metodePerPertemuan.map((m, i) => (
-                  <div key={i} className="flex flex-col bg-white p-2 rounded shadow-sm border border-gray-200">
-                    <span className="text-[10px] font-bold text-indigo-600 uppercase mb-1 tracking-wider">
-                      Pertemuan {i + 1}
-                    </span>
-                    <select 
-                      value={m} 
-                      onChange={e => handleMethodChange(i, e.target.value)} 
-                      className="p-1.5 border border-gray-300 rounded text-sm w-full outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all bg-gray-50 mb-1"
-                    >
-                      {PEDAGOGI_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                    <span className="text-[10px] text-gray-500 leading-tight">
-                      <span className="font-bold text-amber-500">💡 Info:</span> {PEDAGOGI_INFO[m] || 'Pilih metode.'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="mb-4">
-                <span className={cssLabel}>Dimensi Profil Lulusan</span>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {DIMENSI_OPTIONS.map(d => (
-                        <div key={d} className="relative group">
-                            <label className={`flex items-center p-2 border rounded text-xs cursor-pointer h-full transition-colors ${formData.dimensi.includes(d) ? 'bg-indigo-100 border-indigo-500' : 'hover:bg-gray-50'}`}>
-                                <input type="checkbox" checked={formData.dimensi.includes(d)} onChange={() => handleCheckboxChange(d)} className="mr-2" />
-                                {d}
-                            </label>
-                            <div className="absolute z-10 bottom-full mb-1 left-1/2 -translate-x-1/2 w-48 bg-gray-800 text-white text-[10px] p-2 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-lg pointer-events-none">
-                                {DIMENSI_INFO[d]}
-                                <svg className="absolute text-gray-800 h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xmlSpace="preserve"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+              <div className="mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-800 flex items-center justify-between">
+                  <span>Model Pembelajaran per Pertemuan</span>
+                  <span className="text-[11px] font-normal lowercase text-indigo-600 bg-white px-2 py-0.5 rounded border border-indigo-200">Bisa pilih & gabungkan lebih dari 1 model</span>
+                </span>
+              </div>
+
+              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                {formData.metodePerPertemuan.map((m, i) => {
+                  const methods = getMeetingMethods(m);
+                  return (
+                    <div key={i} className="flex flex-col bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                          Pertemuan {i + 1}
+                        </span>
+                        <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded font-medium">
+                          {methods.length} Model Dipadukan
+                        </span>
+                      </div>
+
+                      {/* Badges model yang dipilih */}
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {methods.map(methodName => (
+                          <span key={methodName} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-indigo-50 to-sky-50 text-indigo-800 border border-indigo-200 rounded-md text-xs font-medium shadow-2xs">
+                            <span>{methodName}</span>
+                            {methods.length > 1 && (
+                              <button 
+                                type="button" 
+                                onClick={() => removeMethodFromMeeting(i, methodName)}
+                                className="text-gray-400 hover:text-red-600 rounded-full transition-colors ml-0.5"
+                                title="Hapus model ini"
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Dropdown tambah model */}
+                      <div className="flex items-center gap-2">
+                        <select 
+                          value="" 
+                          onChange={e => {
+                            if (e.target.value) {
+                              addMethodToMeeting(i, e.target.value);
+                            }
+                          }}
+                          className="p-1.5 border border-indigo-200 rounded-md text-xs w-full outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-slate-50 text-gray-700 cursor-pointer"
+                        >
+                          <option value="">+ Tambah / Gabungkan Model Lain untuk Pertemuan {i + 1}...</option>
+                          {PEDAGOGI_OPTIONS
+                            .filter(opt => !methods.includes(opt))
+                            .map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </select>
+                      </div>
+
+                      {/* Info singkat model yang dipilih */}
+                      <div className="mt-2 space-y-1 bg-amber-50/50 p-2 rounded border border-amber-100">
+                        {methods.map(methodName => (
+                          <div key={methodName} className="text-[10px] text-gray-600 leading-tight">
+                            <span className="font-semibold text-amber-700">💡 {methodName}:</span> {PEDAGOGI_INFO[methodName] || ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="mb-2">
@@ -1357,8 +1501,9 @@ const formatWaktuRiwayat = (dateStr) => {
                       </table>
 
                       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                          <h2 style={{ fontSize: '14pt', fontWeight: 'bold', textDecoration: 'underline', margin: '0 0 5px 0' }}>MODUL AJAR / RPP</h2>
-                          <p style={{ margin: 0 }}>Tahun Pelajaran {new Date().getFullYear()}/{new Date().getFullYear() + 1}</p>
+                          <h2 style={{ fontSize: '14pt', fontWeight: 'bold', textDecoration: 'underline', margin: '0 0 4px 0' }}>RENCANA PEMBELAJARAN MENDALAM (RPM)</h2>
+                          <p style={{ margin: '0 0 2px 0', fontWeight: 'bold', fontSize: '11pt' }}>KURIKULUM NASIONAL</p>
+                          <p style={{ margin: 0, fontSize: '10pt' }}>Tahun Pelajaran {new Date().getFullYear()}/{new Date().getFullYear() + 1}</p>
                       </div>
 
                       {/* INFORMASI UMUM (Tabel Identitas) */}
@@ -1377,10 +1522,16 @@ const formatWaktuRiwayat = (dateStr) => {
                                   <td>{formData.jenjang} / {formData.kelas} / {formData.semester}</td>
                               </tr>
                               <tr>
-                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Alokasi Waktu (JP)</td>
-                                  <td>{formData.durasi} (Pert. {i + 1})</td>
                                   <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Materi Pokok</td>
                                   <td>{formData.materi}</td>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Alokasi Waktu (JP)</td>
+                                  <td>{formData.durasi} (Pert. {i + 1})</td>
+                              </tr>
+                              <tr>
+                                  <td style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Sub-Topik Pertemuan {i + 1}</td>
+                                  <td colSpan="3">
+                                      <EditCell val={rpm.topik || formData.materi} idx={i} path="topik" />
+                                  </td>
                               </tr>
                           </tbody>
                       </table>
@@ -1388,28 +1539,27 @@ const formatWaktuRiwayat = (dateStr) => {
                       {/* KOMPONEN INTI */}
                       <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black' }}>
                           <tbody>
-                              {/* A. TUJUAN PEMBELAJARAN */}
+                              {/* A. TUJUAN & KONEKSI PEMBELAJARAN */}
                               <tr style={{ backgroundColor: '#e5e7eb' }}>
-                                  <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>A. TUJUAN PEMBELAJARAN</td>
+                                  <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>A. TUJUAN & KONEKSI PEMBELAJARAN</td>
                               </tr>
                               <tr>
-                                  <td style={{ width: '30%', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Capaian Pembelajaran</td>
+                                  <td style={{ width: '30%', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Capaian Pembelajaran (CP)</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.cp)}</td>
                               </tr>
                               <tr>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Tujuan Pembelajaran</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Tujuan Pembelajaran (TP)</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.tp)}</td>
                               </tr>
-                              {/* BARIS INDIKATOR */}
                               {formData.indikator && (
                                   <tr>
-                                      <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Indikator (IKTP)</td>
+                                      <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Indikator Pembelajaran (IKTP)</td>
                                       <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formatRender(formData.indikator)}</td>
                                   </tr>
                               )}
                               <tr>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Dimensi Profil Lulusan</td>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>{formData.dimensi.join(', ')}</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Koneksi Lintas Disiplin</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.lintasDisiplin} idx={i} path="lintasDisiplin" multi /></td>
                               </tr>
                               <tr>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Target Peserta Didik</td>
@@ -1419,20 +1569,22 @@ const formatWaktuRiwayat = (dateStr) => {
                               {/* B. KEGIATAN PEMBELAJARAN */}
                               <tr style={{ backgroundColor: '#e5e7eb' }}>
                                   <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>
-                                      B. KEGIATAN PEMBELAJARAN <br/>
-                                      <span style={{ fontWeight: 'normal', fontSize: '10pt' }}>Model: {formData.metodePerPertemuan[i]}</span>
+                                      B. KEGIATAN PEMBELAJARAN (Pertemuan {i + 1}) <br/>
+                                      <span style={{ fontWeight: 'normal', fontSize: '10pt' }}>
+                                        Model Pembelajaran: <strong>{getMeetingMethods(formData.metodePerPertemuan[i]).join(' + ')}</strong>
+                                      </span>
                                   </td>
                               </tr>
                               <tr>
-                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>1. Kegiatan Pendahuluan<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Memahami/Apersepsi)</span></td>
+                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>1. Kegiatan Pendahuluan<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Memahami / Apersepsi Bermakna)</span></td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.pengalaman?.memahami} idx={i} path="pengalaman.memahami" multi /></td>
                               </tr>
                               <tr>
-                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>2. Kegiatan Inti<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Mengaplikasi/Eksplorasi)</span></td>
+                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>2. Kegiatan Inti<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Mengaplikasi / Eksplorasi & Kolaborasi)</span></td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.pengalaman?.mengaplikasi} idx={i} path="pengalaman.mengaplikasi" multi /></td>
                               </tr>
                               <tr>
-                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>3. Kegiatan Penutup<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Refleksi)</span></td>
+                                  <td style={{ fontWeight: 'bold', verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>3. Kegiatan Penutup<br/><span style={{fontWeight:'normal', fontSize:'9pt'}}>(Merefleksi / Penguatan & Umpan Balik)</span></td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.pengalaman?.refleksi} idx={i} path="pengalaman.refleksi" multi /></td>
                               </tr>
 
@@ -1441,29 +1593,33 @@ const formatWaktuRiwayat = (dateStr) => {
                                   <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>C. ASESMEN / PENILAIAN</td>
                               </tr>
                               <tr>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Diagnostik (Awal)</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Awal (Diagnostik)</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.asesmen?.awal} idx={i} path="asesmen.awal" multi /></td>
                               </tr>
                               <tr>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Formatif (Proses)</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Proses (Formatif)</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.asesmen?.proses} idx={i} path="asesmen.proses" multi /></td>
                               </tr>
                               <tr>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Sumatif (Akhir)</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Asesmen Akhir (Sumatif)</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.asesmen?.akhir} idx={i} path="asesmen.akhir" multi /></td>
                               </tr>
 
-                              {/* D. MEDIA & SUMBER BELAJAR */}
+                              {/* D. MEDIA, SUMBER & LINGKUNGAN BELAJAR */}
                               <tr style={{ backgroundColor: '#e5e7eb' }}>
-                                  <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>D. MEDIA & SUMBER BELAJAR</td>
+                                  <td colSpan="2" style={{ fontWeight: 'bold', border: '1px solid black', padding: '8px' }}>D. MEDIA, SUMBER & LINGKUNGAN BELAJAR</td>
                               </tr>
                               <tr>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Media & Alat</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Media & Alat Digital/Fisik</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.digital} idx={i} path="digital" multi /></td>
                               </tr>
                               <tr>
-                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Sumber Belajar/Mitra</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Sumber Belajar & Kemitraan</td>
                                   <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.kemitraan} idx={i} path="kemitraan" multi /></td>
+                              </tr>
+                              <tr>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}>Desain Lingkungan Belajar</td>
+                                  <td style={{ verticalAlign: 'top', padding: '8px', border: '1px solid black' }}><EditCell val={rpm.lingkungan} idx={i} path="lingkungan" multi /></td>
                               </tr>
                           </tbody>
                       </table>
@@ -1493,11 +1649,86 @@ const formatWaktuRiwayat = (dateStr) => {
                     </div>
                   ))}
                   
-                  {/* LAMPIRAN-LAMPIRAN */}
-                  {rubricContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 1: RUBRIK PENILAIAN</h3><div dangerouslySetInnerHTML={{ __html: rubricContent }} /></div>}
-                  {instrumenContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 2: INSTRUMEN EVALUASI</h3><div dangerouslySetInnerHTML={{ __html: instrumenContent }} /></div>}
-                  {lkpdContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 3: LEMBAR KERJA PESERTA DIDIK (LKPD)</h3><div dangerouslySetInnerHTML={{ __html: lkpdContent }} /></div>}
-                  {materiContent && <div className="mt-8 page-break custom-html-content"><h3 className="font-bold text-center border-b border-black pb-2 mb-4">LAMPIRAN 4: BAHAN BACAAN / MATERI AJAR</h3><div dangerouslySetInnerHTML={{ __html: materiContent }} /></div>}
+                  {/* LAMPIRAN-LAMPIRAN (Dapat Diedit Langsung di Mode Edit) */}
+                  {rubricContent && (
+                    <div className="mt-8 page-break custom-html-content">
+                      <div className="flex justify-between items-center border-b border-black pb-2 mb-4">
+                        <h3 className="font-bold text-center flex-1">LAMPIRAN 1: RUBRIK PENILAIAN</h3>
+                        {isEditing && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded no-print">✏️ Mode Edit: Klik teks tabel untuk mengubah langsung</span>}
+                      </div>
+                      <div 
+                        contentEditable={isEditing} 
+                        suppressContentEditableWarning={true}
+                        onBlur={(e) => {
+                          const newHtml = e.currentTarget.innerHTML;
+                          setRubricContent(newHtml);
+                          updateActiveHistory('rubricContent', newHtml);
+                        }}
+                        className={isEditing ? 'p-2 border-2 border-dashed border-yellow-400 rounded bg-yellow-50/20' : ''}
+                        dangerouslySetInnerHTML={{ __html: rubricContent }} 
+                      />
+                    </div>
+                  )}
+
+                  {instrumenContent && (
+                    <div className="mt-8 page-break custom-html-content">
+                      <div className="flex justify-between items-center border-b border-black pb-2 mb-4">
+                        <h3 className="font-bold text-center flex-1">LAMPIRAN 2: INSTRUMEN EVALUASI</h3>
+                        {isEditing && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded no-print">✏️ Mode Edit: Klik teks soal untuk mengubah langsung</span>}
+                      </div>
+                      <div 
+                        contentEditable={isEditing} 
+                        suppressContentEditableWarning={true}
+                        onBlur={(e) => {
+                          const newHtml = e.currentTarget.innerHTML;
+                          setInstrumenContent(newHtml);
+                          updateActiveHistory('instrumenContent', newHtml);
+                        }}
+                        className={isEditing ? 'p-2 border-2 border-dashed border-yellow-400 rounded bg-yellow-50/20' : ''}
+                        dangerouslySetInnerHTML={{ __html: instrumenContent }} 
+                      />
+                    </div>
+                  )}
+
+                  {lkpdContent && (
+                    <div className="mt-8 page-break custom-html-content">
+                      <div className="flex justify-between items-center border-b border-black pb-2 mb-4">
+                        <h3 className="font-bold text-center flex-1">LAMPIRAN 3: LEMBAR KERJA PESERTA DIDIK (LKPD)</h3>
+                        {isEditing && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded no-print">✏️ Mode Edit: Klik LKPD untuk mengubah langsung</span>}
+                      </div>
+                      <div 
+                        contentEditable={isEditing} 
+                        suppressContentEditableWarning={true}
+                        onBlur={(e) => {
+                          const newHtml = e.currentTarget.innerHTML;
+                          setLkpdContent(newHtml);
+                          updateActiveHistory('lkpdContent', newHtml);
+                        }}
+                        className={isEditing ? 'p-2 border-2 border-dashed border-yellow-400 rounded bg-yellow-50/20' : ''}
+                        dangerouslySetInnerHTML={{ __html: lkpdContent }} 
+                      />
+                    </div>
+                  )}
+
+                  {materiContent && (
+                    <div className="mt-8 page-break custom-html-content">
+                      <div className="flex justify-between items-center border-b border-black pb-2 mb-4">
+                        <h3 className="font-bold text-center flex-1">LAMPIRAN 4: BAHAN BACAAN / MATERI AJAR</h3>
+                        {isEditing && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded no-print">✏️ Mode Edit: Klik materi untuk mengubah langsung</span>}
+                      </div>
+                      <div 
+                        contentEditable={isEditing} 
+                        suppressContentEditableWarning={true}
+                        onBlur={(e) => {
+                          const newHtml = e.currentTarget.innerHTML;
+                          setMateriContent(newHtml);
+                          updateActiveHistory('materiContent', newHtml);
+                        }}
+                        className={isEditing ? 'p-2 border-2 border-dashed border-yellow-400 rounded bg-yellow-50/20' : ''}
+                        dangerouslySetInnerHTML={{ __html: materiContent }} 
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
